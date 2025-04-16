@@ -1,234 +1,312 @@
 "use client";
 
-import React, { useState, useCallback, useRef } from 'react';
-import axios from 'axios';
-import { Card as CardType } from './CardList';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from "@/components/ui/scroll-area"
+import React, { useState, useCallback, useRef } from "react";
+import axios from "axios";
+import { Button } from "@/components/ui/button";
 import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination"
-import { Icons } from '@/components/icons';
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Icons } from "@/components/icons";
 
 interface CardData {
-    name: string;
-    image_uris?: {
-        small: string;
-        normal: string;
-        large: string;
-    };
-    oracle_text?: string;
-    legalities: {
-        premodern: string;
-    };
-    mana_cost?: string;
-    type_line?: string;
+  id: string;
+  name: string;
+  image_uris?: {
+    small: string;
+    normal: string;
+    large: string;
+  };
+  oracle_text?: string;
+  legalities: {
+    premodern: string;
+  };
+  mana_cost?: string;
+  type_line?: string;
 }
 
 interface CardSearchProps {
-    addCardToDeck: (card: CardData) => void;
-    onCardPreview: (card: CardData) => void;
+  addCardToDeck: (card: CardData) => void;
+  onCardPreview: (card: CardData) => void;
 }
 
-const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview }) => {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [searchResults, setSearchResults] = useState<CardData[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [cardCounts, setCardCounts] = useState<Record<string, number>>({});
-    const [currentPage, setCurrentPage] = useState(1);
-    const cardsPerPage = 9;
-    const [totalPages, setTotalPages] = useState(1);
-    const [allCardsLoaded, setAllCardsLoaded] = useState(false); // Track if all cards are loaded
+const CardSearch: React.FC<CardSearchProps> = ({
+  addCardToDeck,
+  onCardPreview,
+}) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState<CardData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [cardCounts, setCardCounts] = useState<Record<string, number>>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [error, setError] = useState("");
 
-    const searchResultsRef = useRef<HTMLDivElement>(null);
+  const searchResultsRef = useRef<HTMLDivElement>(null);
 
-    const handleSearch = async (page: number = 1) => {
-        setLoading(true);
-        try {
-            let url = `https://api.scryfall.com/cards/search?q=format%3Apremodern`;
-            if (searchTerm) {
-                 const encodedSearchTerm = encodeURIComponent(searchTerm + ' type:' + searchTerm);
-                url += `+(${encodedSearchTerm})`;
-            }
-            url += `&page=${page}`;
-            console.log("URL:", url);
+  const handleSearch = useCallback(
+    async (page: number = 1) => {
+      if (!searchTerm.trim()) return;
 
-            const response = await axios.get(url);
+      setLoading(true);
+      setError("");
 
-            if (response.status === 200) {
-                const allCards: CardData[] = response.data.data;
-                setSearchResults(allCards);
-                setTotalPages(Math.ceil(response.data.total_cards / cardsPerPage));
-                setCurrentPage(page);
-                setAllCardsLoaded(allCards.length < cardsPerPage);
+      try {
+        const url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(
+          `name:${searchTerm.trim()}*`
+        )}&page=${page}`;
 
-                // Reset card counts on new search
-                const newCardCounts: Record<string, number> = {};
-                allCards.forEach((card: CardData) => {
-                    newCardCounts[card.name] = 0;
-                });
-                setCardCounts(newCardCounts);
-            } else {
-                console.error("Request failed with status code", response.status);
-                setSearchResults([]);
-                setCardCounts({});
-                setTotalPages(1);
-                setCurrentPage(1);
-                setAllCardsLoaded(true);
-            }
-        } catch (error: any) {
-            console.error("Error fetching cards:", error);
-            setSearchResults([]);
-            setCardCounts({});
-            setTotalPages(1);
-            setCurrentPage(1);
-            setAllCardsLoaded(true);
-        } finally {
-            setLoading(false);
+        const response = await axios.get<{
+          data: CardData[];
+          total_cards: number;
+          per_page: number;
+        }>(url);
+
+        if (response.status === 200) {
+          const filteredCards = response.data.data
+            .filter(
+              (card: CardData) =>
+                card.legalities?.premodern === "legal" &&
+                card.image_uris?.normal
+            )
+            .sort((a: CardData, b: CardData) => {
+              const aStartsWith = a.name
+                .toLowerCase()
+                .startsWith(searchTerm.toLowerCase());
+              const bStartsWith = b.name
+                .toLowerCase()
+                .startsWith(searchTerm.toLowerCase());
+              return Number(bStartsWith) - Number(aStartsWith);
+            });
+
+          setSearchResults(filteredCards);
+          setTotalPages(
+            Math.ceil(response.data.total_cards / response.data.per_page)
+          );
+          setCurrentPage(page);
+
+          setCardCounts((prev) => {
+            const newCounts = { ...prev };
+            filteredCards.forEach((card: CardData) => {
+              if (!(card.name in newCounts)) {
+                newCounts[card.name] = 0;
+              }
+            });
+            return newCounts;
+          });
         }
-    };
-
-    const handleKeyDown = (event: React.KeyboardEvent) => {
-        if (event.key === 'Enter') {
-            handleSearch(1);
-        }
-    };
-
-    const incrementCount = (card: CardData) => {
-        setCardCounts(prevCounts => {
-            const currentCount = prevCounts[card.name] || 0;
-            if (currentCount < 4) {
-                return { ...prevCounts, [card.name]: currentCount + 1 };
-            } else {
-                alert("You can only have up to 4 copies of a card in your deck.");
-                return prevCounts;
-            }
-        });
-    };
-
-    const decrementCount = (card: CardData) => {
-        setCardCounts(prevCounts => {
-            const currentCount = prevCounts[card.name] || 0;
-            if (currentCount > 0) {
-                return { ...prevCounts, [card.name]: currentCount - 1 };
-            } else {
-                return prevCounts;
-            }
-        });
-    };
-
-    const addCardToDeckWithCount = (card: CardData) => {
-        const count = cardCounts[card.name] || 0;
-        if (count > 0) {
-            for (let i = 0; i < count; i++) {
-                addCardToDeck(card);
-            }
-            // Reset count after adding to deck
-            setCardCounts(prevCounts => ({ ...prevCounts, [card.name]: 0 }));
+      } catch (error: any) {
+        if (error.response?.status === 422) {
+          setError("Invalid search query. Try using simpler terms.");
+        } else if (error.response?.status === 404) {
+          setError("No cards found. Try a different search.");
         } else {
-            alert("Please select at least one copy of the card to add.");
+          setError(
+            "Error connecting to card database. Please try again later."
+          );
         }
-    };
+        setSearchResults([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [searchTerm]
+  );
 
-     const handlePageChange = (newPage: number) => {
-        handleSearch(newPage);
-    };
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter") {
+      handleSearch(1);
+    }
+  };
 
-    return (
-        <div>
-            <div className="flex items-center mb-4">
-                <input
-                    type="text"
-                    placeholder="Search for cards..."
-                    className="bg-gray-700 text-white rounded p-2 mr-2 flex-grow"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyDown={handleKeyDown}
+  const incrementCount = (card: CardData) => {
+    setCardCounts((prevCounts) => {
+      const currentCount = prevCounts[card.name] || 0;
+      return currentCount < 4
+        ? { ...prevCounts, [card.name]: currentCount + 1 }
+        : prevCounts;
+    });
+  };
+
+  const decrementCount = (card: CardData) => {
+    setCardCounts((prevCounts) => {
+      const currentCount = prevCounts[card.name] || 0;
+      return currentCount > 0
+        ? { ...prevCounts, [card.name]: currentCount - 1 }
+        : prevCounts;
+    });
+  };
+
+  const addCardToDeckWithCount = (card: CardData) => {
+    const count = cardCounts[card.name] || 0;
+    if (count > 0) {
+      for (let i = 0; i < count; i++) {
+        addCardToDeck(card);
+      }
+      setCardCounts((prev) => ({ ...prev, [card.name]: 0 }));
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      handleSearch(newPage);
+      searchResultsRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full space-y-4">
+      {/* Search Bar */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          placeholder="Enter card name and press Search"
+          className="w-full p-2 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <Button
+          onClick={() => handleSearch(1)}
+          disabled={loading || !searchTerm.trim()}
+        >
+          {loading ? <Icons.spinner className="animate-spin" /> : "Search"}
+        </Button>
+      </div>
+
+      {error && <div className="text-red-500 p-2">{error}</div>}
+
+      {/* Results Container */}
+      <div
+        ref={searchResultsRef}
+        className="grid grid-cols-3 gap-4 overflow-y-auto p-1"
+        style={{
+          height: "calc(4 * (200px + 1rem))",
+          scrollbarWidth: "thin",
+        }}
+      >
+        {searchResults.map((card) => (
+          <div
+            key={card.id}
+            className="bg-gray-700 rounded-lg p-3 shadow-lg flex flex-col h-[200px]"
+          >
+            <button
+              onClick={() => onCardPreview(card)}
+              className="flex-1 flex flex-col items-center hover:opacity-75 transition-opacity"
+            >
+              {card.image_uris?.normal && (
+                <img
+                  src={card.image_uris.normal}
+                  alt={card.name}
+                  className="w-full h-28 object-contain mb-1"
+                  loading="lazy"
                 />
-                <button
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={() => handleSearch(1)}
-                    disabled={loading}
-                >
-                    {loading ? 'Searching...' : 'Search'}
-                </button>
-            </div>
-            {loading && <p>Loading results...</p>}
-            <div className="grid grid-cols-3 gap-4" ref={searchResultsRef}>
-                {searchResults.map((card) => (
-                    <div key={card.name} className="bg-gray-600 p-2 rounded">
-                        <button onClick={() => onCardPreview(card)} className="w-full">
-                            {card.image_uris && (
-                                <img
-                                    src={card.image_uris.normal}
-                                    alt={card.name}
-                                    className="w-full h-auto"
-                                />
-                            )}
-                            <p className="text-center">{card.name}</p>
-                        </button>
-                        <div className="flex items-center justify-center mt-2">
-                            <button
-                                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-2 rounded-l"
-                                onClick={() => decrementCount(card)}
-                            >
-                                -
-                            </button>
-                            <span className="bg-gray-700 text-white font-bold py-2 px-4">{cardCounts[card.name] || 0}</span>
-                            <button
-                                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-2 rounded-r"
-                                onClick={() => incrementCount(card)}
-                            >
-                                +
-                            </button>
-                        </div>
-                        <button
-                            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-2 w-full"
-                            onClick={() => addCardToDeckWithCount(card)}
-                        >
-                            Add to Deck
-                        </button>
-                    </div>
-                ))}
-                  {Array(Math.max(0, cardsPerPage - searchResults.length)).fill(null).map((_, index) => (
-                            <div key={`empty-${index}`} className="bg-gray-800 p-2 rounded flex items-center justify-center text-gray-500">
-                                &nbsp;
-                            </div>
-                        ))}
+              )}
+              <h3 className="font-semibold text-sm text-center truncate w-full">
+                {card.name}
+              </h3>
+              <p className="text-xs text-gray-300 text-center">
+                {card.mana_cost}
+              </p>
+            </button>
+
+            <div className="flex items-center justify-center mt-1 space-x-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={() => decrementCount(card)}
+              >
+                -
+              </Button>
+              <span className="px-2 py-1 bg-gray-800 rounded text-sm">
+                {cardCounts[card.name] || 0}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={() => incrementCount(card)}
+              >
+                +
+              </Button>
             </div>
 
-            <Pagination>
-                <PaginationContent>
-                    <PaginationPrevious
-                        href="#"
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                    />
-                    {Array.from({ length: Math.min(15, totalPages) }, (_, i) => (
-                        <PaginationItem key={i + 1}>
-                            <PaginationLink
-                                href="#"
-                                isCurrent={currentPage === i + 1}
-                                onClick={() => handlePageChange(i + 1)}
-                            >
-                                {i + 1}
-                            </PaginationLink>
-                        </PaginationItem>
-                    ))}
-                    <PaginationNext
-                        href="#"
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages || totalPages <= 15}
-                    />
-                </PaginationContent>
-            </Pagination>
-        </div>
-    );
+            <Button
+              size="sm"
+              className="w-full mt-1 h-6 text-xs"
+              onClick={() => addCardToDeckWithCount(card)}
+            >
+              Add to Deck
+            </Button>
+          </div>
+        ))}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (currentPage > 1) handlePageChange(currentPage - 1);
+                }}
+                className={
+                  currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                }
+                aria-disabled={currentPage === 1}
+              />
+            </PaginationItem>
+
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const page =
+                Math.max(1, Math.min(currentPage - 2, totalPages - 4)) + i;
+              return (
+                page <= totalPages && (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      href="#"
+                      isActive={page === currentPage}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(page);
+                      }}
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              );
+            })}
+
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (currentPage < totalPages)
+                    handlePageChange(currentPage + 1);
+                }}
+                className={
+                  currentPage === totalPages
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }
+                aria-disabled={currentPage === totalPages}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
+    </div>
+  );
 };
 
 export default CardSearch;
