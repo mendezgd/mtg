@@ -1,3 +1,4 @@
+// components/DeckBuilderPage.tsx
 "use client";
 
 import React, { useState, useCallback } from "react";
@@ -5,25 +6,18 @@ import CardSearch from "@/components/CardSearch";
 import DeckBuilder from "@/components/DeckBuilder";
 import { Card } from "@/components/CardList";
 
-interface CardData {
-  name: string;
-  image_uris?: {
-    small: string;
-    normal: string;
-  };
-  oracle_text?: string;
-  mana_cost?: string;
-  type_line?: string;
-}
-
 const DeckBuilderPage: React.FC = () => {
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
-  const [previewedCard, setPreviewedCard] = useState<CardData | null>(null);
+  const [previewedCard, setPreviewedCard] = useState<Card | null>(null);
   const [cardCounts, setCardCounts] = useState<Record<string, number>>({});
-  const [decks, setDecks] = useState<any[]>([]); // Assuming Deck type is available
+  const [decks, setDecks] = useState<any[]>([]);
+
+  const isBasicLand = (card: Card) => {
+    return card.type_line?.includes("Basic Land");
+  };
 
   const addCardToDeck = useCallback(
-    (card: CardData) => {
+    (card: Card) => {
       if (!selectedDeckId) {
         alert("Please select a deck.");
         return;
@@ -34,19 +28,19 @@ const DeckBuilderPage: React.FC = () => {
           if (deck.id === selectedDeckId) {
             const cardName = card.name;
             let updatedCards = { ...deck.cards };
+            const isLand = isBasicLand(card);
 
             if (updatedCards[cardName]) {
-              if (updatedCards[cardName].count < 4) {
-                updatedCards[cardName] = {
-                  card: card,
-                  count: updatedCards[cardName].count + 1,
-                };
-              } else {
+              if (!isLand && updatedCards[cardName].count >= 4) {
                 alert(
-                  "You can only have up to 4 copies of a card in your deck."
+                  "You can only have up to 4 copies of a non-Basic Land card in your deck."
                 );
                 return deck;
               }
+              updatedCards[cardName] = {
+                card: card,
+                count: updatedCards[cardName].count + 1,
+              };
             } else {
               updatedCards[cardName] = { card: card, count: 1 };
             }
@@ -87,41 +81,40 @@ const DeckBuilderPage: React.FC = () => {
     [selectedDeckId, setDecks]
   );
 
-  const handleCardPreview = (card: CardData) => {
+  const handleCardPreview = (card: Card) => {
     setPreviewedCard(card);
     setCardCounts((prev) => ({ ...prev, [card.name]: 0 }));
   };
 
-  const incrementCount = (card: CardData) => {
+  const incrementCount = (card: Card) => {
     setCardCounts((prevCounts) => {
       const currentCount = prevCounts[card.name] || 0;
-      if (currentCount < 4) {
+      if (isBasicLand(card) || currentCount < 4) {
         return { ...prevCounts, [card.name]: currentCount + 1 };
       } else {
-        alert("You can only have up to 4 copies of a card in your deck.");
+        alert(
+          "You can only have up to 4 copies of a non-Basic Land card in your deck."
+        );
         return prevCounts;
       }
     });
   };
 
-  const decrementCount = (card: CardData) => {
+  const decrementCount = (card: Card) => {
     setCardCounts((prevCounts) => {
       const currentCount = prevCounts[card.name] || 0;
-      if (currentCount > 0) {
-        return { ...prevCounts, [card.name]: currentCount - 1 };
-      } else {
-        return prevCounts;
-      }
+      return currentCount > 0
+        ? { ...prevCounts, [card.name]: currentCount - 1 }
+        : prevCounts;
     });
   };
 
-  const addCardToDeckWithCount = (card: CardData) => {
+  const addCardToDeckWithCount = (card: Card) => {
     const count = cardCounts[card.name] || 0;
     if (count > 0) {
       for (let i = 0; i < count; i++) {
         addCardToDeck(card);
       }
-      // Reset count after adding to deck
       setCardCounts((prevCounts) => ({ ...prevCounts, [card.name]: 0 }));
     } else {
       alert("Please select at least one copy of the card to add.");
@@ -145,7 +138,7 @@ const DeckBuilderPage: React.FC = () => {
         {previewedCard ? (
           <div>
             <p className="mb-2">{previewedCard.name}</p>
-            {previewedCard.image_uris && (
+            {previewedCard.image_uris?.normal && (
               <img
                 src={previewedCard.image_uris.normal}
                 alt={previewedCard.name}
@@ -199,9 +192,7 @@ const DeckBuilderPage: React.FC = () => {
           selectedDeckId={selectedDeckId}
           setSelectedDeckId={setSelectedDeckId}
           removeCardFromDeck={removeCardFromDeck}
-          addCardToDeck={function (card: Card): void {
-            throw new Error("Function not implemented.");
-          }}
+          addCardToDeck={addCardToDeck}
         />
       </div>
     </div>

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import axios from "axios";
+import { Card } from "@/components/CardList";
 import { Button } from "@/components/ui/button";
 import {
   Pagination,
@@ -16,22 +17,31 @@ import { Icons } from "@/components/icons";
 interface CardData {
   id: string;
   name: string;
+  set_name: string;
   image_uris?: {
     small: string;
     normal: string;
     large: string;
   };
+  card_faces?: Array<{
+    image_uris?: {
+      small: string;
+      normal: string;
+      large: string;
+    };
+  }>;
   oracle_text?: string;
   legalities: {
     premodern: string;
   };
   mana_cost?: string;
   type_line?: string;
+  prints_search_uri?: string;
 }
 
 interface CardSearchProps {
-  addCardToDeck: (card: CardData) => void;
-  onCardPreview: (card: CardData) => void;
+  addCardToDeck: (card: Card) => void;
+  onCardPreview: (card: Card) => void;
 }
 
 const CardSearch: React.FC<CardSearchProps> = ({
@@ -45,8 +55,35 @@ const CardSearch: React.FC<CardSearchProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [error, setError] = useState("");
+  const [selectedCardPrints, setSelectedCardPrints] = useState<CardData[]>([]);
+  const [selectedCardName, setSelectedCardName] = useState<string | null>(null);
 
   const searchResultsRef = useRef<HTMLDivElement>(null);
+
+  const fetchCardPrints = async (card: CardData) => {
+    if (!card.prints_search_uri) return [];
+
+    try {
+      const response = await axios.get(card.prints_search_uri);
+      return response.data.data.filter(
+        (print: CardData) =>
+          print.legalities?.premodern === "legal" &&
+          (print.image_uris?.normal ||
+            print.card_faces?.[0]?.image_uris?.normal)
+      );
+    } catch (error) {
+      console.error("Error fetching card prints:", error);
+      return [];
+    }
+  };
+
+  const buildSearchQuery = (term: string) => {
+    const baseQuery = "format:premodern";
+    if (!term.trim()) return baseQuery;
+
+    // Búsqueda flexible que funciona con nombres parciales
+    return `${baseQuery} name:${term}*`;
+  };
 
   const handleSearch = useCallback(
     async (page: number = 1) => {
@@ -54,11 +91,13 @@ const CardSearch: React.FC<CardSearchProps> = ({
 
       setLoading(true);
       setError("");
+      setSelectedCardPrints([]);
+      setSelectedCardName(null);
 
       try {
-        const url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(
-          `name:${searchTerm.trim()}*`
-        )}&page=${page}`;
+        const query = buildSearchQuery(searchTerm);
+        const encodedQuery = encodeURIComponent(query);
+        const url = `https://api.scryfall.com/cards/search?q=${encodedQuery}&page=${page}&unique=prints`;
 
         const response = await axios.get<{
           data: CardData[];
@@ -71,9 +110,11 @@ const CardSearch: React.FC<CardSearchProps> = ({
             .filter(
               (card: CardData) =>
                 card.legalities?.premodern === "legal" &&
-                card.image_uris?.normal
+                (card.image_uris?.normal ||
+                  card.card_faces?.[0]?.image_uris?.normal)
             )
             .sort((a: CardData, b: CardData) => {
+              // Ordenar por mejor coincidencia
               const aStartsWith = a.name
                 .toLowerCase()
                 .startsWith(searchTerm.toLowerCase());
@@ -100,14 +141,13 @@ const CardSearch: React.FC<CardSearchProps> = ({
           });
         }
       } catch (error: any) {
-        if (error.response?.status === 422) {
-          setError("Invalid search query. Try using simpler terms.");
-        } else if (error.response?.status === 404) {
+        if (error.response?.status === 404) {
           setError("No cards found. Try a different search.");
+        } else if (error.response?.status === 422) {
+          // Si falla la búsqueda con wildcard, intentamos una búsqueda exacta
+          handleExactSearch(page);
         } else {
-          setError(
-            "Error connecting to card database. Please try again later."
-          );
+          setError("Error searching cards. Please try again.");
         }
         setSearchResults([]);
       } finally {
@@ -117,9 +157,42 @@ const CardSearch: React.FC<CardSearchProps> = ({
     [searchTerm]
   );
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === "Enter") {
-      handleSearch(1);
+  const handleExactSearch = async (page: number) => {
+    try {
+      const exactQuery = `format:premodern name:"${searchTerm.trim()}"`;
+      const url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(
+        exactQuery
+      )}&page=${page}`;
+
+      const response = await axios.get(url);
+      if (response.status === 200) {
+        const filteredCards = response.data.data.filter(
+          (card: CardData) =>
+            card.legalities?.premodern === "legal" &&
+            (card.image_uris?.normal ||
+              card.card_faces?.[0]?.image_uris?.normal)
+        );
+        setSearchResults(filteredCards);
+        setTotalPages(
+          Math.ceil(response.data.total_cards / response.data.per_page)
+        );
+      }
+    } catch (exactError) {
+      setError("No matching cards found.");
+      setSearchResults([]);
+    }
+  };
+
+  const handleShowAlternateArts = async (card: CardData) => {
+    setLoading(true);
+    try {
+      const prints = await fetchCardPrints(card);
+      setSelectedCardPrints(prints);
+      setSelectedCardName(card.name);
+    } catch (error) {
+      setError("Could not load alternate arts");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -164,11 +237,11 @@ const CardSearch: React.FC<CardSearchProps> = ({
       <div className="flex gap-2">
         <input
           type="text"
-          placeholder="Enter card name and press Search"
+          placeholder="Search for cards (e.g. 'dures' or 'gobl')"
           className="w-full p-2 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyDown={handleKeyDown}
+          onKeyDown={(e) => e.key === "Enter" && handleSearch(1)}
         />
         <Button
           onClick={() => handleSearch(1)}
@@ -180,12 +253,15 @@ const CardSearch: React.FC<CardSearchProps> = ({
 
       {error && <div className="text-red-500 p-2">{error}</div>}
 
-      {/* Results Container */}
+      {/* Main Results */}
       <div
         ref={searchResultsRef}
         className="grid grid-cols-3 gap-4 overflow-y-auto p-1"
         style={{
-          height: "calc(4 * (200px + 1rem))",
+          height:
+            selectedCardPrints.length > 0
+              ? "300px"
+              : "calc(4 * (200px + 1rem))",
           scrollbarWidth: "thin",
         }}
       >
@@ -198,58 +274,107 @@ const CardSearch: React.FC<CardSearchProps> = ({
               onClick={() => onCardPreview(card)}
               className="flex-1 flex flex-col items-center hover:opacity-75 transition-opacity"
             >
-              {card.image_uris?.normal && (
+              {card.image_uris?.normal ? (
                 <img
                   src={card.image_uris.normal}
                   alt={card.name}
                   className="w-full h-28 object-contain mb-1"
                   loading="lazy"
                 />
+              ) : card.card_faces?.[0]?.image_uris?.normal ? (
+                <img
+                  src={card.card_faces[0].image_uris.normal}
+                  alt={card.name}
+                  className="w-full h-28 object-contain mb-1"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-full h-28 bg-gray-600 flex items-center justify-center mb-1">
+                  <span>No Image</span>
+                </div>
               )}
               <h3 className="font-semibold text-sm text-center truncate w-full">
                 {card.name}
               </h3>
               <p className="text-xs text-gray-300 text-center">
-                {card.mana_cost}
+                {card.set_name} • {card.mana_cost}
               </p>
             </button>
 
-            <div className="flex items-center justify-center mt-1 space-x-1">
+            <div className="flex justify-between mt-2">
               <Button
                 variant="outline"
                 size="sm"
-                className="h-6 w-6 p-0"
-                onClick={() => decrementCount(card)}
+                className="text-xs h-6"
+                onClick={() => handleShowAlternateArts(card)}
               >
-                -
+                View Arts
               </Button>
-              <span className="px-2 py-1 bg-gray-800 rounded text-sm">
-                {cardCounts[card.name] || 0}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-6 w-6 p-0"
-                onClick={() => incrementCount(card)}
-              >
-                +
-              </Button>
+              <div className="flex items-center space-x-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={() => decrementCount(card)}
+                >
+                  -
+                </Button>
+                <span className="px-2 py-1 bg-gray-800 rounded text-sm">
+                  {cardCounts[card.name] || 0}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={() => incrementCount(card)}
+                >
+                  +
+                </Button>
+              </div>
             </div>
-
-            <Button
-              size="sm"
-              className="w-full mt-1 h-6 text-xs"
-              onClick={() => addCardToDeckWithCount(card)}
-            >
-              Add to Deck
-            </Button>
           </div>
         ))}
       </div>
 
+      {/* Alternate Arts Section */}
+      {selectedCardPrints.length > 0 && (
+        <div className="mt-4">
+          <h3 className="text-lg font-semibold mb-2">
+            Alternate Arts for {selectedCardName}
+          </h3>
+          <div className="grid grid-cols-4 gap-3 overflow-x-auto pb-2">
+            {selectedCardPrints.map((print) => (
+              <div
+                key={print.id}
+                className="bg-gray-700 rounded-lg p-2 shadow flex flex-col"
+              >
+                <img
+                  src={
+                    print.image_uris?.normal ||
+                    print.card_faces?.[0]?.image_uris?.normal ||
+                    ""
+                  }
+                  alt={`${print.name} - ${print.set_name}`}
+                  className="w-full h-40 object-contain"
+                  loading="lazy"
+                />
+                <p className="text-xs text-center mt-1">{print.set_name}</p>
+                <Button
+                  size="sm"
+                  className="mt-1 text-xs h-6"
+                  onClick={() => addCardToDeck(print)}
+                >
+                  Add to Deck
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Pagination */}
       {totalPages > 1 && (
-        <Pagination>
+        <Pagination className="mt-2">
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
