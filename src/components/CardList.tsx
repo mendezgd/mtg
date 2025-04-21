@@ -15,3 +15,15 @@ export interface Card {
     premodern: string;
   };
 }
+
+export interface CardType {
+  id: string;
+  name: string;
+  image_uris?: {
+    normal?: string;
+  };
+}
+export interface CardListProps {
+  cards: Card[];
+  onCardClick: (card: Card) => void;
+}

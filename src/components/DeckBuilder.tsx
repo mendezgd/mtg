@@ -1,172 +1,252 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
-import { Card as CardType } from './CardList';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from "@/components/ui/scroll-area"
+import React, { useState, useCallback } from "react";
+import { Card as CardType } from "./CardList";
+import { Button } from "../components/ui/button";
+import { ScrollArea } from "../components/ui/scroll-area";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "../components/ui/hover-card";
 
 interface Deck {
-    id: string;
-    name: string;
-    cards: { [cardName: string]: { card: CardType; count: number } };
+  id: string;
+  name: string;
+  cards: { [cardName: string]: { card: CardType; count: number } };
 }
 
 interface DeckBuilderProps {
-    decks: Deck[];
-    setDecks: React.Dispatch<React.SetStateAction<Deck[]>>;
-    selectedDeckId: string | null;
-    setSelectedDeckId: React.Dispatch<React.SetStateAction<string | null>>;
-    removeCardFromDeck: (cardName: string) => void;
-    addCardToDeck: (card: CardType) => void;
+  decks: Deck[];
+  setDecks: React.Dispatch<React.SetStateAction<Deck[]>>;
+  selectedDeckId: string | null;
+  setSelectedDeckId: React.Dispatch<React.SetStateAction<string | null>>;
+  removeCardFromDeck: (cardName: string) => void;
+  addCardToDeck: (card: CardType) => void;
 }
 
-const DeckBuilder: React.FC<DeckBuilderProps> = ({ decks, setDecks, selectedDeckId, setSelectedDeckId, removeCardFromDeck, addCardToDeck }) => {
-    const [newDeckName, setNewDeckName] = useState('');
+const DeckBuilder: React.FC<DeckBuilderProps> = ({
+  decks,
+  setDecks,
+  selectedDeckId,
+  setSelectedDeckId,
+  removeCardFromDeck,
+  addCardToDeck,
+}) => {
+  const [newDeckName, setNewDeckName] = useState("");
+  const [sampleHand, setSampleHand] = useState<CardType[]>([]);
 
-    const handleDeckNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setNewDeckName(e.target.value);
-    };
+  const handleDeckNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewDeckName(e.target.value);
+  };
 
-    const createNewDeck = () => {
-        if (newDeckName.trim() !== '') {
-            const newDeck: Deck = {
-                id: Date.now().toString(),
-                name: newDeckName,
-                cards: {},
-            };
-            setDecks([...decks, newDeck]);
-            setSelectedDeckId(newDeck.id); // Automatically select the new deck
-            setNewDeckName('');
-        } else {
-            alert('Please enter a deck name.');
-        }
-    };
+  const createNewDeck = () => {
+    if (newDeckName.trim()) {
+      const newDeck: Deck = {
+        id: Date.now().toString(),
+        name: newDeckName,
+        cards: {},
+      };
+      setDecks([...decks, newDeck]);
+      setSelectedDeckId(newDeck.id);
+      setNewDeckName("");
+    }
+  };
 
-    const handleKeyDown = (event: React.KeyboardEvent) => {
-        if (event.key === 'Enter') {
-            createNewDeck();
-        }
-    };
+  const selectDeck = (deckId: string) => {
+    setSelectedDeckId(deckId);
+    setSampleHand([]);
+  };
 
-    const selectDeck = (deckId: string) => {
-        setSelectedDeckId(deckId);
-    };
+  const selectedDeck = decks.find((deck) => deck.id === selectedDeckId);
 
-    const selectedDeck = decks.find(deck => deck.id === selectedDeckId);
+  const incrementCardCount = (card: CardType) => {
+    addCardToDeck(card);
+  };
 
-    const incrementCardCount = (card: CardType) => {
-        if (!selectedDeckId) {
-            alert('Please select a deck.');
-            return;
-        }
+  const decrementCardCount = (cardName: string) => {
+    removeCardFromDeck(cardName);
+  };
 
-        setDecks(prevDecks => {
-            return prevDecks.map(deck => {
-                if (deck.id === selectedDeckId) {
-                    const cardName = card.name;
-                    let updatedCards = { ...deck.cards };
+  const generateSampleHand = useCallback(() => {
+    if (!selectedDeck) return;
 
-                    if (updatedCards[cardName]) {
-                        if (updatedCards[cardName].count < 4) {
-                            updatedCards[cardName] = { card: card, count: updatedCards[cardName].count + 1 };
-                        } else {
-                            alert('You can only have up to 4 copies of a card in your deck.');
-                            return deck;
-                        }
-                    } else {
-                        updatedCards[cardName] = { card: card, count: 1 };
+    const cardPool: CardType[] = [];
+    Object.values(selectedDeck.cards).forEach(({ card, count }) => {
+      for (let i = 0; i < count; i++) cardPool.push(card);
+    });
+
+    if (cardPool.length < 7) {
+      alert("El mazo necesita al menos 7 cartas");
+      return;
+    }
+
+    const shuffled = [...cardPool].sort(() => Math.random() - 0.5);
+    setSampleHand(shuffled.slice(0, 7));
+  }, [selectedDeck]);
+
+  return (
+    <div className="flex flex-col h-full bg-gray-900 text-gray-100">
+      <div className="p-4 border-b border-gray-700">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-bold mb-4">Constructor de Mazos</h2>
+
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-2">Tus Mazos</h3>
+            <ScrollArea className="h-40 mb-4">
+              {decks.map((deck) => (
+                <div
+                  key={deck.id}
+                  onClick={() => selectDeck(deck.id)}
+                  className={`p-3 mb-2 rounded-lg cursor-pointer transition-colors
+                    ${
+                      selectedDeckId === deck.id
+                        ? "bg-blue-600 hover:bg-blue-700"
+                        : "bg-gray-800 hover:bg-gray-700"
                     }
-
-                    return { ...deck, cards: updatedCards };
-                }
-                return deck;
-            });
-        });
-    };
-
-    const decrementCardCount = (cardName: string) => {
-         if (!selectedDeckId) return;
-
-        setDecks(prevDecks => {
-            return prevDecks.map(deck => {
-                if (deck.id === selectedDeckId) {
-                    let updatedCards = { ...deck.cards };
-                    if (updatedCards[cardName]) {
-                        if (updatedCards[cardName].count > 1) {
-                            updatedCards[cardName] = { card: updatedCards[cardName].card, count: updatedCards[cardName].count - 1 };
-                        } else {
-                            delete updatedCards[cardName];
-                        }
-                    }
-                    return { ...deck, cards: updatedCards };
-                }
-                return deck;
-            });
-        });
-    };
-
-    return (
-        <div className="flex flex-col">
-            {/* Deck List Column */}
-            <div className="p-4 border-b border-gray-700">
-                <h3 className="text-lg font-bold mb-2">My Decks</h3>
-                <ul>
-                    {decks.map(deck => (
-                        <li
-                            key={deck.id}
-                            className={`p-2 rounded cursor-pointer ${selectedDeckId === deck.id ? 'bg-gray-600' : 'hover:bg-gray-700'}`}
-                            onClick={() => selectDeck(deck.id)}
-                        >
-                            {deck.name}
-                        </li>
-                    ))}
-                </ul>
-
-                {/* Deck Creation */}
-                <div className="mt-4">
-                    <h3 className="text-lg font-bold mb-2">Create New Deck</h3>
-                    <div className="flex flex-col">
-                        <input
-                            type="text"
-                            placeholder="Enter deck name"
-                            className="bg-gray-700 text-white rounded p-2 mb-2"
-                            value={newDeckName}
-                            onChange={handleDeckNameChange}
-                            onKeyDown={handleKeyDown}
-                        />
-                        <Button onClick={createNewDeck}>Create Deck</Button>
-                    </div>
+                  `}
+                >
+                  <div className="flex justify-between items-center">
+                    <span>{deck.name}</span>
+                    <span className="text-sm text-gray-400">
+                      {Object.values(deck.cards).reduce(
+                        (acc, { count }) => acc + count,
+                        0
+                      )}{" "}
+                      cartas
+                    </span>
+                  </div>
                 </div>
+              ))}
+            </ScrollArea>
+          </div>
+
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-3">Nuevo Mazo</h3>
+            <div className="flex gap-3">
+              <input
+                type="text"
+                placeholder="Nombre del mazo"
+                className="bg-gray-800 rounded-lg p-3 flex-grow focus:ring-2 focus:ring-blue-500"
+                value={newDeckName}
+                onChange={handleDeckNameChange}
+                onKeyDown={(e) => e.key === "Enter" && createNewDeck()}
+              />
+              <Button
+                onClick={createNewDeck}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Crear
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 p-4 overflow-auto">
+        {selectedDeck ? (
+          <div className="max-w-4xl mx-auto">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-bold">{selectedDeck.name}</h2>
+                <p className="text-gray-400">
+                  {Object.values(selectedDeck.cards).reduce(
+                    (acc, { count }) => acc + count,
+                    0
+                  )}{" "}
+                  cartas en el mazo
+                </p>
+              </div>
+              <Button
+                onClick={generateSampleHand}
+                disabled={Object.keys(selectedDeck.cards).length === 0}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                Generar Mano de Prueba
+              </Button>
             </div>
 
-            {/* Deck Display Column */}
-            <div className="p-4">
-                {selectedDeck && (
-                     <div className="flex flex-col">
-                        <h3 className="text-lg font-bold mb-2">{selectedDeck.name}</h3>
-                          <ScrollArea className="rounded-md border p-1">
-                            <div className="flex flex-col gap-2">
-                                {Object.entries(selectedDeck.cards).map(([cardName, cardInfo]) => (
-                                    <div key={cardName} className="bg-gray-700 p-2 rounded flex items-center justify-between">
-                                        <div className="flex items-center">
-                                            <span className="mr-2">({cardInfo.count}x)</span>
-                                            <p className="text-center">{cardName}</p>
-                                        </div>
-                                        <div>
-                                            <Button size="sm" onClick={() => decrementCardCount(cardName)}>-</Button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                         </ScrollArea>
-                    </div>
-                )}
-                {!selectedDeck && (
-                    <p>Select a deck to view its contents.</p>
-                )}
+            {sampleHand.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold mb-4">Mano de Prueba</h3>
+                <ScrollArea className="w-full">
+                  <div className="flex gap-2">
+                    {sampleHand.map((card, index) => (
+                      <div key={index} className="relative group flex-shrink-0">
+                        <div
+                          className="w-32 rounded-xl overflow-hidden shadow-lg 
+                               border-2 border-gray-700 group-hover:border-blue-500
+                               transition-all duration-300"
+                        >
+                          <img
+                            src={card.image_uris?.normal || "/default-card.jpg"}
+                            alt={card.name}
+                            className="w-full h-full object-cover 
+                                     group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
+
+            <div className="grid gap-4">
+              {Object.entries(selectedDeck.cards).map(
+                ([name, { card, count }]) => (
+                  <HoverCard key={name}>
+                    <HoverCardTrigger asChild>
+                      <div className="bg-gray-800 rounded-lg p-4 flex justify-between items-center hover:bg-gray-750 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <span className="font-medium">{name}</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => decrementCardCount(name)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              -
+                            </Button>
+                            <span className="w-8 text-center">{count}</span>
+                            <Button
+                              size="sm"
+                              onClick={() => incrementCardCount(card)}
+                              disabled={count >= 4}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              +
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="w-64 border-0 p-0 bg-transparent shadow-none">
+                      <div className="relative w-64 h-96 rounded-xl overflow-hidden border-2 border-gray-700">
+                        <img
+                          src={card.image_uris?.normal || "/default-card.jpg"}
+                          alt={name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
+                )
+              )}
             </div>
-        </div>
-    );
+          </div>
+        ) : (
+          <div className="h-full flex items-center justify-center text-gray-400 text-xl">
+            ⬅ Selecciona o crea un mazo para comenzar
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default DeckBuilder;
