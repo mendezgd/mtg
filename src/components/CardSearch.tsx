@@ -183,37 +183,6 @@ const CardSearch: React.FC<CardSearchProps> = ({
     }
   };
 
-  const handleShowAlternateArts = async (card: CardData) => {
-    setLoading(true);
-    try {
-      const prints = await fetchCardPrints(card);
-      setSelectedCardPrints(prints);
-      setSelectedCardName(card.name);
-    } catch (error) {
-      setError("Could not load alternate arts");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const incrementCount = (card: CardData) => {
-    setCardCounts((prevCounts) => {
-      const currentCount = prevCounts[card.name] || 0;
-      return currentCount < 4
-        ? { ...prevCounts, [card.name]: currentCount + 1 }
-        : prevCounts;
-    });
-  };
-
-  const decrementCount = (card: CardData) => {
-    setCardCounts((prevCounts) => {
-      const currentCount = prevCounts[card.name] || 0;
-      return currentCount > 0
-        ? { ...prevCounts, [card.name]: currentCount - 1 }
-        : prevCounts;
-    });
-  };
-
   const addCardToDeckWithCount = (card: CardData) => {
     const count = cardCounts[card.name] || 0;
     if (count > 0) {
@@ -233,7 +202,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
 
   return (
     <div className="flex flex-col h-full space-y-4">
-      {/* Barra de búsqueda - Sin cambios */}
+      {/* Barra de búsqueda */}
       <div className="flex gap-2">
         <input
           type="text"
@@ -265,7 +234,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
         {searchResults.map((card) => (
           <div
             key={card.id}
-            className="rounded-lg p-3 shadow-lg flex flex-col h-[240px]"
+            className="rounded-lg p-2 flex flex-col h-[240px]"
           >
             {/* Contenedor de la imagen */}
             <div className="flex-1 relative group">
@@ -297,7 +266,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
 
             {/* Nombre y botón */}
             <div className="flex flex-col items-center">
-              <h3 className="font-semibold text-sm text-center truncate w-full mb-2">
+              <h3 className="font-semibold text-sm text-center truncate w-full mb-1">
                 {card.name}
               </h3>
               <Button
