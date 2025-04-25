@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { Card as CardType } from "./CardList";
 import { Button } from "../components/ui/button";
 import { ScrollArea } from "../components/ui/scroll-area";
@@ -35,6 +35,37 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
 }) => {
   const [newDeckName, setNewDeckName] = useState("");
   const [sampleHand, setSampleHand] = useState<CardType[]>([]);
+
+  // Drag scroll logic
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  const startDrag = (e: React.MouseEvent | React.TouchEvent) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+
+    setIsDragging(true);
+    setStartX(clientX - container.offsetLeft);
+    setScrollLeft(container.scrollLeft);
+  };
+
+  const duringDrag = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+
+    e.preventDefault();
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const x = clientX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const endDrag = () => {
+    setIsDragging(false);
+  };
 
   const handleDeckNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewDeckName(e.target.value);
@@ -169,10 +200,25 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
             {sampleHand.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-xl font-semibold mb-4">Mano de Prueba</h3>
-                <ScrollArea className="w-full">
-                  <div className="flex gap-2">
+                <div
+                  ref={scrollContainerRef}
+                  className={`w-full overflow-x-auto cursor-grab ${
+                    isDragging ? "cursor-grabbing" : ""
+                  }`}
+                  onMouseDown={startDrag}
+                  onMouseUp={endDrag}
+                  onMouseLeave={endDrag}
+                  onTouchStart={startDrag}
+                  onTouchMove={duringDrag}
+                  onTouchEnd={endDrag}
+                  style={{ scrollBehavior: "smooth", scrollbarWidth: "none" }}
+                >
+                  <div className="flex gap-2 pb-4" onMouseMove={duringDrag}>
                     {sampleHand.map((card, index) => (
-                      <div key={index} className="relative group flex-shrink-0">
+                      <div
+                        key={index}
+                        className="relative group flex-shrink-0 select-none"
+                      >
                         <div
                           className="w-32 rounded-xl overflow-hidden shadow-lg 
                                border-2 border-gray-700 group-hover:border-blue-500
@@ -184,12 +230,13 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
                             className="w-full h-full object-cover 
                                      group-hover:scale-105 transition-transform duration-300"
                             loading="lazy"
+                            draggable="false"
                           />
                         </div>
                       </div>
                     ))}
                   </div>
-                </ScrollArea>
+                </div>
               </div>
             )}
 

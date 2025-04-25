@@ -9,7 +9,7 @@ import { Card } from "@/components/CardList";
 const DeckBuilderPage: React.FC = () => {
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
   const [previewedCard, setPreviewedCard] = useState<Card | null>(null);
-  const [cardCounts, setCardCounts] = useState<Record<string, number>>({});
+  // Eliminamos el estado de cardCounts
   const [decks, setDecks] = useState<any[]>([]);
 
   const isBasicLand = (card: Card) => {
@@ -83,42 +83,6 @@ const DeckBuilderPage: React.FC = () => {
 
   const handleCardPreview = (card: Card) => {
     setPreviewedCard(card);
-    setCardCounts((prev) => ({ ...prev, [card.name]: 0 }));
-  };
-
-  const incrementCount = (card: Card) => {
-    setCardCounts((prevCounts) => {
-      const currentCount = prevCounts[card.name] || 0;
-      if (isBasicLand(card) || currentCount < 4) {
-        return { ...prevCounts, [card.name]: currentCount + 1 };
-      } else {
-        alert(
-          "You can only have up to 4 copies of a non-Basic Land card in your deck."
-        );
-        return prevCounts;
-      }
-    });
-  };
-
-  const decrementCount = (card: Card) => {
-    setCardCounts((prevCounts) => {
-      const currentCount = prevCounts[card.name] || 0;
-      return currentCount > 0
-        ? { ...prevCounts, [card.name]: currentCount - 1 }
-        : prevCounts;
-    });
-  };
-
-  const addCardToDeckWithCount = (card: Card) => {
-    const count = cardCounts[card.name] || 0;
-    if (count > 0) {
-      for (let i = 0; i < count; i++) {
-        addCardToDeck(card);
-      }
-      setCardCounts((prevCounts) => ({ ...prevCounts, [card.name]: 0 }));
-    } else {
-      alert("Please select at least one copy of the card to add.");
-    }
   };
 
   return (
@@ -133,7 +97,7 @@ const DeckBuilderPage: React.FC = () => {
       </div>
 
       {/* Card Preview Column */}
-      <div className="w-1/3 p-4 border-r border-gray-700">
+      <div className="w-1/4 p-4 border-r border-gray-700">
         <h2 className="text-xl font-bold mb-4">Card Preview</h2>
         {previewedCard ? (
           <div>
@@ -154,26 +118,9 @@ const DeckBuilderPage: React.FC = () => {
             {previewedCard.oracle_text && (
               <p className="mt-4">{previewedCard.oracle_text}</p>
             )}
-            <div className="flex items-center justify-center mt-2">
-              <button
-                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-2 rounded-l"
-                onClick={() => decrementCount(previewedCard)}
-              >
-                -
-              </button>
-              <span className="bg-gray-700 text-white font-bold py-2 px-4">
-                {cardCounts[previewedCard.name] || 0}
-              </span>
-              <button
-                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-2 rounded-r"
-                onClick={() => incrementCount(previewedCard)}
-              >
-                +
-              </button>
-            </div>
             <button
               className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-2 w-full"
-              onClick={() => addCardToDeckWithCount(previewedCard)}
+              onClick={() => addCardToDeck(previewedCard)}
             >
               Add to Deck
             </button>
