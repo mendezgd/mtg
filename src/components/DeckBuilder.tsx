@@ -191,7 +191,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
               <Button
                 onClick={generateSampleHand}
                 disabled={Object.keys(selectedDeck.cards).length === 0}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-purple-300 hover:bg-purple-400"
               >
                 Generar Mano de Prueba
               </Button>
@@ -245,7 +245,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
                 ([name, { card, count }]) => (
                   <HoverCard key={name}>
                     <HoverCardTrigger asChild>
-                      <div className="bg-gray-800 rounded-lg p-4 flex justify-between items-center hover:bg-gray-750 transition-colors">
+                      <div className="text-sm flex justify-between items-center p-1 bg-gray-800 rounded-md border-2 border-gray-700 hover:border-blue-500 transition-colors cursor-pointer">
                         <div className="flex items-center gap-4">
                           <span className="font-medium">{name}</span>
                         </div>
@@ -254,16 +254,16 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
                             <Button
                               size="sm"
                               onClick={() => decrementCardCount(name)}
-                              className="bg-red-600 hover:bg-red-700"
+                              className="bg-red-500 hover:bg-red-700 w-4 h-6"
                             >
                               -
                             </Button>
-                            <span className="w-8 text-center">{count}</span>
+                            <span className="w-4 text-center">{count}</span>
                             <Button
                               size="sm"
                               onClick={() => incrementCardCount(card)}
                               disabled={count >= 4}
-                              className="bg-blue-600 hover:bg-blue-700"
+                              className="bg-green-600 hover:bg-green-900 w-4 h-6"
                             >
                               +
                             </Button>
