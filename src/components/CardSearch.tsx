@@ -232,10 +232,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
         }}
       >
         {searchResults.map((card) => (
-          <div
-            key={card.id}
-            className="rounded-lg p-2 flex flex-col h-[240px]"
-          >
+          <div key={card.id} className="rounded-lg p-2 flex flex-col h-[240px]">
             {/* Contenedor de la imagen */}
             <div className="flex-1 relative group">
               <button
@@ -266,13 +263,13 @@ const CardSearch: React.FC<CardSearchProps> = ({
 
             {/* Nombre y botón */}
             <div className="flex flex-col items-center">
-              <h3 className="font-semibold text-sm text-center truncate w-full mb-1">
+              <h3 className="font-semibold text-sm text-center truncate w-full mb-2">
                 {card.name}
               </h3>
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full"
+                className="w-full bg-green-500 hover:bg-green-700 text-white font-bold"
                 onClick={() => addCardToDeck(card)}
               >
                 Add to Deck

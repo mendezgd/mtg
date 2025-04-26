@@ -1,138 +1,193 @@
-// components/DeckBuilderPage.tsx
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import CardSearch from "@/components/CardSearch";
-import DeckBuilder from "@/components/DeckBuilder";
+import dynamic from "next/dynamic";
 import { Card } from "@/components/CardList";
+
+interface Deck {
+  id: string;
+  name: string;
+  cards: { [cardName: string]: { card: Card; count: number } };
+}
+
+// Carga diferida del componente DeckBuilder
+const DeckBuilder = dynamic(() => import("@/components/DeckBuilder"), {
+  ssr: false,
+  loading: () => (
+    <div className="text-gray-400">Cargando constructor de mazos...</div>
+  ),
+});
 
 const DeckBuilderPage: React.FC = () => {
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
   const [previewedCard, setPreviewedCard] = useState<Card | null>(null);
-  // Eliminamos el estado de cardCounts
-  const [decks, setDecks] = useState<any[]>([]);
+  const [decks, setDecks] = useState<Deck[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
+  const handleRenameDeck = useCallback(
+    (deckId: string, newName: string) => {
+      setDecks((prev) =>
+        prev.map((deck) =>
+          deck.id === deckId ? { ...deck, name: newName } : deck
+        )
+      );
+    },
+    [setDecks]
+  );
 
-  const isBasicLand = (card: Card) => {
+  useEffect(() => {
+    setIsMounted(true);
+    const savedDecks = localStorage.getItem("decks");
+    if (savedDecks) {
+      setDecks(JSON.parse(savedDecks));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && isMounted) {
+      // Usar isMounted
+      localStorage.setItem("decks", JSON.stringify(decks));
+    }
+  }, [decks, isMounted]);
+
+  const handleDeleteDeck = useCallback(
+    (deckId: string) => {
+      if (window.confirm("¿Estás seguro de eliminar este mazo?")) {
+        setDecks((prev) => prev.filter((deck) => deck.id !== deckId));
+        if (selectedDeckId === deckId) {
+          setSelectedDeckId(null);
+        }
+      }
+    },
+    [selectedDeckId, setDecks, setSelectedDeckId]
+  );
+
+  const isBasicLand = useCallback((card: Card) => {
     return card.type_line?.includes("Basic Land");
-  };
+  }, []);
 
   const addCardToDeck = useCallback(
     (card: Card) => {
-      if (!selectedDeckId) {
-        alert("Please select a deck.");
+      if (!isMounted || !selectedDeckId) {
+        alert("Por favor selecciona un mazo");
         return;
       }
 
       setDecks((prevDecks) => {
         return prevDecks.map((deck) => {
           if (deck.id === selectedDeckId) {
-            const cardName = card.name;
-            let updatedCards = { ...deck.cards };
+            const currentCount = deck.cards[card.name]?.count || 0;
             const isLand = isBasicLand(card);
 
-            if (updatedCards[cardName]) {
-              if (!isLand && updatedCards[cardName].count >= 4) {
-                alert(
-                  "You can only have up to 4 copies of a non-Basic Land card in your deck."
-                );
-                return deck;
-              }
-              updatedCards[cardName] = {
-                card: card,
-                count: updatedCards[cardName].count + 1,
-              };
-            } else {
-              updatedCards[cardName] = { card: card, count: 1 };
+            if (!isLand && currentCount >= 4) {
+              alert("Máximo 4 copias permitidas para cartas no básicas");
+              return deck;
             }
 
-            return { ...deck, cards: updatedCards };
+            return {
+              ...deck,
+              cards: {
+                ...deck.cards,
+                [card.name]: {
+                  card,
+                  count: Math.min(currentCount + 1, isLand ? 1000 : 4),
+                },
+              },
+            };
           }
           return deck;
         });
       });
     },
-    [selectedDeckId, setDecks]
+    [selectedDeckId, isMounted, isBasicLand]
   );
 
   const removeCardFromDeck = useCallback(
     (cardName: string) => {
-      if (!selectedDeckId) return;
+      if (!isMounted || !selectedDeckId) return;
 
       setDecks((prevDecks) => {
         return prevDecks.map((deck) => {
           if (deck.id === selectedDeckId) {
-            let updatedCards = { ...deck.cards };
-            if (updatedCards[cardName]) {
-              if (updatedCards[cardName].count > 1) {
-                updatedCards[cardName] = {
-                  card: updatedCards[cardName].card,
-                  count: updatedCards[cardName].count - 1,
-                };
-              } else {
-                delete updatedCards[cardName];
-              }
+            const currentCount = deck.cards[cardName]?.count || 0;
+
+            if (currentCount <= 1) {
+              const newCards = { ...deck.cards };
+              delete newCards[cardName];
+              return { ...deck, cards: newCards };
             }
-            return { ...deck, cards: updatedCards };
+
+            return {
+              ...deck,
+              cards: {
+                ...deck.cards,
+                [cardName]: {
+                  ...deck.cards[cardName],
+                  count: currentCount - 1,
+                },
+              },
+            };
           }
           return deck;
         });
       });
     },
-    [selectedDeckId, setDecks]
+    [selectedDeckId, isMounted]
   );
 
-  const handleCardPreview = (card: Card) => {
+  const handleCardPreview = useCallback((card: Card) => {
     setPreviewedCard(card);
-  };
+  }, []);
+
+  if (!isMounted) return null;
 
   return (
     <div className="flex h-screen w-screen bg-gray-800 text-white">
-      {/* Card Search Column */}
+      {/* Columna de Búsqueda */}
       <div className="w-1/3 p-4 border-r border-gray-700">
-        <h2 className="text-xl font-bold mb-4">Card Search</h2>
+        <h2 className="text-xl font-bold mb-4">Buscador de Cartas</h2>
         <CardSearch
           addCardToDeck={addCardToDeck}
           onCardPreview={handleCardPreview}
         />
       </div>
 
-      {/* Card Preview Column */}
+      {/* Columna de Vista Previa */}
       <div className="w-1/4 p-4 border-r border-gray-700">
-        <h2 className="text-xl font-bold mb-4">Card Preview</h2>
+        <h2 className="text-xl font-bold mb-4">Vista Previa</h2>
         {previewedCard ? (
-          <div>
-            <p className="mb-2">{previewedCard.name}</p>
+          <div className="animate-fade-in">
+            <p className="mb-2 font-semibold">{previewedCard.name}</p>
             {previewedCard.image_uris?.normal && (
               <img
                 src={previewedCard.image_uris.normal}
                 alt={previewedCard.name}
-                className="w-3/4 h-auto mx-auto"
+                className="w-full h-auto rounded-lg shadow-xl"
+                loading="lazy"
               />
             )}
-            {previewedCard.mana_cost && (
-              <p className="mt-2">Cost: {previewedCard.mana_cost}</p>
-            )}
-            {previewedCard.type_line && (
-              <p className="mt-2">Type: {previewedCard.type_line}</p>
-            )}
-            {previewedCard.oracle_text && (
-              <p className="mt-4">{previewedCard.oracle_text}</p>
-            )}
-            <button
-              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-2 w-full"
-              onClick={() => addCardToDeck(previewedCard)}
-            >
-              Add to Deck
-            </button>
+            <div className="mt-4 space-y-2">
+              {previewedCard.mana_cost && (
+                <p className="text-sm">Coste: {previewedCard.mana_cost}</p>
+              )}
+              {previewedCard.type_line && (
+                <p className="text-sm">Tipo: {previewedCard.type_line}</p>
+              )}
+              {previewedCard.oracle_text && (
+                <p className="text-sm italic">{previewedCard.oracle_text}</p>
+              )}
+            </div>
           </div>
         ) : (
-          <p>Click a card to see its preview.</p>
+          <p className="text-gray-400">
+            Selecciona una carta para previsualizar
+          </p>
         )}
       </div>
 
-      {/* Deck Builder Column */}
+      {/* Columna del Mazo */}
       <div className="w-1/3 p-4">
-        <h2 className="text-xl font-bold mb-4">My Deck</h2>
+        <h2 className="text-xl font-bold mb-4">Mi Mazo</h2>
         <DeckBuilder
           decks={decks}
           setDecks={setDecks}
@@ -140,6 +195,8 @@ const DeckBuilderPage: React.FC = () => {
           setSelectedDeckId={setSelectedDeckId}
           removeCardFromDeck={removeCardFromDeck}
           addCardToDeck={addCardToDeck}
+          handleDeleteDeck={handleDeleteDeck}
+          handleRenameDeck={handleRenameDeck}
         />
       </div>
     </div>
