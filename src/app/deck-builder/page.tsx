@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"; // Añade esta línea
 import CardSearch from "@/components/CardSearch";
 import dynamic from "next/dynamic";
 import { Card } from "@/components/CardList";
+import Image from "next/image";
 
 interface Deck {
   id: string;
@@ -248,6 +249,15 @@ const DeckBuilderPage: React.FC = () => {
     <div className="flex h-screen w-screen bg-gray-800 text-white">
       {/* Columna de Búsqueda e Importación */}
       <div className="w-1/3 p-4 border-r border-gray-700 flex flex-col">
+        <div className="flex items-center gap-2 mb-4">
+          <Image
+            src="/images/pixelpox.jpg" // Ruta a tu imagen en la carpeta public
+            alt="Ícono de búsqueda"
+            width={24} // Tamaño deseado
+            height={24}
+            className="w-12 h-12 rounded-full" // Clases opcionales para estilos adicionales
+          />
+        </div>
         <h2 className="text-xl font-bold mb-4">Buscador de Cartas</h2>
         <CardSearch
           addCardToDeck={addCardToDeck}

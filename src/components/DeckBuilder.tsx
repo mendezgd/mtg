@@ -315,18 +315,18 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
               </div>
             )}
 
-            <div className="grid gap-4">
+            <div className="grid gap-1">
               {Object.entries(selectedDeck.cards).map(
                 ([name, { card, count }]) => (
                   <HoverCard key={name}>
                     <HoverCardTrigger asChild>
-                      <div className="text-sm flex justify-between items-center p-3 bg-gray-800 rounded-md border-2 border-gray-700 hover:border-blue-500 transition-colors cursor-pointer">
+                      <div className="text-sm flex justify-between items-center p-1 bg-gray-800 rounded-md border-2 border-gray-700 hover:border-blue-500 transition-colors cursor-pointer">
                         <span className="font-medium">{name}</span>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                           <Button
                             size="sm"
                             onClick={() => removeCardFromDeck(name)}
-                            className="bg-red-500 hover:bg-red-700 w-8 h-8 rounded-full"
+                            className="bg-red-500 hover:bg-red-700 w-6 h-6 rounded-full"
                           >
                             -
                           </Button>
@@ -335,7 +335,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
                             size="sm"
                             onClick={() => addCardToDeck(card)}
                             disabled={count >= 4}
-                            className="bg-green-600 hover:bg-green-900 w-8 h-8 rounded-full"
+                            className="bg-green-600 hover:bg-green-900 w-6 h-6 rounded-full"
                           >
                             +
                           </Button>

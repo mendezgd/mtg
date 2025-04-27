@@ -9,9 +9,10 @@ const App: React.FC = () => {
     <div className="relative flex flex-col h-screen w-screen bg-gray-800 text-white">
       {/* Fondo con imagen y overlay */}
       <div
-        className="absolute inset-0 z-0 bg-cover bg-center opacity-50"
+        className="absolute inset-0 z-0 bg-contain opacity-50"
         style={{
-          backgroundImage: "url('/images/background.webp')",
+          backgroundImage: "url('/images/pox.webp')",
+          filter: "blur(2px)",
         }}
       />
 
