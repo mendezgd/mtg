@@ -60,6 +60,22 @@ const CardSearch: React.FC<CardSearchProps> = ({
 
   const searchResultsRef = useRef<HTMLDivElement>(null);
 
+  const searchCardByName = useCallback(
+    async (name: string): Promise<Card | null> => {
+      try {
+        const response = await fetch(
+          `/api/cards?name=${encodeURIComponent(name)}`
+        );
+        const data = await response.json();
+        return data[0] || null;
+      } catch (error) {
+        console.error("Error buscando carta:", error);
+        return null;
+      }
+    },
+    []
+  );
+
   const fetchCardPrints = async (card: CardData) => {
     if (!card.prints_search_uri) return [];
 
