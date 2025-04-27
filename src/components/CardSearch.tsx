@@ -57,7 +57,14 @@ const CardSearch: React.FC<CardSearchProps> = ({
   const [error, setError] = useState("");
   const [selectedCardPrints, setSelectedCardPrints] = useState<CardData[]>([]);
   const [selectedCardName, setSelectedCardName] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
   const searchResultsRef = useRef<HTMLDivElement>(null);
 
   const searchCardByName = useCallback(
@@ -75,6 +82,18 @@ const CardSearch: React.FC<CardSearchProps> = ({
     },
     []
   );
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768 && !isMobile) {
+        setIsMobile(true);
+      } else if (window.innerWidth >= 768 && isMobile) {
+        setIsMobile(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isMobile]);
 
   const fetchCardPrints = async (card: CardData) => {
     if (!card.prints_search_uri) return [];
@@ -217,13 +236,21 @@ const CardSearch: React.FC<CardSearchProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full space-y-4">
-      {/* Barra de búsqueda */}
-      <div className="flex gap-2">
+    <div className="flex flex-col h-full space-y-2 md:space-y-4">
+      {/* Barra de búsqueda responsive */}
+      <div className="flex flex-col md:flex-row gap-2">
         <input
+          onFocus={(e) => {
+            if (isMobile) {
+              e.currentTarget.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+            }
+          }}
           type="text"
-          placeholder="Search for cards (e.g. 'dures' or 'gobl')"
-          className="w-full p-2 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Search cards..."
+          className="w-full p-2 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch(1)}
@@ -231,25 +258,35 @@ const CardSearch: React.FC<CardSearchProps> = ({
         <Button
           onClick={() => handleSearch(1)}
           disabled={loading || !searchTerm.trim()}
+          className="md:w-auto w-full py-2 px-4"
         >
-          {loading ? <Icons.spinner className="animate-spin" /> : "Search"}
+          {loading ? (
+            <Icons.spinner className="animate-spin h-4 w-4 md:h-5 md:w-5" />
+          ) : isMobile ? (
+            <Icons.search className="h-4 w-4" />
+          ) : (
+            "Search"
+          )}
         </Button>
       </div>
 
-      {error && <div className="text-red-500 p-2">{error}</div>}
+      {error && (
+        <div className="text-red-500 p-2 text-sm md:text-base">{error}</div>
+      )}
 
-      {/* Resultados con imágenes */}
+      {/* Resultados adaptativos */}
       <div
         ref={searchResultsRef}
-        className="grid grid-cols-3 gap-12 overflow-y-auto p-1"
+        className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 gap-12 md:gap-4 overflow-y-auto p-1"
         style={{
-          height: "calc(4 * (240px + 1rem))",
-          scrollbarWidth: "thin",
+          height: isMobile ? "calc(100vh - 200px)" : "calc(4 * (240px + 1rem))",
         }}
       >
         {searchResults.map((card) => (
-          <div key={card.id} className="rounded-lg p-2 flex flex-col h-[240px]">
-            {/* Contenedor de la imagen */}
+          <div
+            key={card.id}
+            className="rounded-lg p-1 md:p-2 flex flex-col h-[180px] md:h-[240px]"
+          >
             <div className="flex-1 relative group">
               <button
                 onClick={() => onCardPreview(card)}
@@ -259,6 +296,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
                   <img
                     src={card.image_uris.normal}
                     alt={card.name}
+                    decoding="async"
                     className="w-full h-full object-contain hover:scale-105 transition-transform"
                     loading="lazy"
                   />
@@ -266,37 +304,88 @@ const CardSearch: React.FC<CardSearchProps> = ({
                   <img
                     src={card.card_faces[0].image_uris.normal}
                     alt={card.name}
+                    decoding="async"
                     className="w-full h-full object-contain hover:scale-105 transition-transform"
                     loading="lazy"
                   />
                 ) : (
                   <div className="w-full h-full bg-gray-600 flex items-center justify-center">
-                    <span className="text-gray-400">Imagen no disponible</span>
+                    <span className="text-gray-400 text-xs md:text-sm">
+                      No Image
+                    </span>
                   </div>
                 )}
               </button>
             </div>
 
-            {/* Nombre y botón */}
-            <div className="flex flex-col items-center">
-              <h3 className="font-semibold text-sm text-center truncate w-full mb-2">
+            <div className="flex flex-col items-center mt-1 md:mt-2">
+              <h3 className="font-semibold text-xs md:text-sm text-center truncate w-full mb-1 md:mb-2">
                 {card.name}
               </h3>
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full bg-green-500 hover:bg-green-700 text-white font-bold"
+                className="w-full text-xs md:text-sm py-1 md:py-2 bg-green-500 hover:bg-green-700 text-white"
                 onClick={() => addCardToDeck(card)}
               >
-                Add to Deck
+                {isMobile ? "Add" : "Add to Deck"}
               </Button>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Paginación - Sin cambios */}
-      {totalPages > 1 && <Pagination className="mt-2">{/* ... */}</Pagination>}
+      {/* Paginación responsive */}
+      {totalPages > 1 && (
+        <Pagination className="mt-2 md:mt-4">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (currentPage > 1) handlePageChange(currentPage - 1);
+                }}
+                className={`text-xs md:text-base p-1 md:p-2 ${
+                  currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              />
+            </PaginationItem>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handlePageChange(page);
+                  }}
+                  isActive={page === currentPage}
+                  className="text-xs md:text-base p-1 md:p-2"
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (currentPage < totalPages)
+                    handlePageChange(currentPage + 1);
+                }}
+                className={`text-xs md:text-base p-1 md:p-2 ${
+                  currentPage === totalPages
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 };
