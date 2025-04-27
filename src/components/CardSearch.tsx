@@ -298,7 +298,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
       {/* Resultados adaptativos */}
       <div
         ref={searchResultsRef}
-        className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 gap-12 md:gap-4 overflow-y-auto p-1"
+        className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 gap-12 md:gap-12 overflow-y-auto p-1"
         style={{
           height: isMobile ? "calc(100vh - 200px)" : "calc(4 * (240px + 1rem))",
         }}

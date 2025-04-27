@@ -33,7 +33,7 @@ const DeckBuilderPage: React.FC = () => {
   }>({ valid: [], invalid: [] });
   const [newDeckName, setNewDeckName] = useState("");
   const [activeMobileTab, setActiveMobileTab] = useState<
-    "search" | "preview" | "deck"
+    "search" | "preview" | "deck" | "import"
   >("search");
 
   // Efectos de persistencia
@@ -266,7 +266,7 @@ const DeckBuilderPage: React.FC = () => {
           }`}
           onClick={() => setActiveMobileTab("preview")}
         >
-          Vista Previa
+          Vista
         </button>
         <button
           className={`flex-1 py-2 ${
@@ -276,29 +276,21 @@ const DeckBuilderPage: React.FC = () => {
         >
           Mazo
         </button>
+        <button
+          className={`flex-1 py-2 ${
+            activeMobileTab === "import" ? "bg-gray-700" : ""
+          }`}
+          onClick={() => setActiveMobileTab("import")}
+        >
+          Importar
+        </button>
       </div>
-
-      {/* Columna de Búsqueda e Importación */}
+      {/* Fondo optimizado para mobile */}
       <div
         className={`${
-          activeMobileTab === "search" ? "block" : "hidden"
+          activeMobileTab === "import" ? "block" : "hidden"
         } md:block w-full md:w-1/3 p-2 md:p-4 border-r border-gray-700 flex flex-col`}
       >
-        <div className="flex items-center gap-2 mb-2 md:mb-4">
-          <Image
-            src="/images/pixelpox.jpg"
-            alt="Ícono de búsqueda"
-            width={24}
-            height={24}
-            className="w-8 h-8 md:w-12 md:h-12 rounded-full"
-          />
-          <h2 className="text-lg md:text-xl font-bold">Buscador de Cartas</h2>
-        </div>
-        <CardSearch
-          addCardToDeck={addCardToDeck}
-          onCardPreview={handleCardPreview}
-        />
-
         <div className="mt-4 md:mt-6 flex-1">
           <h3 className="text-md md:text-lg font-semibold mb-2">
             Importar Mazo
@@ -317,7 +309,39 @@ const DeckBuilderPage: React.FC = () => {
           </Button>
         </div>
       </div>
+      {/* Columna de Búsqueda */}
+      <div
+        className={`${
+          activeMobileTab === "search" ? "block" : "hidden"
+        } md:block w-full md:w-1/3 p-2 md:p-4 border-r border-gray-700 flex flex-col`}
+      >
+        <div className="flex items-center gap-2 mb-2 md:mb-4">
+          {/* ... mantén el logo y título ... */}
+        </div>
+        <CardSearch
+          addCardToDeck={addCardToDeck}
+          onCardPreview={handleCardPreview}
+        />
 
+        {/* Solo muestra importación en desktop dentro de esta columna */}
+        <div className="hidden md:block mt-4 md:mt-6 flex-1">
+          <h3 className="text-md md:text-lg font-semibold mb-2">
+            Importar Mazo
+          </h3>
+          <textarea
+            value={importText}
+            onChange={(e) => setImportText(e.target.value)}
+            placeholder={`Ejemplo:\n4 Forest\n2 Shock\n3 Dragon`}
+            className="w-full h-40 bg-gray-700 rounded-lg p-3 mb-2 focus:ring-2 focus:ring-blue-500"
+          />
+          <Button
+            onClick={() => processImportedDeck(importText)}
+            className="w-full bg-blue-600 hover:bg-blue-700 py-2"
+          >
+            Importar Mazo
+          </Button>
+        </div>
+      </div>
       {/* Columna de Vista Previa */}
       <div
         className={`${
@@ -350,7 +374,6 @@ const DeckBuilderPage: React.FC = () => {
           </p>
         )}
       </div>
-
       {/* Columna del Mazo */}
       <div
         className={`${
@@ -369,7 +392,6 @@ const DeckBuilderPage: React.FC = () => {
           handleRenameDeck={handleRenameDeck}
         />
       </div>
-
       {/* Modal de Importación (se mantiene igual) */}
       {importDialogOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
