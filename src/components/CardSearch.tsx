@@ -116,9 +116,30 @@ const CardSearch: React.FC<CardSearchProps> = ({
     const baseQuery = "format:premodern";
     if (!term.trim()) return baseQuery;
 
-    // Búsqueda flexible que funciona con nombres parciales
-    return `${baseQuery} name:${term}*`;
+    // Búsqueda flexible que busca en nombre O texto de la carta
+    return `${baseQuery} (name:${term}* OR oracle:${term})`;
   };
+
+  // Añade este useEffect para manejar búsquedas complejas
+  useEffect(() => {
+    const handleComplexSearch = async () => {
+      if (searchTerm.includes(":")) {
+        // Si el usuario usa sintaxis avanzada (ej: "o:draw")
+        try {
+          const response = await axios.get(
+            `https://api.scryfall.com/cards/search?q=format:premodern+${encodeURIComponent(
+              searchTerm
+            )}`
+          );
+          // ... manejar respuesta similar a handleSearch
+        } catch (error) {
+          // ... manejar errores
+        }
+      }
+    };
+
+    if (searchTerm) handleComplexSearch();
+  }, [searchTerm]);
 
   const handleSearch = useCallback(
     async (page: number = 1) => {
