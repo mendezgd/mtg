@@ -23,12 +23,12 @@ const App: React.FC = () => {
           Premodern p0x Show
         </h1>
 
-        <div className="flex flex-col md:flex-row gap-2 md:gap-4 w-full max-w-xs md:max-w-none">
+        <div className="flex flex-col md:flex-row gap-2 md:gap-4 justify-center w-full max-w-xs md:max-w-md lg:max-w-xl">
           <Link href="/deck-builder" className="w-full md:w-auto">
             <Button
               variant="default"
               size="lg"
-              className="w-full text-base md:text-lg py-4 md:py-6 bg-blue-600 hover:bg-blue-700 transition-all duration-200 hover:scale-105"
+              className="w-full md:w-48 text-base md:text-lg py-4 md:py-6 bg-blue-600 hover:bg-blue-700 transition-all duration-200 hover:scale-105"
             >
               Create Deck
             </Button>
@@ -38,9 +38,9 @@ const App: React.FC = () => {
             <Button
               variant="default"
               size="lg"
-              className="w-full text-base md:text-lg py-4 md:py-6 bg-green-600 hover:bg-green-700 transition-all duration-200 hover:scale-105"
+              className="w-full md:w-48 text-base md:text-lg py-4 md:py-6 bg-green-600 hover:bg-green-700 transition-all duration-200 hover:scale-105"
             >
-              Challenge Friend
+              Challenge Friend (soon)
             </Button>
           </Link>
         </div>

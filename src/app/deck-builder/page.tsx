@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useEffect } from "react";
-import { Button } from "@/components/ui/button"; // Añade esta línea
+import { Button } from "@/components/ui/button";
 import CardSearch from "@/components/CardSearch";
 import dynamic from "next/dynamic";
 import { Card } from "@/components/CardList";
@@ -10,7 +10,8 @@ import Image from "next/image";
 interface Deck {
   id: string;
   name: string;
-  cards: { [cardName: string]: { card: Card; count: number } };
+  cards: Record<string, { card: Card; count: number }>;
+  sideboard?: Record<string, { card: Card; count: number }>;
 }
 
 const DeckBuilder = dynamic(() => import("@/components/DeckBuilder"), {
@@ -27,18 +28,17 @@ const DeckBuilderPage: React.FC = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [importText, setImportText] = useState("");
   const [importDialogOpen, setImportDialogOpen] = useState(false);
-  const [importResults, setImportResults] = useState<{
-    valid: Array<{ card: Card; count: number }>;
-    invalid: string[];
-  }>({ valid: [], invalid: [] });
+  const [importResults, setImportResults] = useState({
+    valid: [] as Array<{ card: Card; count: number }>,
+    invalid: [] as string[],
+    sideboard: [] as Array<{ card: Card; count: number }>,
+  });
   const [newDeckName, setNewDeckName] = useState("");
   const [activeMobileTab, setActiveMobileTab] = useState<
     "search" | "preview" | "deck" | "import"
   >("search");
 
-  // Cargar mazos desde localStorage al montar el componente
-  // y guardarlos al desmontar
-  
+  // Load decks from localStorage on mount
   useEffect(() => {
     setIsMounted(true);
     const savedDecks = localStorage.getItem("decks");
@@ -49,81 +49,78 @@ const DeckBuilderPage: React.FC = () => {
     if (isMounted) localStorage.setItem("decks", JSON.stringify(decks));
   }, [decks, isMounted]);
 
-  // Funciones principales
-  const isBasicLand = useCallback((card: Card) => {
-    return card.type_line?.includes("Basic Land");
-  }, []);
+  const isBasicLand = useCallback(
+    (card: Card) => card.type_line?.includes("Basic Land"),
+    []
+  );
+
+  const updateDecks = useCallback(
+    (updateFn: (deck: Deck) => Deck) => {
+      setDecks((prevDecks) =>
+        prevDecks.map((deck) =>
+          deck.id === selectedDeckId ? updateFn(deck) : deck
+        )
+      );
+    },
+    [selectedDeckId]
+  );
 
   const addCardToDeck = useCallback(
     (card: Card) => {
-      if (!isMounted || !selectedDeckId) {
-        alert("Por favor selecciona un mazo");
-        return;
-      }
+      if (!isMounted || !selectedDeckId)
+        return alert("Por favor selecciona un mazo");
 
-      setDecks((prevDecks) =>
-        prevDecks.map((deck) => {
-          if (deck.id === selectedDeckId) {
-            const currentCount = deck.cards[card.name]?.count || 0;
-            const isLand = isBasicLand(card);
+      updateDecks((deck) => {
+        const currentCount = deck.cards[card.name]?.count || 0;
+        const isLand = isBasicLand(card);
 
-            if (!isLand && currentCount >= 4) {
-              alert("Máximo 4 copias permitidas para cartas no básicas");
-              return deck;
-            }
-
-            return {
-              ...deck,
-              cards: {
-                ...deck.cards,
-                [card.name]: {
-                  card,
-                  count: Math.min(currentCount + 1, isLand ? 1000 : 4),
-                },
-              },
-            };
-          }
+        if (!isLand && currentCount >= 4) {
+          alert("Máximo 4 copias permitidas para cartas no básicas");
           return deck;
-        })
-      );
+        }
+
+        return {
+          ...deck,
+          cards: {
+            ...deck.cards,
+            [card.name]: {
+              card,
+              count: Math.min(currentCount + 1, isLand ? 1000 : 4),
+            },
+          },
+        };
+      });
     },
-    [selectedDeckId, isMounted, isBasicLand]
+    [selectedDeckId, isMounted, isBasicLand, updateDecks]
   );
 
   const removeCardFromDeck = useCallback(
     (cardName: string) => {
       if (!isMounted || !selectedDeckId) return;
 
-      setDecks((prevDecks) =>
-        prevDecks.map((deck) => {
-          if (deck.id === selectedDeckId) {
-            const currentCount = deck.cards[cardName]?.count || 0;
+      updateDecks((deck) => {
+        const currentCount = deck.cards[cardName]?.count || 0;
 
-            if (currentCount <= 1) {
-              const newCards = { ...deck.cards };
-              delete newCards[cardName];
-              return { ...deck, cards: newCards };
-            }
+        if (currentCount <= 1) {
+          const { [cardName]: _, ...newCards } = deck.cards;
+          return { ...deck, cards: newCards };
+        }
 
-            return {
-              ...deck,
-              cards: {
-                ...deck.cards,
-                [cardName]: {
-                  ...deck.cards[cardName],
-                  count: currentCount - 1,
-                },
-              },
-            };
-          }
-          return deck;
-        })
-      );
+        return {
+          ...deck,
+          cards: {
+            ...deck.cards,
+            [cardName]: {
+              ...deck.cards[cardName],
+              count: currentCount - 1,
+            },
+          },
+        };
+      });
     },
-    [selectedDeckId, isMounted]
+    [selectedDeckId, isMounted, updateDecks]
   );
 
-  // Funciones de gestión de mazos
   const handleDeleteDeck = useCallback(
     (deckId: string) => {
       if (window.confirm("¿Estás seguro de eliminar este mazo?")) {
@@ -145,20 +142,16 @@ const DeckBuilderPage: React.FC = () => {
   const searchCardByName = useCallback(
     async (name: string): Promise<Card | null> => {
       try {
-        // Buscar cualquier versión de la carta
         const response = await fetch(
           `https://api.scryfall.com/cards/search?q=!"${encodeURIComponent(
             name
           )}"&unique=prints`
         );
-
         const data = await response.json();
 
-        if (data.data && data.data.length > 0) {
-          // Tomar la primera versión que tenga imagen
+        if (data.data?.length > 0) {
           const cardData =
             data.data.find((c: any) => c.image_uris?.normal) || data.data[0];
-
           return {
             id: cardData.id,
             name: cardData.name,
@@ -181,37 +174,53 @@ const DeckBuilderPage: React.FC = () => {
     },
     []
   );
+
   const processImportedDeck = useCallback(
     async (text: string) => {
-      const lines = text.split("\n").filter((line) => line.trim() !== "");
-      const cardMap: { [name: string]: number } = {};
+      const lines = text.split("\n");
+      const cardMap: Record<string, number> = {};
+      const sideboardMap: Record<string, number> = {};
       const invalidCards: string[] = [];
+      let isSideboard = false;
 
       lines.forEach((line) => {
+        if (line.trim() === "") {
+          isSideboard = true;
+          return;
+        }
+
         const match =
           line.match(/^(\d+)x?\s*(.+)/) || line.match(/^(.+?)\s(\d+)$/);
         if (match) {
           const count = parseInt(match[1] || match[2], 10);
           const name = (match[2] || match[1]).trim();
-          cardMap[name] = (cardMap[name] || 0) + count;
+          if (isSideboard) {
+            sideboardMap[name] = (sideboardMap[name] || 0) + count;
+          } else {
+            cardMap[name] = (cardMap[name] || 0) + count;
+          }
         } else {
           invalidCards.push(line.trim());
         }
       });
 
-      const validCards = await Promise.all(
-        Object.entries(cardMap).map(async ([name, count]) => {
-          const card = await searchCardByName(name);
-          return card ? { card, count } : null;
-        })
-      );
+      const fetchCards = async (map: Record<string, number>) =>
+        (
+          await Promise.all(
+            Object.entries(map).map(async ([name, count]) => {
+              const card = await searchCardByName(name);
+              return card ? { card, count } : null;
+            })
+          )
+        ).filter(Boolean) as Array<{ card: Card; count: number }>;
+
+      const validCards = await fetchCards(cardMap);
+      const validSideboardCards = await fetchCards(sideboardMap);
 
       setImportResults({
-        valid: validCards.filter(Boolean) as Array<{
-          card: Card;
-          count: number;
-        }>,
+        valid: validCards,
         invalid: invalidCards,
+        sideboard: validSideboardCards,
       });
       setImportDialogOpen(true);
     },
@@ -234,6 +243,16 @@ const DeckBuilderPage: React.FC = () => {
         }),
         {}
       ),
+      sideboard: importResults.sideboard.reduce(
+        (acc, { card, count }) => ({
+          ...acc,
+          [card.name]: {
+            card,
+            count: Math.min(count, isBasicLand(card) ? 1000 : 4),
+          },
+        }),
+        {}
+      ),
     };
 
     setDecks((prev) => [...prev, newDeck]);
@@ -243,10 +262,10 @@ const DeckBuilderPage: React.FC = () => {
     setNewDeckName("");
   }, [importResults, newDeckName, isBasicLand]);
 
-  // Handlers de UI
-  const handleCardPreview = useCallback((card: Card) => {
-    setPreviewedCard(card);
-  }, []);
+  const handleCardPreview = useCallback(
+    (card: Card) => setPreviewedCard(card),
+    []
+  );
 
   if (!isMounted) return null;
 
@@ -254,33 +273,20 @@ const DeckBuilderPage: React.FC = () => {
     <div className="flex flex-col md:flex-row h-screen w-screen bg-gray-800 text-white overflow-hidden">
       {/* Mobile Navigation Tabs */}
       <div className="md:hidden flex border-b border-gray-700">
-        <button
-          className={`flex-1 py-2 ${
-            activeMobileTab === "search" ? "bg-gray-700" : ""
-          }`}
-          onClick={() => setActiveMobileTab("search")}
-        >
-          Buscar
-        </button>
-        <button
-          className={`flex-1 py-2 ${
-            activeMobileTab === "preview" ? "bg-gray-700" : ""
-          }`}
-          onClick={() => setActiveMobileTab("preview")}
-        >
-          Vista
-        </button>
-        <button
-          className={`flex-1 py-2 ${
-            activeMobileTab === "deck" ? "bg-gray-700" : ""
-          }`}
-          onClick={() => setActiveMobileTab("deck")}
-        >
-          Mazo
-        </button>
+        {["search", "preview", "deck"].map((tab) => (
+          <button
+            key={tab}
+            className={`flex-1 py-2 ${
+              activeMobileTab === tab ? "bg-gray-700" : ""
+            }`}
+            onClick={() => setActiveMobileTab(tab as typeof activeMobileTab)}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
       </div>
 
-      {/* Columna de Búsqueda */}
+      {/* Search Column */}
       <div
         className={`${
           activeMobileTab === "search" ? "block" : "hidden"
@@ -302,7 +308,7 @@ const DeckBuilderPage: React.FC = () => {
         />
       </div>
 
-      {/* Columna de Vista Previa */}
+      {/* Preview Column */}
       <div
         className={`${
           activeMobileTab === "preview" ? "block" : "hidden"
@@ -335,14 +341,14 @@ const DeckBuilderPage: React.FC = () => {
         )}
       </div>
 
-      {/* Columna del Mazo con Importación Integrada */}
+      {/* Deck Column */}
       <div
         className={`${
           activeMobileTab === "deck" ? "block" : "hidden"
         } md:block w-full md:w-1/3 p-2 md:p-4 overflow-auto`}
       >
         <div className="space-y-4">
-          {/* Sección de Importación Compacta */}
+          {/* Import Section */}
           <div className="bg-gray-700 rounded-lg p-3">
             <h3 className="text-sm font-semibold mb-2">Importar Mazo</h3>
             <textarea
@@ -359,7 +365,7 @@ const DeckBuilderPage: React.FC = () => {
             </Button>
           </div>
 
-          {/* Constructor de Mazos */}
+          {/* Deck Builder */}
           <h2 className="text-lg md:text-xl font-bold">Mi Mazo</h2>
           <DeckBuilder
             decks={decks}
@@ -371,10 +377,28 @@ const DeckBuilderPage: React.FC = () => {
             handleDeleteDeck={handleDeleteDeck}
             handleRenameDeck={handleRenameDeck}
           />
+
+          {/* Sideboard */}
+          {selectedDeckId && (
+            <div className="mt-4">
+              <h3 className="text-lg md:text-xl font-bold">Sideboard</h3>
+              <ul className="list-disc list-inside">
+                {decks.find((deck) => deck.id === selectedDeckId)?.sideboard &&
+                  Object.entries(
+                    decks.find((deck) => deck.id === selectedDeckId)
+                      ?.sideboard || {}
+                  ).map(([cardName, { card, count }]) => (
+                    <li key={card.id}>
+                      {count}x {cardName}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Modal de Importación */}
+      {/* Import Dialog */}
       {importDialogOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-gray-800 p-4 md:p-6 rounded-lg max-w-md w-full mx-2">
