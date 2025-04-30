@@ -382,17 +382,15 @@ const DeckBuilderPage: React.FC = () => {
           {selectedDeckId && (
             <div className="mt-4">
               <h3 className="text-lg md:text-xl font-bold">Sideboard</h3>
-              <ul className="list-disc list-inside">
-                {decks.find((deck) => deck.id === selectedDeckId)?.sideboard &&
-                  Object.entries(
-                    decks.find((deck) => deck.id === selectedDeckId)
-                      ?.sideboard || {}
-                  ).map(([cardName, { card, count }]) => (
-                    <li key={card.id}>
-                      {count}x {cardName}
-                    </li>
-                  ))}
-              </ul>
+              {decks.find((deck) => deck.id === selectedDeckId)?.sideboard &&
+                Object.entries(
+                  decks.find((deck) => deck.id === selectedDeckId)?.sideboard ||
+                    {}
+                ).map(([cardName, { card, count }]) => (
+                  <div className="bg-gray-900 p-2" key={card.id}>
+                    {count}x {cardName}
+                  </div>
+                ))}
             </div>
           )}
         </div>
