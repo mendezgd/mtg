@@ -270,7 +270,7 @@ const DeckBuilderPage: React.FC = () => {
   if (!isMounted) return null;
 
   return (
-    <div className="flex flex-col md:flex-row h-screen w-screen bg-gray-800 text-white overflow-hidden">
+    <div className="flex flex-col md:flex-row h-full w-full bg-gray-800 text-white overflow-hidden">
       {/* Mobile Navigation Tabs */}
       <div className="md:hidden flex border-b border-gray-700">
         {["search", "preview", "deck"].map((tab) => (
@@ -345,7 +345,7 @@ const DeckBuilderPage: React.FC = () => {
       <div
         className={`${
           activeMobileTab === "deck" ? "block" : "hidden"
-        } md:block w-full md:w-1/3 p-2 md:p-4 overflow-auto`}
+        } md:block w-full lg:w-auto md:w-auto p-2 md:p-4 overflow-auto`}
       >
         <div className="space-y-4">
           {/* Import Section */}
