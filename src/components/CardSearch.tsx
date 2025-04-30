@@ -4,14 +4,6 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import axios from "axios";
 import type { Card as CardListCard } from "@/components/CardList";
 import { Button } from "@/components/ui/button";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import { Icons } from "@/components/icons";
 
 interface CardData {
@@ -68,7 +60,6 @@ const CardSearch: React.FC<CardSearchProps> = ({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Build the search query for Scryfall
   const buildSearchQuery = (term: string) => {
     const baseQuery = "format:premodern";
     return term.trim()
@@ -76,7 +67,6 @@ const CardSearch: React.FC<CardSearchProps> = ({
       : baseQuery;
   };
 
-  // Handle the search functionality
   const handleSearch = useCallback(
     async (page: number = 1) => {
       if (!searchTerm.trim()) return;
@@ -93,7 +83,6 @@ const CardSearch: React.FC<CardSearchProps> = ({
 
         const response = await axios.get(url);
 
-        // Filter valid cards
         const filteredCards = response.data.data.filter(
           (card: CardData) =>
             card.legalities?.premodern === "legal" &&
@@ -107,7 +96,6 @@ const CardSearch: React.FC<CardSearchProps> = ({
 
         setSearchResults(filteredCards);
 
-        // Calculate total pages
         const calculatedTotalPages = Math.ceil(
           Math.min(response.data.total_cards, MAX_RESULTS) / CARDS_PER_PAGE
         );
@@ -130,7 +118,6 @@ const CardSearch: React.FC<CardSearchProps> = ({
     [searchTerm]
   );
 
-  // Handle page changes
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
@@ -139,7 +126,6 @@ const CardSearch: React.FC<CardSearchProps> = ({
     }
   };
 
-  // Get visible pages for pagination
   const getVisiblePages = () => {
     const visiblePages = [];
     const maxVisible = 5;
@@ -188,16 +174,10 @@ const CardSearch: React.FC<CardSearchProps> = ({
       {/* Search Results */}
       <div
         ref={searchResultsRef}
-        className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 gap-4 overflow-y-auto p-1"
-        style={{
-          height: isMobile ? "calc(100vh - 200px)" : "calc(4 * (240px + 1rem))",
-        }}
+        className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-1 overflow-y-auto p-1 h-[calc(100vh-230px)] max-h-[calc(4*(350px+1rem))]"
       >
         {searchResults.map((card) => (
-          <div
-            key={card.id}
-            className="rounded-lg p-1 md:p-2 flex flex-col h-[180px] md:h-[240px]"
-          >
+          <div key={card.id} className="rounded-lg p-1 md:p-2 flex flex-col">
             <div className="flex-1 relative group">
               <button
                 onClick={() => onCardPreview(card)}
@@ -234,100 +214,75 @@ const CardSearch: React.FC<CardSearchProps> = ({
         ))}
       </div>
 
-      {/* Pagination */}
-      <div className="flex items-center gap-1 flex-wrap justify-center">
+      {/* Pagination Bar */}
+      <div className="flex items-center justify-center gap-2 mt-4 flex-wrap overflow-x-auto px-2">
         {/* First Page Button */}
-        <PaginationItem>
-          <PaginationPrevious
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              handlePageChange(1);
-            }}
-            className={
-              currentPage === 1 ? "opacity-50 pointer-events-none" : ""
-            }
-          />
-        </PaginationItem>
+        <button
+          onClick={() => handlePageChange(1)}
+          disabled={currentPage === 1}
+          className={`px-3 py-1 rounded-md ${
+            currentPage === 1
+              ? "bg-gray-500 text-gray-300 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          }`}
+        >
+          First
+        </button>
 
         {/* Previous Page Button */}
-        <PaginationItem>
-          <PaginationPrevious
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              handlePageChange(currentPage - 1);
-            }}
-            className={
-              currentPage === 1 ? "opacity-50 pointer-events-none" : ""
-            }
-          />
-        </PaginationItem>
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className={`px-3 py-1 rounded-md ${
+            currentPage === 1
+              ? "bg-gray-500 text-gray-300 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          }`}
+        >
+          Prev
+        </button>
 
-        {/* Visible Page Numbers */}
+        {/* Page Numbers */}
         {getVisiblePages().map((page) => (
-          <PaginationItem key={page}>
-            <PaginationLink
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                handlePageChange(page);
-              }}
-              isActive={page === currentPage}
-            >
-              {page}
-            </PaginationLink>
-          </PaginationItem>
+          <button
+            key={page}
+            onClick={() => handlePageChange(page)}
+            className={`px-3 py-1 rounded-md ${
+              page === currentPage
+                ? "bg-blue-700 text-white font-bold"
+                : "bg-gray-700 text-white hover:bg-blue-600"
+            }`}
+          >
+            {page}
+          </button>
         ))}
 
         {/* Next Page Button */}
-        <PaginationItem>
-          <PaginationNext
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              handlePageChange(currentPage + 1);
-            }}
-            className={
-              currentPage === totalPages ? "opacity-50 pointer-events-none" : ""
-            }
-          />
-        </PaginationItem>
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className={`px-3 py-1 rounded-md ${
+            currentPage === totalPages
+              ? "bg-gray-500 text-gray-300 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          }`}
+        >
+          Next
+        </button>
 
         {/* Last Page Button */}
-        <PaginationItem>
-          <PaginationNext
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              handlePageChange(totalPages);
-            }}
-            className={
-              currentPage === totalPages ? "opacity-50 pointer-events-none" : ""
-            }
-          />
-        </PaginationItem>
-      </div>
-
-      {/* Pagination Info */}
-      <div className="text-sm text-muted-foreground">
-        Página {currentPage} de {totalPages} • {searchResults.length} resultados
-      </div>
-
-      {/* Mobile Page Selector */}
-      {isMobile && (
-        <select
-          value={currentPage}
-          onChange={(e) => handlePageChange(Number(e.target.value))}
-          className="bg-background border rounded-md p-1 text-sm"
+        <button
+          onClick={() => handlePageChange(totalPages)}
+          disabled={currentPage === totalPages}
+          className={`px-3 py-1 rounded-md ${
+            currentPage === totalPages
+              ? "bg-gray-500 text-gray-300 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          }`}
         >
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <option key={page} value={page}>
-              Página {page}
-            </option>
-          ))}
-        </select>
-      )}
+          Last
+        </button>
+      </div>
     </div>
   );
 };
