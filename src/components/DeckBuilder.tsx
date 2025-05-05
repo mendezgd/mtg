@@ -155,7 +155,6 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
       <div className="p-4 border-b border-gray-700">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold mb-4">Constructor de Mazos</h2>
-
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-2">Tus Mazos</h3>
             {mounted && (

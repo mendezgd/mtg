@@ -5,6 +5,7 @@ import axios from "axios";
 import type { Card as CardListCard } from "@/components/CardList";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/icons";
+import { Input } from "@/components/ui/input";
 
 interface CardData {
   id: string;
@@ -148,14 +149,22 @@ const CardSearch: React.FC<CardSearchProps> = ({
     <div className="flex flex-col h-full space-y-2 md:space-y-4">
       {/* Search Bar */}
       <div className="flex flex-col md:flex-row gap-2">
-        <input
+        <Input
           type="text"
           placeholder="Search cards..."
-          className="w-full p-2 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
+          className="h-auto"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch(1)}
         />
+        {/* <input
+          type="text"
+          placeholder="Search cards..."
+          className="w-full p-2 bg-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSearch(1)}
+        /> */}
         <Button
           onClick={() => handleSearch(1)}
           disabled={loading || !searchTerm.trim()}
@@ -187,7 +196,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
                   <img
                     src={card.image_uris.normal}
                     alt={card.name}
-                    className="w-full h-full object-contain hover:scale-105 transition-transform"
+                    className="md:rounded-xl rounded-2xl w-full h-full object-contain hover:scale-105 transition-transform"
                     loading="lazy"
                   />
                 ) : (

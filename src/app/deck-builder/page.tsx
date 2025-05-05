@@ -270,7 +270,7 @@ const DeckBuilderPage: React.FC = () => {
   if (!isMounted) return null;
 
   return (
-    <div className="flex flex-col md:flex-row h-full w-full bg-gray-800 text-white overflow-hidden">
+    <div className="flex flex-col md:flex-row absolute top-0 z-[-2] h-screen w-screen bg-neutral-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] text-white overflow-hidden">
       {/* Mobile Navigation Tabs */}
       <div className="md:hidden flex border-b border-gray-700">
         {["search", "preview", "deck"].map((tab) => (
@@ -322,7 +322,7 @@ const DeckBuilderPage: React.FC = () => {
             <img
               src={previewedCard.image_uris?.normal || "/default-card.jpg"}
               alt={previewedCard.name}
-              className="w-full rounded-lg mb-2"
+              className="w-full rounded-2xl mb-2 md:mb-4 object-cover"
             />
             <h3 className="font-bold text-md md:text-lg">
               {previewedCard.name}
@@ -349,7 +349,7 @@ const DeckBuilderPage: React.FC = () => {
       >
         <div className="space-y-4">
           {/* Import Section */}
-          <div className="bg-gray-700 rounded-lg p-3">
+          <div className="bg-gray-800 rounded-lg p-3">
             <h3 className="text-sm font-semibold mb-2">Importar Mazo</h3>
             <textarea
               value={importText}
