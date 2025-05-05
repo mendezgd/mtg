@@ -168,7 +168,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
         <Button
           onClick={() => handleSearch(1)}
           disabled={loading || !searchTerm.trim()}
-          className="md:w-auto w-full py-2 px-4"
+          className="md:w-auto w-full py-2 px-4 bg-sky-400 hover:bg-sky-500 text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
         >
           {loading ? (
             <Icons.spinner className="animate-spin h-4 w-4" />
