@@ -9,6 +9,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import dynamic from "next/dynamic";
+import { Input } from "@/components/ui/input";
 
 const ScrollArea = dynamic(
   () =>
@@ -151,7 +152,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
   if (!mounted) return null;
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 text-gray-100">
+    <div className="flex flex-col h-full rounded-sm text-gray-100">
       <div className="p-4 border-b border-gray-700">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold mb-4">Constructor de Mazos</h2>
@@ -165,7 +166,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
                     onClick={() => setSelectedDeckId(deck.id)}
                     className={`p-3 mb-2 rounded-lg cursor-pointer transition-colors group ${
                       selectedDeckId === deck.id
-                        ? "bg-blue-600 hover:bg-blue-700"
+                        ? "bg-sky-800 hover:bg-sky-700"
                         : "bg-gray-800 hover:bg-gray-700"
                     }`}
                   >
@@ -241,17 +242,17 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-3">Nuevo Mazo</h3>
             <div className="flex gap-3">
-              <input
+              <Input
                 type="text"
                 placeholder="Nombre del mazo"
-                className="bg-gray-800 rounded-lg p-3 flex-grow focus:ring-2 focus:ring-blue-500"
+                className="bg-zinc-800 rounded-lg p-3 flex-grow"
                 value={newDeckName}
                 onChange={(e) => setNewDeckName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && createNewDeck()}
               />
               <Button
                 onClick={createNewDeck}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-sky-600 hover:bg-sky-700 text-white h-auto"
               >
                 Crear
               </Button>

@@ -6,6 +6,7 @@ import CardSearch from "@/components/CardSearch";
 import dynamic from "next/dynamic";
 import { Card } from "@/components/CardList";
 import Image from "next/image";
+import { Input } from "@/components/ui/input";
 
 interface Deck {
   id: string;
@@ -355,11 +356,11 @@ const DeckBuilderPage: React.FC = () => {
               value={importText}
               onChange={(e) => setImportText(e.target.value)}
               placeholder="Ejemplo: 4 Forest\n2 Shock"
-              className="w-full h-20 text-sm bg-gray-800 rounded p-2 mb-2 focus:ring-2 focus:ring-blue-500"
+              className="w-full h-20 text-sm bg-gray-900 rounded p-2 mb-2 focus:ring-2 focus:ring-blue-500"
             />
             <Button
               onClick={() => processImportedDeck(importText)}
-              className="w-full py-1 text-sm bg-blue-600 hover:bg-blue-700"
+              className="w-full py-1 text-white bg-sky-600 hover:bg-sky-700"
             >
               Importar
             </Button>
@@ -380,14 +381,14 @@ const DeckBuilderPage: React.FC = () => {
 
           {/* Sideboard */}
           {selectedDeckId && (
-            <div className="mt-4">
+            <div className="mt-4 rounded-lg p-3">
               <h3 className="text-lg md:text-xl font-bold">Sideboard</h3>
               {decks.find((deck) => deck.id === selectedDeckId)?.sideboard &&
                 Object.entries(
                   decks.find((deck) => deck.id === selectedDeckId)?.sideboard ||
                     {}
                 ).map(([cardName, { card, count }]) => (
-                  <div className="bg-gray-900 p-2" key={card.id}>
+                  <div className="bg-gray-800 p-2" key={card.id}>
                     {count}x {cardName}
                   </div>
                 ))}
@@ -399,7 +400,7 @@ const DeckBuilderPage: React.FC = () => {
       {/* Import Dialog */}
       {importDialogOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-4 md:p-6 rounded-lg max-w-md w-full mx-2">
+          <div className="bg-gray-900 p-4 md:p-6 rounded-lg max-w-md w-full mx-2">
             <h3 className="text-lg md:text-xl font-bold mb-4">
               Resultados de Importación
             </h3>
@@ -411,23 +412,23 @@ const DeckBuilderPage: React.FC = () => {
                 Errores: {importResults.invalid.length}
               </p>
             </div>
-            <input
+            <Input
               type="text"
               placeholder="Nombre del nuevo mazo"
               value={newDeckName}
               onChange={(e) => setNewDeckName(e.target.value)}
-              className="w-full bg-gray-700 rounded-lg p-2 mb-4 focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
+              className="w-full rounded-lg p-2 mb-4"
             />
             <div className="flex gap-2 justify-end">
               <Button
                 onClick={() => setImportDialogOpen(false)}
-                className="bg-gray-600 hover:bg-gray-700 py-1 md:py-2"
+                className="bg-gray-600 text-white hover:bg-gray-700 py-1 md:py-2"
               >
                 Cancelar
               </Button>
               <Button
                 onClick={createDeckFromImport}
-                className="bg-blue-600 hover:bg-blue-700 py-1 md:py-2"
+                className="bg-sky-600 hover:bg-sky-700 py-1 md:py-2 text-white"
                 disabled={!newDeckName.trim()}
               >
                 Crear Mazo

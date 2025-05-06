@@ -6,6 +6,7 @@ import type { Card as CardListCard } from "@/components/CardList";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/icons";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface CardData {
   id: string;
@@ -168,7 +169,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
         <Button
           onClick={() => handleSearch(1)}
           disabled={loading || !searchTerm.trim()}
-          className="md:w-auto w-full py-2 px-4 bg-sky-400 hover:bg-sky-500 text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
+          className="md:w-auto w-full py-2 px-4 bg-sky-400 hover:bg-sky-500 text-white rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-sm md:text-base"
         >
           {loading ? (
             <Icons.spinner className="animate-spin h-4 w-4" />
@@ -181,48 +182,46 @@ const CardSearch: React.FC<CardSearchProps> = ({
       {error && <div className="text-red-500 p-2 text-sm">{error}</div>}
 
       {/* Search Results */}
-      <div
-        ref={searchResultsRef}
-        className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-1 overflow-y-auto p-1 h-[calc(100vh-230px)] max-h-[calc(4*(350px+1rem))]"
-      >
-        {searchResults.map((card) => (
-          <div key={card.id} className="rounded-lg p-1 md:p-2 flex flex-col">
-            <div className="flex-1 relative group">
-              <button
-                onClick={() => onCardPreview(card)}
-                className="w-full h-full"
-              >
-                {card.image_uris?.normal ? (
-                  <img
-                    src={card.image_uris.normal}
-                    alt={card.name}
-                    className="md:rounded-xl rounded-2xl w-full h-full object-contain hover:scale-105 transition-transform"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-600 flex items-center justify-center">
-                    <span className="text-gray-400 text-xs">No Image</span>
-                  </div>
-                )}
-              </button>
+      <ScrollArea className="h-[calc(100vh-230px)] max-h-[calc(4*(350px+1rem))] p-2 overflow-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-1">
+          {searchResults.map((card) => (
+            <div key={card.id} className="rounded-lg p-1 md:p-2 flex flex-col">
+              <div className="flex-1 relative group">
+                <button
+                  onClick={() => onCardPreview(card)}
+                  className="w-full h-full"
+                >
+                  {card.image_uris?.normal ? (
+                    <img
+                      src={card.image_uris.normal}
+                      alt={card.name}
+                      className="md:rounded-xl rounded-2xl w-full h-full object-contain hover:scale-105 transition-transform"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-600 flex items-center justify-center">
+                      <span className="text-gray-400 text-xs">No Image</span>
+                    </div>
+                  )}
+                </button>
+              </div>
+              <div className="flex flex-col items-center mt-1">
+                <h3 className="font-semibold text-xs text-center truncate w-full mb-1">
+                  {card.name}
+                </h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs py-1 bg-green-500 hover:bg-green-700 text-white"
+                  onClick={() => addCardToDeck(card)}
+                >
+                  {isMobile ? "Add" : "Add to Deck"}
+                </Button>
+              </div>
             </div>
-            <div className="flex flex-col items-center mt-1">
-              <h3 className="font-semibold text-xs text-center truncate w-full mb-1">
-                {card.name}
-              </h3>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full text-xs py-1 bg-green-500 hover:bg-green-700 text-white"
-                onClick={() => addCardToDeck(card)}
-              >
-                {isMobile ? "Add" : "Add to Deck"}
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
-
+          ))}
+        </div>
+      </ScrollArea>
       {/* Pagination Bar */}
       <div className="flex items-center justify-center gap-2 mt-4 flex-wrap overflow-x-auto px-2">
         {/* First Page Button */}
@@ -232,7 +231,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
           className={`px-3 py-1 rounded-md ${
             currentPage === 1
               ? "bg-gray-500 text-gray-300 cursor-not-allowed"
-              : "bg-blue-600 text-white hover:bg-blue-700"
+              : "bg-sky-600 text-white hover:bg-sky-700"
           }`}
         >
           First
@@ -245,7 +244,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
           className={`px-3 py-1 rounded-md ${
             currentPage === 1
               ? "bg-gray-500 text-gray-300 cursor-not-allowed"
-              : "bg-blue-600 text-white hover:bg-blue-700"
+              : "bg-sky-600 text-white hover:bg-sky-700"
           }`}
         >
           Prev
@@ -258,8 +257,8 @@ const CardSearch: React.FC<CardSearchProps> = ({
             onClick={() => handlePageChange(page)}
             className={`px-3 py-1 rounded-md ${
               page === currentPage
-                ? "bg-blue-700 text-white font-bold"
-                : "bg-gray-700 text-white hover:bg-blue-600"
+                ? "bg-sky-700 text-white font-bold"
+                : "bg-gray-700 text-white hover:bg-sky-600"
             }`}
           >
             {page}
@@ -273,7 +272,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
           className={`px-3 py-1 rounded-md ${
             currentPage === totalPages
               ? "bg-gray-500 text-gray-300 cursor-not-allowed"
-              : "bg-blue-600 text-white hover:bg-blue-700"
+              : "bg-sky-600 text-white hover:bg-sky-700"
           }`}
         >
           Next
@@ -286,7 +285,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
           className={`px-3 py-1 rounded-md ${
             currentPage === totalPages
               ? "bg-gray-500 text-gray-300 cursor-not-allowed"
-              : "bg-blue-600 text-white hover:bg-blue-700"
+              : "bg-sky-600 text-white hover:bg-sky-700"
           }`}
         >
           Last
