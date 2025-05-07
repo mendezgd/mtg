@@ -53,9 +53,11 @@ const CardSearch: React.FC<CardSearchProps> = ({
   const [error, setError] = useState("");
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+  const [selectedType, setSelectedType] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
+
   const searchResultsRef = useRef<HTMLDivElement>(null);
 
-  // Handle window resize for mobile detection
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
@@ -64,14 +66,17 @@ const CardSearch: React.FC<CardSearchProps> = ({
 
   const buildSearchQuery = (term: string) => {
     const baseQuery = "format:premodern";
+    const typeFilter = selectedType ? ` type:${selectedType}` : "";
+    const colorFilter = selectedColor ? ` color:${selectedColor}` : "";
+
     return term.trim()
-      ? `${baseQuery} (name:${term}* OR oracle:${term})`
-      : baseQuery;
+      ? `${baseQuery} (name:${term}* OR oracle:${term})${typeFilter}${colorFilter}`
+      : `${baseQuery}${typeFilter}${colorFilter}`;
   };
 
   const handleSearch = useCallback(
     async (page: number = 1) => {
-      if (!searchTerm.trim()) return;
+      if (!searchTerm.trim() && !selectedType && !selectedColor) return;
 
       setLoading(true);
       setError("");
@@ -117,10 +122,11 @@ const CardSearch: React.FC<CardSearchProps> = ({
         setLoading(false);
       }
     },
-    [searchTerm]
+    [searchTerm, selectedType, selectedColor]
   );
 
   const handlePageChange = (newPage: number) => {
+    console.log(`Page changed to: ${newPage}`); // Debugging
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
       handleSearch(newPage);
@@ -128,26 +134,46 @@ const CardSearch: React.FC<CardSearchProps> = ({
     }
   };
 
-  const getVisiblePages = () => {
-    const visiblePages = [];
-    const maxVisible = 5;
-
-    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-    let end = Math.min(totalPages, start + maxVisible - 1);
-
-    if (end - start + 1 < maxVisible) {
-      start = Math.max(1, end - maxVisible + 1);
-    }
-
-    for (let i = start; i <= end; i++) {
-      visiblePages.push(i);
-    }
-
-    return visiblePages;
-  };
+  useEffect(() => {
+    handleSearch(1);
+  }, [selectedType, selectedColor]);
 
   return (
     <div className="flex flex-col h-full space-y-2 md:space-y-4">
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row gap-2">
+        {/* Type Filter */}
+        <select
+          value={selectedType}
+          onChange={(e) => setSelectedType(e.target.value)}
+          className="p-2 bg-gray-800 rounded text-white"
+        >
+          <option value="">All Types</option>
+          <option value="creature">Creature</option>
+          <option value="instant">Instant</option>
+          <option value="sorcery">Sorcery</option>
+          <option value="artifact">Artifact</option>
+          <option value="enchantment">Enchantment</option>
+          <option value="land">Land</option>
+          <option value="planeswalker">Planeswalker</option>
+        </select>
+
+        {/* Color Filter */}
+        <select
+          value={selectedColor}
+          onChange={(e) => setSelectedColor(e.target.value)}
+          className="p-2 bg-gray-800 rounded text-white"
+        >
+          <option value="">All Colors</option>
+          <option value="w">White</option>
+          <option value="u">Blue</option>
+          <option value="b">Black</option>
+          <option value="r">Red</option>
+          <option value="g">Green</option>
+          <option value="c">Colorless</option>
+        </select>
+      </div>
+
       {/* Search Bar */}
       <div className="flex flex-col md:flex-row gap-2">
         <Input
@@ -158,14 +184,6 @@ const CardSearch: React.FC<CardSearchProps> = ({
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch(1)}
         />
-        {/* <input
-          type="text"
-          placeholder="Search cards..."
-          className="w-full p-2 bg-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSearch(1)}
-        /> */}
         <Button
           onClick={() => handleSearch(1)}
           disabled={loading || !searchTerm.trim()}
@@ -222,40 +240,28 @@ const CardSearch: React.FC<CardSearchProps> = ({
           ))}
         </div>
       </ScrollArea>
-      {/* Pagination Bar */}
-      <div className="flex items-center justify-center gap-2 mt-4 flex-wrap overflow-x-auto px-2">
-        {/* First Page Button */}
-        <button
-          onClick={() => handlePageChange(1)}
-          disabled={currentPage === 1}
-          className={`px-3 py-1 rounded-md ${
-            currentPage === 1
-              ? "bg-gray-500 text-gray-300 cursor-not-allowed"
-              : "bg-sky-600 text-white hover:bg-sky-700"
-          }`}
-        >
-          First
-        </button>
 
+      {/* Sticky Pagination Bar */}
+      <div className="sticky bottom-0 bg-gray-900 p-2 flex flex-wrap items-center justify-center gap-2 shadow-md">
         {/* Previous Page Button */}
         <button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className={`px-3 py-1 rounded-md ${
+          className={`px-3 py-1 rounded-md cursor-pointer ${
             currentPage === 1
               ? "bg-gray-500 text-gray-300 cursor-not-allowed"
               : "bg-sky-600 text-white hover:bg-sky-700"
           }`}
         >
-          Prev
+          Previous
         </button>
 
         {/* Page Numbers */}
-        {getVisiblePages().map((page) => (
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
           <button
             key={page}
             onClick={() => handlePageChange(page)}
-            className={`px-3 py-1 rounded-md ${
+            className={`px-3 py-1 rounded-md cursor-pointer ${
               page === currentPage
                 ? "bg-sky-700 text-white font-bold"
                 : "bg-gray-700 text-white hover:bg-sky-600"
@@ -269,26 +275,13 @@ const CardSearch: React.FC<CardSearchProps> = ({
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className={`px-3 py-1 rounded-md ${
+          className={`px-3 py-1 rounded-md cursor-pointer ${
             currentPage === totalPages
               ? "bg-gray-500 text-gray-300 cursor-not-allowed"
               : "bg-sky-600 text-white hover:bg-sky-700"
           }`}
         >
           Next
-        </button>
-
-        {/* Last Page Button */}
-        <button
-          onClick={() => handlePageChange(totalPages)}
-          disabled={currentPage === totalPages}
-          className={`px-3 py-1 rounded-md ${
-            currentPage === totalPages
-              ? "bg-gray-500 text-gray-300 cursor-not-allowed"
-              : "bg-sky-600 text-white hover:bg-sky-700"
-          }`}
-        >
-          Last
         </button>
       </div>
     </div>
