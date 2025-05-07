@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { GameBoard } from "./GameBoard";
 
 export interface CardData {
   name: string;
@@ -41,15 +42,6 @@ const GamePage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-800 text-white">
-      {/* Botón para volver al Deck Builder */}
-      <div className="sticky top-0 z-50 bg-gray-900 p-4 shadow-md">
-        <Link href="/deck-builder">
-          <Button className="bg-blue-500 hover:bg-blue-700 text-white">
-            Volver al Deck Builder
-          </Button>
-        </Link>
-      </div>
-
       {!selectedDeck ? (
         <div className="flex flex-col items-center justify-center flex-grow">
           <h1 className="text-2xl mb-4">Selecciona un Mazo</h1>
@@ -65,6 +57,11 @@ const GamePage: React.FC = () => {
                   cartas)
                 </Button>
               ))}
+              <Link href="/deck-builder">
+                <Button className="bg-blue-500 hover:bg-blue-700 text-white">
+                  Volver al Deck Builder
+                </Button>
+              </Link>
             </div>
           ) : (
             <div>

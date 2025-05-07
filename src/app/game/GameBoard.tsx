@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export interface CardData {
   name: string;
   image_uris?: {
     small: string;
+    normal?: string;
   };
 }
 
@@ -24,11 +25,28 @@ const cardStyle = {
   marginBottom: "3px",
 };
 
+// Función para mezclar el mazo (Fisher-Yates Shuffle)
+const shuffleDeck = (deck: CardData[]): CardData[] => {
+  const shuffled = [...deck];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
   initialDeck,
 }) => {
-  const [playerDeck, setPlayerDeck] = useState<CardData[]>(initialDeck || []);
+  const [playerDeck, setPlayerDeck] = useState<CardData[]>([]);
   const [playerHand, setPlayerHand] = useState<CardData[]>([]);
+
+  // Mezclar el mazo al cargar el componente
+  useEffect(() => {
+    console.log("Initial Deck:", initialDeck); // Depuración
+    const shuffledDeck = shuffleDeck(initialDeck);
+    setPlayerDeck(shuffledDeck);
+  }, [initialDeck]);
 
   // Función para robar una carta del mazo
   const drawCardFromDeck = () => {
@@ -58,26 +76,30 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
       <div className="p-2 absolute bottom-0 left-0 w-full">
         <h2 className="text-lg mb-1 text-7DF9FF">Mano</h2>
         <div className="flex overflow-x-auto">
-          {playerHand.map((card, index) => (
-            <div
-              key={index}
-              style={cardStyle as React.CSSProperties}
-              className="mr-1 hover:scale-110 transition-transform duration-200"
-              title={card.name}
-            >
-              {card.image_uris?.small ? (
-                <img
-                  src={card.image_uris.small}
-                  alt={card.name}
-                  className="w-full h-full object-cover rounded"
-                />
-              ) : (
-                <div className="text-center text-xs bg-gray-600 text-white p-2 rounded">
-                  Sin Imagen
-                </div>
-              )}
-            </div>
-          ))}
+          {playerHand.map((card, index) => {
+            console.log("Card:", card); // Depuración
+            console.log("Card Image URL:", card.image_uris?.normal); // Depuración
+            return (
+              <div
+                key={index}
+                style={cardStyle as React.CSSProperties}
+                className="mr-1 hover:scale-110 transition-transform duration-200"
+                title={card.name}
+              >
+                {card.image_uris?.normal ? (
+                  <img
+                    src={card.image_uris.normal}
+                    alt={card.name}
+                    className="w-full h-full object-cover rounded"
+                  />
+                ) : (
+                  <div className="text-center text-xs bg-gray-600 text-white p-2 rounded">
+                    Sin Imagen
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
