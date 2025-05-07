@@ -364,6 +364,18 @@ const DeckBuilderPage: React.FC = () => {
             >
               Importar
             </Button>
+            <Button
+              asChild
+              className="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <a
+                href="https://mtgdecks.net/premodern"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Mirolear Mazos en mtgdecks.net
+              </a>
+            </Button>
           </div>
 
           {/* Deck Builder */}

@@ -392,56 +392,56 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
   );
 };
 
-export const initialCards: CardData[] = [
-  { name: "Lightning Bolt" },
-  { name: "Forest" },
-  { name: "Black Lotus" },
-  { name: "Island" },
-  { name: "Mountain" },
-  { name: "Grizzly Bears" },
-  { name: "Counterspell" },
-  { name: "Dark Ritual" },
-  { name: "Swamp" },
-  { name: "Memnite" },
-  { name: "Serra Angel" },
-  { name: "Time Walk" },
-  { name: "Urzas Power Plant" },
-  { name: "Sol Ring" },
-  { name: "Plains" },
-  { name: "Demonic Tutor" },
-  { name: "Mox Emerald" },
-  { name: "Mox Jet" },
-  { name: "Mox Pearl" },
-  { name: "Mox Ruby" },
-  { name: "Mox Sapphire" },
-  { name: "Llanowar Elves" },
-  { name: "Giant Growth" },
-  { name: "Healing Salve" },
-  { name: "Disenchant" },
-  { name: "Terror" },
-  { name: "Animate Dead" },
-  { name: "Stone Rain" },
-  { name: "Birds of Paradise" },
-  { name: "Swords to Plowshares" },
-  { name: "Wrath of God" },
-  { name: "Black Knight" },
-  { name: "White Knight" },
-  { name: "Air Elemental" },
-  { name: "Fireball" },
-  { name: "Blue Elemental Blast" },
-  { name: "Red Elemental Blast" },
-  { name: "Circle of Protection: Red" },
-  { name: "Circle of Protection: Blue" },
-  { name: "Regenerate" },
-  { name: "Raise Dead" },
-  { name: "Vampiric Tutor" },
-  { name: "Mystic Tutor" },
-  { name: "Channel" },
-  { name: "Fork" },
-];
-
 const GamePage: React.FC = () => {
-  return <GameBoard initialDeck={initialCards} />;
+  const [savedDecks, setSavedDecks] = useState<CardData[][]>([]);
+  const [selectedDeck, setSelectedDeck] = useState<CardData[] | null>(null);
+
+  useEffect(() => {
+    const decks = localStorage.getItem("savedDecks");
+    if (decks) {
+      setSavedDecks(JSON.parse(decks));
+    }
+  }, []);
+
+  const handleSelectDeck = (deck: CardData[]) => {
+    setSelectedDeck(deck);
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-800 text-white">
+      {!selectedDeck ? (
+        <div>
+          <h1 className="text-2xl mb-4">Select a Deck</h1>
+          {savedDecks.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {savedDecks.map((deck, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleSelectDeck(deck)}
+                  className="p-4 bg-gray-700 rounded shadow hover:bg-gray-600"
+                >
+                  Deck {index + 1} ({deck.length} cards)
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div>
+              <p className="mb-4">
+                No decks found! Create one in the Deck Builder.
+              </p>
+              <Link href="/deck-builder">
+                <Button className="bg-blue-500 hover:bg-blue-700 text-white">
+                  Go to Deck Builder
+                </Button>
+              </Link>
+            </div>
+          )}
+        </div>
+      ) : (
+        <GameBoard initialDeck={selectedDeck} />
+      )}
+    </div>
+  );
 };
 
 export default GamePage;

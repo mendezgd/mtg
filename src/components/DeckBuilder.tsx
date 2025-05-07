@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/hover-card";
 import dynamic from "next/dynamic";
 import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
 
 const ScrollArea = dynamic(
   () =>
@@ -62,6 +63,8 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
   const [editingDeckId, setEditingDeckId] = useState<string | null>(null);
   const [tempDeckName, setTempDeckName] = useState("");
 
+  const router = useRouter();
+
   const handleStartEditing = useCallback(
     (deckId: string, currentName: string) => {
       setEditingDeckId(deckId);
@@ -69,6 +72,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
     },
     []
   );
+
   const handleSaveRename = useCallback(
     (deckId: string) => {
       if (tempDeckName.trim()) {
@@ -82,6 +86,12 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (decks && decks.length > 0) {
+      localStorage.setItem("savedDecks", JSON.stringify(decks));
+    }
+  }, [decks]);
 
   const startDrag = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     const container = scrollContainerRef.current;
@@ -140,6 +150,14 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
     const shuffled = [...cardPool].sort(() => Math.random() - 0.5);
     setSampleHand(shuffled.slice(0, 7));
   }, [decks, selectedDeckId]);
+
+  const handleChallenge = () => {
+    const selectedDeck = decks.find((deck) => deck.id === selectedDeckId);
+    if (!selectedDeck) return;
+
+    localStorage.setItem("selectedDeck", JSON.stringify(selectedDeck));
+    router.push("/game");
+  };
 
   const selectedDeck = decks.find((deck) => deck.id === selectedDeckId);
   const totalCards = selectedDeck
@@ -272,18 +290,25 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
               <Button
                 onClick={generateSampleHand}
                 disabled={totalCards === 0}
-                className="bg-purple-300 hover:bg-purple-400"
+                className="bg-purple-600 hover:bg-purple-400 text-white"
               >
                 Generar Mano de Prueba
               </Button>
             </div>
+
+            <Button
+              onClick={handleChallenge}
+              className="bg-green-500 hover:bg-green-700 text-white w-full mb-6"
+            >
+              Challenge
+            </Button>
 
             {sampleHand.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-xl font-semibold mb-4">Mano de Prueba</h3>
                 <div
                   ref={scrollContainerRef}
-                  className={`w-full overflow-x-auto cursor-grab ${
+                  className={`w-full max-h-40 overflow-x-auto cursor-grab ${
                     isDragging ? "cursor-grabbing" : ""
                   }`}
                   onMouseDown={startDrag}
@@ -293,13 +318,13 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
                   onTouchMove={duringDrag}
                   onTouchEnd={endDrag}
                 >
-                  <div className="flex gap-2 pb-4">
+                  <div className="flex gap-2 pb-4 w-full">
                     {sampleHand.map((card, index) => (
                       <div
                         key={index}
                         className="relative group flex-shrink-0 select-none"
                       >
-                        <div className="w-32 rounded-xl overflow-hidden shadow-lg border-2 border-gray-700 group-hover:border-blue-500 transition-all duration-300">
+                        <div className="w-24 h-36 overflow-hidden shadow-lg border-2 border-gray-700 group-hover:border-blue-500 transition-all duration-300">
                           <img
                             src={card.image_uris?.normal || "/default-card.jpg"}
                             alt={card.name}

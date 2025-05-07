@@ -28,7 +28,7 @@ const App: React.FC = () => {
             <Button
               variant="default"
               size="lg"
-              className="w-full md:w-48 text-base md:text-lg py-4 md:py-6 bg-blue-600 hover:bg-blue-700 transition-all duration-200 hover:scale-105"
+              className="w-full md:w-48 text-base md:text-lg py-4 md:py-6 bg-sky-600 hover:bg-sky-700 transition-all duration-200 hover:scale-105"
             >
               Create Deck
             </Button>
@@ -40,7 +40,7 @@ const App: React.FC = () => {
               size="lg"
               className="w-full md:w-48 text-base md:text-lg py-4 md:py-6 bg-green-600 hover:bg-green-700 transition-all duration-200 hover:scale-105"
             >
-              Challenge Friend (soon)
+              Challenge (pronto)
             </Button>
           </Link>
         </div>
