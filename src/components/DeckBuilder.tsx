@@ -98,7 +98,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
       localStorage.setItem("savedDecks", JSON.stringify(formattedDecks));
     }
   }, [decks]);
-
+  
   const startDrag = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     const container = scrollContainerRef.current;
     if (!container) return;
