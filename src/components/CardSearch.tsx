@@ -293,8 +293,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
                 </h3>
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="w-full text-xs py-1 bg-green-500 hover:bg-green-700 text-white"
+                  className="text-xs py-1 bg-green-500 hover:bg-green-700 text-white h-auto w-20"
                   onClick={() => addCardToDeck(card)}
                 >
                   {isMobile ? "Add" : "Add to Deck"}
@@ -306,7 +305,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
       </ScrollArea>
 
       {/* Pagination Bar */}
-      <div className="sticky bottom-0 bg-gray-900 p-2 flex flex-wrap items-center justify-center gap-2 shadow-md">
+      <div className="sticky bottom-0 bg-gray-900 p-2 flex items-center justify-center gap-2 shadow-md overflow-x-auto whitespace-nowrap">
         {/* Previous Page Button */}
         <button
           onClick={() => handlePageChange(currentPage - 1)}
