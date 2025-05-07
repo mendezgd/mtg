@@ -7,6 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/icons";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+} from "@/components/ui/dropdown-menu";
 
 interface CardData {
   id: string;
@@ -38,7 +44,7 @@ interface CardSearchProps {
   onCardPreview: (card: CardData | CardListCard) => void;
 }
 
-const MAX_RESULTS = 100; // Limit for results
+const MAX_RESULTS = 500; // Limit for results
 const CARDS_PER_PAGE = 25; // Maximum allowed by Scryfall
 
 const CardSearch: React.FC<CardSearchProps> = ({
@@ -134,6 +140,27 @@ const CardSearch: React.FC<CardSearchProps> = ({
     }
   };
 
+  const getVisiblePages = () => {
+    const visiblePages = [];
+    const maxVisible = 5;
+
+    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(totalPages, start + maxVisible - 1);
+
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+
+    for (let i = start; i <= end; i++) {
+      visiblePages.push(i);
+    }
+
+    if (start > 1) visiblePages.unshift(1, "...");
+    if (end < totalPages) visiblePages.push("...", totalPages);
+
+    return visiblePages;
+  };
+
   useEffect(() => {
     handleSearch(1);
   }, [selectedType, selectedColor]);
@@ -143,35 +170,72 @@ const CardSearch: React.FC<CardSearchProps> = ({
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-2">
         {/* Type Filter */}
-        <select
-          value={selectedType}
-          onChange={(e) => setSelectedType(e.target.value)}
-          className="p-2 bg-gray-800 rounded text-white"
-        >
-          <option value="">All Types</option>
-          <option value="creature">Creature</option>
-          <option value="instant">Instant</option>
-          <option value="sorcery">Sorcery</option>
-          <option value="artifact">Artifact</option>
-          <option value="enchantment">Enchantment</option>
-          <option value="land">Land</option>
-          <option value="planeswalker">Planeswalker</option>
-        </select>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="p-2 bg-gray-800 rounded text-white w-full md:w-auto">
+              {selectedType
+                ? selectedType.charAt(0).toUpperCase() + selectedType.slice(1)
+                : "All Types"}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="bg-gray-800 text-white rounded shadow-md">
+            <DropdownMenuItem onClick={() => setSelectedType("")}>
+              All Types
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedType("creature")}>
+              Creature
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedType("instant")}>
+              Instant
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedType("sorcery")}>
+              Sorcery
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedType("artifact")}>
+              Artifact
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedType("enchantment")}>
+              Enchantment
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedType("land")}>
+              Land
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Color Filter */}
-        <select
-          value={selectedColor}
-          onChange={(e) => setSelectedColor(e.target.value)}
-          className="p-2 bg-gray-800 rounded text-white"
-        >
-          <option value="">All Colors</option>
-          <option value="w">White</option>
-          <option value="u">Blue</option>
-          <option value="b">Black</option>
-          <option value="r">Red</option>
-          <option value="g">Green</option>
-          <option value="c">Colorless</option>
-        </select>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="p-2 bg-gray-800 rounded text-white w-full md:w-auto">
+              {selectedColor
+                ? selectedColor.charAt(0).toUpperCase() + selectedColor.slice(1)
+                : "All Colors"}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="bg-gray-800 text-white rounded shadow-md">
+            <DropdownMenuItem onClick={() => setSelectedColor("")}>
+              All Colors
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedColor("White")}>
+              White
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedColor("Blue")}>
+              Blue
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedColor("Black")}>
+              Black
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedColor("Red")}>
+              Red
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedColor("Green")}>
+              Green
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedColor("Colorless")}>
+              Colorless
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Search Bar */}
@@ -241,7 +305,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
         </div>
       </ScrollArea>
 
-      {/* Sticky Pagination Bar */}
+      {/* Pagination Bar */}
       <div className="sticky bottom-0 bg-gray-900 p-2 flex flex-wrap items-center justify-center gap-2 shadow-md">
         {/* Previous Page Button */}
         <button
@@ -257,19 +321,25 @@ const CardSearch: React.FC<CardSearchProps> = ({
         </button>
 
         {/* Page Numbers */}
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-          <button
-            key={page}
-            onClick={() => handlePageChange(page)}
-            className={`px-3 py-1 rounded-md cursor-pointer ${
-              page === currentPage
-                ? "bg-sky-700 text-white font-bold"
-                : "bg-gray-700 text-white hover:bg-sky-600"
-            }`}
-          >
-            {page}
-          </button>
-        ))}
+        {getVisiblePages().map((page, index) =>
+          typeof page === "number" ? (
+            <button
+              key={index}
+              onClick={() => handlePageChange(page)}
+              className={`px-3 py-1 rounded-md cursor-pointer ${
+                page === currentPage
+                  ? "bg-sky-700 text-white font-bold"
+                  : "bg-gray-700 text-white hover:bg-sky-600"
+              }`}
+            >
+              {page}
+            </button>
+          ) : (
+            <span key={index} className="px-3 py-1 text-gray-400">
+              ...
+            </span>
+          )
+        )}
 
         {/* Next Page Button */}
         <button
