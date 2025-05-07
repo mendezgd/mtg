@@ -89,7 +89,13 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
   useEffect(() => {
     if (decks && decks.length > 0) {
-      localStorage.setItem("savedDecks", JSON.stringify(decks));
+      const formattedDecks = decks.map((deck) => ({
+        name: deck.name,
+        cards: Object.values(deck.cards).flatMap(({ card, count }) =>
+          Array(count).fill(card)
+        ),
+      }));
+      localStorage.setItem("savedDecks", JSON.stringify(formattedDecks));
     }
   }, [decks]);
 

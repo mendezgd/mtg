@@ -234,6 +234,9 @@ const CardSearch: React.FC<CardSearchProps> = ({
             <DropdownMenuItem onClick={() => setSelectedColor("Colorless")}>
               Colorless
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedColor("Multicolor")}>
+              Multicolor
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
