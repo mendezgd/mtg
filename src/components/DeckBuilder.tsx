@@ -334,7 +334,12 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
                           <Button
                             size="sm"
                             onClick={() => addCardToDeck(card)}
-                            disabled={count >= 4}
+                            disabled={
+                              count >= 4 &&
+                              !card.type_line
+                                ?.toLowerCase()
+                                .includes("basic land")
+                            }
                             className="bg-green-600 hover:bg-green-900 w-6 h-6 rounded-full"
                           >
                             +
