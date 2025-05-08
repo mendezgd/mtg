@@ -61,29 +61,29 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
 
   return (
     <div className="flex flex-col h-screen w-screen bg-gray-800 text-white">
-      {/* Representación del mazo */}
-      <div className="flex justify-center items-center mt-4">
+      {/* Contenedor principal para mazo y mano */}
+      <div className="flex-1"></div> {/* Espacio vacío superior */}
+      {/* Área inferior con mazo y mano */}
+      <div className="flex flex-row items-end p-4 gap-4">
+        {/* Mazo */}
         <div
-          className="w-24 h-36 bg-gray-700 rounded-lg shadow-lg flex justify-center items-center cursor-pointer hover:scale-105 transition-transform"
+          className="w-24 h-36 bg-gray-700 rounded-lg shadow-lg flex justify-center items-center 
+                   cursor-pointer hover:scale-105 transition-transform self-start"
           onClick={drawCardFromDeck}
           title="Haz clic para robar una carta"
         >
           <p className="text-white text-center">Mazo ({playerDeck.length})</p>
         </div>
-      </div>
 
-      {/* Área de la mano del jugador */}
-      <div className="p-2 absolute bottom-0 left-0 w-full">
-        <h2 className="text-lg mb-1 text-7DF9FF">Mano</h2>
-        <div className="flex overflow-x-auto">
-          {playerHand.map((card, index) => {
-            console.log("Card:", card); // Depuración
-            console.log("Card Image URL:", card.image_uris?.normal); // Depuración
-            return (
+        {/* Mano */}
+        <div className="flex-1">
+          <h2 className="text-lg mb-2 text-[#7DF9FF]">Mano</h2>
+          <div className="flex overflow-x-auto gap-2 pb-2">
+            {playerHand.map((card, index) => (
               <div
                 key={index}
                 style={cardStyle as React.CSSProperties}
-                className="mr-1 hover:scale-110 transition-transform duration-200"
+                className="hover:scale-110 transition-transform duration-200"
                 title={card.name}
               >
                 {card.image_uris?.normal ? (
@@ -98,8 +98,8 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                   </div>
                 )}
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
       </div>
     </div>
