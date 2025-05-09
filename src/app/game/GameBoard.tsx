@@ -1,4 +1,8 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
+import { useDrag, useDrop, DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
 export interface CardData {
   name: string;
@@ -6,6 +10,10 @@ export interface CardData {
     small: string;
     normal?: string;
   };
+  id?: string;
+  x?: number;
+  y?: number;
+  tapped?: boolean;
 }
 
 const cardStyle = {
@@ -25,7 +33,10 @@ const cardStyle = {
   marginBottom: "3px",
 };
 
-// Función para mezclar el mazo (Fisher-Yates Shuffle)
+const ItemType = {
+  CARD: "card",
+};
+
 const shuffleDeck = (deck: CardData[]): CardData[] => {
   const shuffled = [...deck];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -35,73 +46,198 @@ const shuffleDeck = (deck: CardData[]): CardData[] => {
   return shuffled;
 };
 
+const DraggableCard: React.FC<{
+  card: CardData;
+  onTap?: () => void;
+}> = ({ card, onTap }) => {
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: ItemType.CARD,
+    item: card,
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  }));
+
+  return (
+    <div
+      ref={drag as unknown as React.LegacyRef<HTMLDivElement>}
+      style={{
+        ...cardStyle,
+        opacity: isDragging ? 0.5 : 1,
+        userSelect: "none" as const,
+        position: "absolute",
+        left: card.x,
+        top: card.y,
+        transform: card.tapped ? "rotate(90deg)" : "none",
+        transition: "transform 0.3s ease",
+      }}
+      className="hover:scale-110 transition-transform duration-200"
+      title={card.name}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (onTap) onTap();
+      }}
+    >
+      {card.image_uris?.normal ? (
+        <img
+          src={card.image_uris.normal}
+          alt={card.name}
+          className="w-full h-full object-cover rounded"
+        />
+      ) : (
+        <div className="text-center text-xs bg-gray-600 text-white p-2 rounded">
+          Sin Imagen
+        </div>
+      )}
+    </div>
+  );
+};
+
+const DropZone: React.FC<{
+  onDrop: (card: CardData, position: { x: number; y: number }) => void;
+  children?: React.ReactNode;
+}> = ({ onDrop, children }) => {
+  const dropZoneRef = React.useRef<HTMLDivElement | null>(null);
+
+  const [, drop] = useDrop(() => ({
+    accept: ItemType.CARD,
+    drop: (item: CardData, monitor) => {
+      const sourceOffset = monitor.getSourceClientOffset();
+      if (sourceOffset && dropZoneRef.current) {
+        const rect = dropZoneRef.current.getBoundingClientRect();
+        const x = sourceOffset.x - rect.left;
+        const y = sourceOffset.y - rect.top;
+        onDrop(item, { x, y });
+      }
+    },
+  }));
+
+  return (
+    <div
+      ref={(node) => {
+        drop(node);
+        dropZoneRef.current = node;
+      }}
+      className="relative flex flex-wrap p-6 border-2 border-dashed border-gray-500 rounded-lg bg-gray-700/50 
+                h-full w-full overflow-y-auto"
+    >
+      {children}
+    </div>
+  );
+};
+
 export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
   initialDeck,
 }) => {
   const [playerDeck, setPlayerDeck] = useState<CardData[]>([]);
   const [playerHand, setPlayerHand] = useState<CardData[]>([]);
+  const [playArea, setPlayArea] = useState<CardData[]>([]);
 
-  // Mezclar el mazo al cargar el componente
+  // Shuffle the deck on component load
   useEffect(() => {
-    console.log("Initial Deck:", initialDeck); // Depuración
     const shuffledDeck = shuffleDeck(initialDeck);
     setPlayerDeck(shuffledDeck);
   }, [initialDeck]);
 
-  // Función para robar una carta del mazo
+  // Draw a card from the deck
   const drawCardFromDeck = () => {
     if (playerDeck.length > 0) {
-      const card = playerDeck[0];
-      setPlayerHand([...playerHand, card]);
-      setPlayerDeck(playerDeck.slice(1));
-    } else {
-      console.warn("El mazo está vacío.");
+      const cardWithId = {
+        ...playerDeck[0],
+        id: Math.random().toString(36).substr(2, 9),
+        x: playerHand.length * 80, // Position cards horizontally in the hand
+        y: 0,
+      };
+      setPlayerHand((prevHand) => [...prevHand, cardWithId]);
+      setPlayerDeck((prevDeck) => prevDeck.slice(1));
     }
   };
 
+  // Handle dropping a card into the play area
+  const handleCardDropToPlayArea = (
+    card: CardData,
+    position: { x: number; y: number }
+  ) => {
+    if (!card.id) return;
+
+    setPlayArea((prevPlayArea) => {
+      const existingCardIndex = prevPlayArea.findIndex((c) => c.id === card.id);
+
+      if (existingCardIndex !== -1) {
+        // Update position of existing card
+        const updatedCards = [...prevPlayArea];
+        updatedCards[existingCardIndex] = {
+          ...updatedCards[existingCardIndex],
+          x: position.x,
+          y: position.y,
+        };
+        return updatedCards;
+      } else {
+        // Remove from hand and add to play area
+        setPlayerHand((prevHand) => {
+          const updatedHand = prevHand.filter((c) => c.id !== card.id);
+          // Recalculate x positions for the remaining cards
+          return updatedHand.map((c, index) => ({
+            ...c,
+            x: index * 80, // Reassign x position based on the new index
+          }));
+        });
+        return [...prevPlayArea, { ...card, x: position.x, y: position.y }];
+      }
+    });
+  };
+
+  const toggleCardTap = (cardId: string | undefined) => {
+    if (!cardId) return;
+    setPlayArea((prev) =>
+      prev.map((card) =>
+        card.id === cardId ? { ...card, tapped: !card.tapped } : card
+      )
+    );
+  };
+
   return (
-    <div className="flex flex-col h-screen w-screen bg-gray-800 text-white">
-      {/* Contenedor principal para mazo y mano */}
-      <div className="flex-1"></div> {/* Espacio vacío superior */}
-      {/* Área inferior con mazo y mano */}
-      <div className="flex flex-row items-end p-4 gap-4">
-        {/* Mazo */}
-        <div
-          className="w-24 h-36 bg-gray-700 rounded-lg shadow-lg flex justify-center items-center 
-                   cursor-pointer hover:scale-105 transition-transform self-start"
-          onClick={drawCardFromDeck}
-          title="Haz clic para robar una carta"
-        >
-          <p className="text-white text-center">Mazo ({playerDeck.length})</p>
+    <DndProvider backend={HTML5Backend}>
+      <div className="flex flex-col h-screen w-screen bg-gray-800 text-white">
+        {/* Play Area */}
+        <div className="flex-1 p-4">
+          <h2 className="text-lg mb-2 text-[#7DF9FF]">Zona de Juego</h2>
+          <DropZone onDrop={handleCardDropToPlayArea}>
+            {playArea.map((card) => (
+              <DraggableCard
+                key={card.id}
+                card={card}
+                onTap={() => toggleCardTap(card.id)}
+              />
+            ))}
+          </DropZone>
         </div>
 
-        {/* Mano */}
-        <div className="flex-1">
-          <h2 className="text-lg mb-2 text-[#7DF9FF]">Mano</h2>
-          <div className="flex overflow-x-auto gap-2 pb-2">
-            {playerHand.map((card, index) => (
-              <div
-                key={index}
-                style={cardStyle as React.CSSProperties}
-                className="hover:scale-110 transition-transform duration-200"
-                title={card.name}
-              >
-                {card.image_uris?.normal ? (
-                  <img
-                    src={card.image_uris.normal}
-                    alt={card.name}
-                    className="w-full h-full object-cover rounded"
-                  />
-                ) : (
-                  <div className="text-center text-xs bg-gray-600 text-white p-2 rounded">
-                    Sin Imagen
-                  </div>
-                )}
-              </div>
-            ))}
+        {/* Deck and Hand Area */}
+        <div className="flex flex-col md:flex-row items-end p-4 gap-4">
+          {/* Deck */}
+          <div
+            className="w-20 h-28 md:w-24 md:h-36 bg-gray-700 rounded-lg shadow-lg flex justify-center items-center 
+                     cursor-pointer hover:scale-105 transition-transform self-start"
+            onClick={drawCardFromDeck}
+            title="Haz clic para robar una carta"
+          >
+            <p className="text-white text-center text-sm md:text-base">
+              Mazo ({playerDeck.length})
+            </p>
+          </div>
+
+          {/* Hand */}
+          <div className="flex-1">
+            <h2 className="text-lg mb-2 text-[#7DF9FF]">Mano</h2>
+            <div className="relative w-full h-20 md:h-24 bg-gray-700 rounded-lg shadow-lg flex items-center overflow-x-auto">
+              {playerHand.map((card) => (
+                <DraggableCard key={card.id} card={card} />
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </DndProvider>
   );
 };
