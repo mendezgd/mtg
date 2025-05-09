@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useDrag, useDrop, DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import { TouchBackend } from "react-dnd-touch-backend";
 
 export interface CardData {
   name: string;
@@ -15,6 +16,13 @@ export interface CardData {
   y?: number;
   tapped?: boolean;
 }
+
+const isMobile = () => {
+  if (typeof window === "undefined") return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+};
 
 const cardStyle = {
   width: "100px",
@@ -29,8 +37,7 @@ const cardStyle = {
   fontWeight: "bold",
   boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
   cursor: "pointer",
-  userSelect: "none",
-  marginBottom: "3px",
+  userSelect: "none" as React.CSSProperties["userSelect"],
 };
 
 const ItemType = {
@@ -51,7 +58,8 @@ const DraggableCard: React.FC<{
   onTap?: () => void;
   enlarged?: boolean;
   onRightClick?: () => void;
-}> = ({ card, onTap, enlarged, onRightClick }) => {
+  disableHover?: boolean; // New prop to disable hover effect
+}> = ({ card, onTap, enlarged, onRightClick, disableHover }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ItemType.CARD,
     item: card,
@@ -66,18 +74,21 @@ const DraggableCard: React.FC<{
       style={{
         ...cardStyle,
         opacity: isDragging ? 0.5 : 1,
-        userSelect: "none" as const,
         position: "absolute",
         left: card.x,
         top: card.y,
         transform: `${card.tapped ? "rotate(90deg)" : ""} ${
-          enlarged ? "scale(3)" : "" // Aumentado de scale(2) a scale(3)
+          enlarged ? "scale(2.5)" : ""
         }`,
         transformOrigin: "center center",
         transition: "transform 0.3s ease, opacity 0.3s ease",
         zIndex: enlarged ? 1000 : "auto",
+        width: isMobile() ? "80px" : "100px",
+        height: isMobile() ? "112px" : "140px",
       }}
-      className={`hover:scale-125 transition-transform duration-200 ${
+      className={`${
+        disableHover ? "" : "hover:scale-125"
+      } transition-transform duration-200 ${
         enlarged ? "pointer-events-auto" : ""
       }`}
       title={card.name}
@@ -130,8 +141,8 @@ const DropZone: React.FC<{
         drop(node);
         dropZoneRef.current = node;
       }}
-      className="relative flex flex-wrap p-6 border-2 border-dashed border-gray-500 rounded-lg bg-gray-700/50 
-                h-full w-full overflow-y-auto"
+      className="relative flex flex-wrap p-2 md:p-6 border-2 border-dashed border-gray-500 rounded-lg bg-gray-700/50 
+                h-full w-full overflow-y-auto touch-none"
     >
       {children}
     </div>
@@ -167,26 +178,14 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
   const handleCardRightClick = (cardId: string | undefined) => {
     if (!cardId) return;
     setEnlargedCardId((currentId) => (currentId === cardId ? null : cardId));
-
-    // Agregar efecto de zoom máximo temporal
-    if (!enlargedCardId) {
-      const cardElement = document.getElementById(cardId);
-      if (cardElement) {
-        cardElement.style.transform = "scale(5)";
-        setTimeout(() => {
-          cardElement.style.transform = "scale(3)";
-        }, 500);
-      }
-    }
   };
 
-  // Draw a card from the deck
   const drawCardFromDeck = () => {
     if (playerDeck.length > 0) {
       const cardWithId = {
         ...playerDeck[0],
         id: Math.random().toString(36).substr(2, 9),
-        x: playerHand.length * 80, // Position cards horizontally in the hand
+        x: playerHand.length * 80,
         y: 0,
       };
       setPlayerHand((prevHand) => [...prevHand, cardWithId]);
@@ -194,7 +193,6 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
     }
   };
 
-  // Handle dropping a card into the play area
   const handleCardDropToPlayArea = (
     card: CardData,
     position: { x: number; y: number }
@@ -205,7 +203,6 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
       const existingCardIndex = prevPlayArea.findIndex((c) => c.id === card.id);
 
       if (existingCardIndex !== -1) {
-        // Update position of existing card
         const updatedCards = [...prevPlayArea];
         updatedCards[existingCardIndex] = {
           ...updatedCards[existingCardIndex],
@@ -214,17 +211,29 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
         };
         return updatedCards;
       } else {
-        // Remove from hand and add to play area
-        setPlayerHand((prevHand) => {
-          const updatedHand = prevHand.filter((c) => c.id !== card.id);
-          // Recalculate x positions for the remaining cards
-          return updatedHand.map((c, index) => ({
-            ...c,
-            x: index * 80, // Reassign x position based on the new index
-          }));
-        });
+        setPlayerHand((prevHand) => prevHand.filter((c) => c.id !== card.id));
         return [...prevPlayArea, { ...card, x: position.x, y: position.y }];
       }
+    });
+  };
+
+  const handleCardDropToHand = (card: CardData, targetIndex?: number) => {
+    setPlayerHand((prevHand) => {
+      // Remove the card from its current position in the hand
+      const updatedHand = prevHand.filter((c) => c.id !== card.id);
+
+      // Insert the card at the target index or at the end if no index is provided
+      if (targetIndex !== undefined) {
+        updatedHand.splice(targetIndex, 0, card);
+      } else {
+        updatedHand.push(card);
+      }
+
+      // Recalculate x positions for all cards in the hand
+      return updatedHand.map((c, i) => ({
+        ...c,
+        x: i * 80,
+      }));
     });
   };
 
@@ -237,12 +246,32 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
     );
   };
 
+  // Reset match to initial state
+  const resetMatch = () => {
+    const shuffledDeck = shuffleDeck(initialDeck);
+    setPlayerDeck(shuffledDeck);
+    setPlayerHand([]);
+    setPlayArea([]);
+    setEnlargedCardId(null);
+  };
+
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="flex flex-col h-screen w-screen bg-gray-800 text-white">
+    <DndProvider backend={isMobile() ? TouchBackend : HTML5Backend}>
+      <div className="flex flex-col h-screen w-screen bg-gray-800 text-white relative">
+        {/* Reset Match Button */}
+        <button
+          onClick={resetMatch}
+          className="absolute top-4 right-4 bg-gray-700 hover:bg-gray-600 text-white text-sm px-4 py-2 rounded shadow-md transition"
+          title="Reset Match"
+        >
+          Reset Match
+        </button>
+
         {/* Play Area */}
-        <div className="flex-1 p-4">
-          <h2 className="text-lg mb-2 text-[#7DF9FF]">Zona de Juego</h2>
+        <div className="flex-1 p-2 md:p-4">
+          <h2 className="text-sm md:text-lg mb-1 md:mb-2 text-[#7DF9FF]">
+            Zona de Juego
+          </h2>
           <DropZone onDrop={handleCardDropToPlayArea}>
             {playArea.map((card) => (
               <DraggableCard
@@ -251,45 +280,49 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                 onTap={() => toggleCardTap(card.id)}
                 onRightClick={() => handleCardRightClick(card.id)}
                 enlarged={card.id === enlargedCardId}
+                disableHover={true} // Disable hover effect in the play area
               />
             ))}
           </DropZone>
         </div>
 
         {/* Deck and Hand Area */}
-        <div className="flex flex-col md:flex-row items-end p-4 gap-4">
+        <div className="flex flex-col md:flex-row items-end p-2 md:p-4 gap-2 md:gap-4">
           {/* Deck */}
           <div
-            className="w-28 h-32 md:w-22 md:h-22 md:mt-5 bg-gray-700 rounded-lg shadow-lg flex justify-center items-center 
-              cursor-pointer hover:scale-105 transition-transform self-start relative overflow-hidden"
+            className="w-20 h-24 md:w-28 md:h-32 bg-gray-700 rounded-lg shadow-lg flex justify-center items-center 
+                cursor-pointer hover:scale-105 transition-transform relative overflow-hidden"
             onClick={drawCardFromDeck}
-            title="Haz clic para robar una carta"
           >
-            {/* Imagen del mazo */}
             <img
-              src="/images/pox.webp" // Reemplaza con la ruta correcta
+              src="/images/pox.webp" // Replace with the correct path
               className="absolute w-full h-full object-cover opacity-50"
-              alt="Mazo de cartas"
+              alt="Deck of cards"
             />
-
-            {/* Contador */}
             <p className="text-white text-center text-sm md:text-base relative z-10 font-bold drop-shadow">
-              deck ({playerDeck.length})
+              Deck ({playerDeck.length})
             </p>
           </div>
 
           {/* Hand */}
-          <div className="flex-1">
-            <div className="relative w-full h-32 md:h-36 bg-gray-700 rounded-lg shadow-lg flex items-center overflow-x-auto mt-2">
-              {playerHand.map((card) => (
-                <DraggableCard
-                  key={card.id}
-                  card={card}
-                  onRightClick={() => handleCardRightClick(card.id)}
-                  enlarged={card.id === enlargedCardId}
-                />
-              ))}
-            </div>
+          <div className="flex-1 w-full">
+            <DropZone
+              onDrop={(card: CardData, position) => {
+                const targetIndex = Math.floor(position.x / 80); // Calculate the target index based on the drop position
+                handleCardDropToHand(card, targetIndex);
+              }}
+            >
+              <div className="relative w-full h-24 md:h-36 bg-gray-700 rounded-lg shadow-lg flex items-center overflow-x-auto px-1">
+                {playerHand.map((card, index) => (
+                  <DraggableCard
+                    key={card.id}
+                    card={card}
+                    onRightClick={() => handleCardRightClick(card.id)}
+                    enlarged={card.id === enlargedCardId}
+                  />
+                ))}
+              </div>
+            </DropZone>
           </div>
         </div>
       </div>
