@@ -17,8 +17,8 @@ export interface CardData {
 }
 
 const cardStyle = {
-  width: "70px",
-  height: "98px",
+  width: "100px",
+  height: "140px",
   border: "1px solid #ddd",
   borderRadius: "6px",
   backgroundColor: "#fff",
@@ -49,7 +49,9 @@ const shuffleDeck = (deck: CardData[]): CardData[] => {
 const DraggableCard: React.FC<{
   card: CardData;
   onTap?: () => void;
-}> = ({ card, onTap }) => {
+  enlarged?: boolean;
+  onRightClick?: () => void;
+}> = ({ card, onTap, enlarged, onRightClick }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ItemType.CARD,
     item: card,
@@ -68,14 +70,24 @@ const DraggableCard: React.FC<{
         position: "absolute",
         left: card.x,
         top: card.y,
-        transform: card.tapped ? "rotate(90deg)" : "none",
-        transition: "transform 0.3s ease",
+        transform: `${card.tapped ? "rotate(90deg)" : ""} ${
+          enlarged ? "scale(3)" : "" // Aumentado de scale(2) a scale(3)
+        }`,
+        transformOrigin: "center center",
+        transition: "transform 0.3s ease, opacity 0.3s ease",
+        zIndex: enlarged ? 1000 : "auto",
       }}
-      className="hover:scale-110 transition-transform duration-200"
+      className={`hover:scale-125 transition-transform duration-200 ${
+        enlarged ? "pointer-events-auto" : ""
+      }`}
       title={card.name}
       onClick={(e) => {
         e.stopPropagation();
         if (onTap) onTap();
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        if (onRightClick) onRightClick();
       }}
     >
       {card.image_uris?.normal ? (
@@ -132,12 +144,41 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
   const [playerDeck, setPlayerDeck] = useState<CardData[]>([]);
   const [playerHand, setPlayerHand] = useState<CardData[]>([]);
   const [playArea, setPlayArea] = useState<CardData[]>([]);
+  const [enlargedCardId, setEnlargedCardId] = useState<string | null>(null);
 
   // Shuffle the deck on component load
   useEffect(() => {
     const shuffledDeck = shuffleDeck(initialDeck);
     setPlayerDeck(shuffledDeck);
   }, [initialDeck]);
+
+  // Add effect to close enlarged card when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (enlargedCardId && !(e.target as Element).closest(".draggable-card")) {
+        setEnlargedCardId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [enlargedCardId]);
+
+  const handleCardRightClick = (cardId: string | undefined) => {
+    if (!cardId) return;
+    setEnlargedCardId((currentId) => (currentId === cardId ? null : cardId));
+
+    // Agregar efecto de zoom máximo temporal
+    if (!enlargedCardId) {
+      const cardElement = document.getElementById(cardId);
+      if (cardElement) {
+        cardElement.style.transform = "scale(5)";
+        setTimeout(() => {
+          cardElement.style.transform = "scale(3)";
+        }, 500);
+      }
+    }
+  };
 
   // Draw a card from the deck
   const drawCardFromDeck = () => {
@@ -208,6 +249,8 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                 key={card.id}
                 card={card}
                 onTap={() => toggleCardTap(card.id)}
+                onRightClick={() => handleCardRightClick(card.id)}
+                enlarged={card.id === enlargedCardId}
               />
             ))}
           </DropZone>
@@ -217,22 +260,34 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
         <div className="flex flex-col md:flex-row items-end p-4 gap-4">
           {/* Deck */}
           <div
-            className="w-20 h-28 md:w-24 md:h-36 bg-gray-700 rounded-lg shadow-lg flex justify-center items-center 
-                     cursor-pointer hover:scale-105 transition-transform self-start"
+            className="w-28 h-32 md:w-22 md:h-22 md:mt-5 bg-gray-700 rounded-lg shadow-lg flex justify-center items-center 
+              cursor-pointer hover:scale-105 transition-transform self-start relative overflow-hidden"
             onClick={drawCardFromDeck}
             title="Haz clic para robar una carta"
           >
-            <p className="text-white text-center text-sm md:text-base">
-              Mazo ({playerDeck.length})
+            {/* Imagen del mazo */}
+            <img
+              src="/images/pox.webp" // Reemplaza con la ruta correcta
+              className="absolute w-full h-full object-cover opacity-50"
+              alt="Mazo de cartas"
+            />
+
+            {/* Contador */}
+            <p className="text-white text-center text-sm md:text-base relative z-10 font-bold drop-shadow">
+              deck ({playerDeck.length})
             </p>
           </div>
 
           {/* Hand */}
           <div className="flex-1">
-            <h2 className="text-lg mb-2 text-[#7DF9FF]">Mano</h2>
-            <div className="relative w-full h-20 md:h-24 bg-gray-700 rounded-lg shadow-lg flex items-center overflow-x-auto">
+            <div className="relative w-full h-32 md:h-36 bg-gray-700 rounded-lg shadow-lg flex items-center overflow-x-auto mt-2">
               {playerHand.map((card) => (
-                <DraggableCard key={card.id} card={card} />
+                <DraggableCard
+                  key={card.id}
+                  card={card}
+                  onRightClick={() => handleCardRightClick(card.id)}
+                  enlarged={card.id === enlargedCardId}
+                />
               ))}
             </div>
           </div>
