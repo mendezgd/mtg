@@ -177,7 +177,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
 
   const handleCardRightClick = (cardId: string | undefined) => {
     if (!cardId) return;
-    setEnlargedCardId((currentId) => (currentId === cardId ? null : cardId));
+    setEnlargedCardId((currentId) => (currentId === cardId ? null : currentId));
   };
 
   const drawCardFromDeck = () => {
@@ -203,6 +203,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
       const existingCardIndex = prevPlayArea.findIndex((c) => c.id === card.id);
 
       if (existingCardIndex !== -1) {
+        // Update the position of the card in the play area
         const updatedCards = [...prevPlayArea];
         updatedCards[existingCardIndex] = {
           ...updatedCards[existingCardIndex],
@@ -211,7 +212,15 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
         };
         return updatedCards;
       } else {
-        setPlayerHand((prevHand) => prevHand.filter((c) => c.id !== card.id));
+        // Remove the card from the hand and add it to the play area
+        setPlayerHand((prevHand) =>
+          prevHand
+            .filter((c) => c.id !== card.id) // Remove the card from the hand
+            .map((c, i) => ({
+              ...c,
+              x: i * 80, // Recalculate x positions for remaining cards
+            }))
+        );
         return [...prevPlayArea, { ...card, x: position.x, y: position.y }];
       }
     });
@@ -261,14 +270,14 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
         {/* Reset Match Button */}
         <button
           onClick={resetMatch}
-          className="absolute top-4 right-4 bg-gray-700 hover:bg-gray-600 text-white text-sm px-4 py-2 rounded shadow-md transition"
+          className="absolute top-2 right-4 bg-red-400 hover:bg-red-500 text-white text-sm px-4 rounded shadow-md transition"
           title="Reset Match"
         >
           Reset Match
         </button>
 
         {/* Play Area */}
-        <div className="flex-1 p-2 md:p-4">
+        <div className="flex-1 p-2 mb-3 md:p-4">
           <h2 className="text-sm md:text-lg mb-1 md:mb-2 text-[#7DF9FF]">
             Zona de Juego
           </h2>
@@ -290,7 +299,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
         <div className="flex flex-col md:flex-row items-end p-2 md:p-4 gap-2 md:gap-4">
           {/* Deck */}
           <div
-            className="w-20 h-24 md:w-28 md:h-32 bg-gray-700 rounded-lg shadow-lg flex justify-center items-center 
+            className="w-20 h-20 md:w-28 md:h-48 bg-gray-700 rounded-lg shadow-lg flex justify-center items-center 
                 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden"
             onClick={drawCardFromDeck}
           >
@@ -312,15 +321,17 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                 handleCardDropToHand(card, targetIndex);
               }}
             >
-              <div className="relative w-full h-24 md:h-36 bg-gray-700 rounded-lg shadow-lg flex items-center overflow-x-auto px-1">
-                {playerHand.map((card, index) => (
-                  <DraggableCard
-                    key={card.id}
-                    card={card}
-                    onRightClick={() => handleCardRightClick(card.id)}
-                    enlarged={card.id === enlargedCardId}
-                  />
-                ))}
+              <div className="relative w-full h-24 md:h-36 bg-gray-700 rounded-lg shadow-lg overflow-x-auto px-1">
+                <div className="flex flex-nowrap gap-2">
+                  {playerHand.map((card, index) => (
+                    <DraggableCard
+                      key={card.id}
+                      card={card}
+                      onRightClick={() => handleCardRightClick(card.id)}
+                      enlarged={card.id === enlargedCardId}
+                    />
+                  ))}
+                </div>
               </div>
             </DropZone>
           </div>
