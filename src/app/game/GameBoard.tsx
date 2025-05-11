@@ -5,6 +5,15 @@ import { useDrag, useDrop, DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
 
+const touchBackendOptions = {
+  enableMouseEvents: true, // Allow mouse events for desktop
+  scrollAngleRanges: [
+    { start: 0, end: 45 }, // Allow vertical scrolling
+    { start: 135, end: 225 }, // Allow horizontal scrolling
+    { start: 315, end: 360 }, // Allow vertical scrolling
+  ],
+};
+
 export interface CardData {
   name: string;
   image_uris?: {
@@ -58,7 +67,7 @@ const DraggableCard: React.FC<{
   onTap?: () => void;
   enlarged?: boolean;
   onRightClick?: () => void;
-  disableHover?: boolean; // New prop to disable hover effect
+  disableHover?: boolean;
 }> = ({ card, onTap, enlarged, onRightClick, disableHover }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ItemType.CARD,
@@ -79,10 +88,10 @@ const DraggableCard: React.FC<{
         top: card.y,
         transform: `${card.tapped ? "rotate(90deg)" : ""} ${
           enlarged ? "scale(2.5)" : ""
-        }`,
+        }`, // Enlarges the card when `enlarged` is true
         transformOrigin: "center center",
         transition: "transform 0.3s ease, opacity 0.3s ease",
-        zIndex: enlarged ? 1000 : "auto",
+        zIndex: enlarged ? 1000 : "auto", // Bring enlarged card to the front
         width: isMobile() ? "80px" : "100px",
         height: isMobile() ? "112px" : "140px",
       }}
@@ -97,8 +106,9 @@ const DraggableCard: React.FC<{
         if (onTap) onTap();
       }}
       onContextMenu={(e) => {
-        e.preventDefault();
-        if (onRightClick) onRightClick();
+        e.preventDefault(); // Prevent the default browser context menu
+        e.stopPropagation(); // Stop the event from propagating further
+        if (onRightClick) onRightClick(); // Call the right-click handler
       }}
     >
       {card.image_uris?.normal ? (
@@ -177,7 +187,9 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
 
   const handleCardRightClick = (cardId: string | undefined) => {
     if (!cardId) return;
-    setEnlargedCardId((currentId) => (currentId === cardId ? null : currentId));
+
+    // Toggle the enlarged state of the card
+    setEnlargedCardId((currentId) => (currentId === cardId ? null : cardId));
   };
 
   const drawCardFromDeck = () => {
@@ -321,9 +333,9 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                 handleCardDropToHand(card, targetIndex);
               }}
             >
-              <div className="relative w-full h-36 md:h-40 bg-gray-700 rounded-lg shadow-lg overflow-x-auto px-2">
+              <div className="relative w-full h-32 md:h-36 bg-gray-700 rounded-lg shadow-lg overflow-x-auto px-1">
                 <div
-                  className="flex flex-nowrap gap-3"
+                  className="flex flex-nowrap gap-2"
                   style={{
                     minWidth: `${Math.max(playerHand.length * 80, 100)}px`, // Ensure the container's width grows with the number of cards
                   }}
@@ -332,8 +344,8 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                     <DraggableCard
                       key={card.id}
                       card={card}
-                      onRightClick={() => handleCardRightClick(card.id)}
-                      enlarged={card.id === enlargedCardId}
+                      onRightClick={() => handleCardRightClick(card.id)} // Right-click toggles enlargement
+                      enlarged={card.id === enlargedCardId} // Enlarge the card if its ID matches `enlargedCardId`
                     />
                   ))}
                 </div>
