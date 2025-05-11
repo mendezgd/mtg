@@ -277,7 +277,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
         </button>
 
         {/* Play Area */}
-        <div className="flex-1 p-2 mb-3 md:p-4">
+        <div className="flex-1 p-2 mb-3 md:p-4 relative">
           <h2 className="text-sm md:text-lg mb-1 md:mb-2 text-[#7DF9FF]">
             Zona de Juego
           </h2>
@@ -293,14 +293,11 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
               />
             ))}
           </DropZone>
-        </div>
 
-        {/* Deck and Hand Area */}
-        <div className="flex flex-col md:flex-row items-end p-2 md:p-4 gap-2 md:gap-4">
           {/* Deck */}
           <div
-            className="w-20 h-20 md:w-28 md:h-48 bg-gray-700 rounded-lg shadow-lg flex justify-center items-center 
-                cursor-pointer hover:scale-105 transition-transform relative overflow-hidden"
+            className="absolute bottom-1 left-4 md:bottom-1 md:left-9 w-20 h-24 md:w-24 md:h-32 bg-gray-700 rounded-lg shadow-lg flex justify-center items-center 
+              cursor-pointer hover:scale-105 transition-transform overflow-hidden"
             onClick={drawCardFromDeck}
           >
             <img
@@ -312,7 +309,10 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
               Deck ({playerDeck.length})
             </p>
           </div>
+        </div>
 
+        {/* Hand Area */}
+        <div className="flex flex-col md:flex-row items-end p-2 md:p-4 gap-2 md:gap-4">
           {/* Hand */}
           <div className="flex-1 w-full">
             <DropZone
@@ -321,8 +321,13 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                 handleCardDropToHand(card, targetIndex);
               }}
             >
-              <div className="relative w-full h-24 md:h-36 bg-gray-700 rounded-lg shadow-lg overflow-x-auto px-1">
-                <div className="flex flex-nowrap gap-2">
+              <div className="relative w-full h-32 md:h-36 bg-gray-700 rounded-lg shadow-lg overflow-x-auto px-1">
+                <div
+                  className="flex flex-nowrap gap-2"
+                  style={{
+                    minWidth: `${Math.max(playerHand.length * 80, 100)}px`, // Ensure the container's width grows with the number of cards
+                  }}
+                >
                   {playerHand.map((card, index) => (
                     <DraggableCard
                       key={card.id}
