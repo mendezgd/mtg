@@ -270,7 +270,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
         {/* Reset Match Button */}
         <button
           onClick={resetMatch}
-          className="absolute top-2 right-4 bg-red-400 hover:bg-red-500 text-white text-sm px-4 rounded shadow-md transition"
+          className="absolute top-2 right-4 bg-red-400 hover:bg-red-500 text-white text-sm px-4 rounded shadow-md transition z-50"
           title="Reset Match"
         >
           Reset Match
