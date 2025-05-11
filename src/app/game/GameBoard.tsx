@@ -5,15 +5,6 @@ import { useDrag, useDrop, DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
 
-const touchBackendOptions = {
-  enableMouseEvents: true, // Allow mouse events for desktop
-  scrollAngleRanges: [
-    { start: 0, end: 45 }, // Allow vertical scrolling
-    { start: 135, end: 225 }, // Allow horizontal scrolling
-    { start: 315, end: 360 }, // Allow vertical scrolling
-  ],
-};
-
 export interface CardData {
   name: string;
   image_uris?: {
