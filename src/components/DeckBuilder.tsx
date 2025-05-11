@@ -98,7 +98,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
       localStorage.setItem("savedDecks", JSON.stringify(formattedDecks));
     }
   }, [decks]);
-  
+
   const startDrag = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -306,7 +306,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
               onClick={handleChallenge}
               className="bg-green-500 hover:bg-green-700 text-white w-full mb-6"
             >
-              Challenge
+              Test in EzquizoMod
             </Button>
 
             {sampleHand.length > 0 && (

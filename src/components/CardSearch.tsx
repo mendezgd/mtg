@@ -61,6 +61,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
 
   const [selectedType, setSelectedType] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
+  const [selectedManaCost, setSelectedManaCost] = useState("");
 
   const searchResultsRef = useRef<HTMLDivElement>(null);
 
@@ -74,15 +75,26 @@ const CardSearch: React.FC<CardSearchProps> = ({
     const baseQuery = "format:premodern";
     const typeFilter = selectedType ? ` type:${selectedType}` : "";
     const colorFilter = selectedColor ? ` color:${selectedColor}` : "";
+    const manaCostFilter = selectedManaCost
+      ? selectedManaCost === "8+"
+        ? " cmc>=8" // Correctly handle the "8+" filter
+        : ` cmc:${selectedManaCost}`
+      : "";
 
     return term.trim()
-      ? `${baseQuery} (name:${term}* OR oracle:${term})${typeFilter}${colorFilter}`
-      : `${baseQuery}${typeFilter}${colorFilter}`;
+      ? `${baseQuery} (name:${term}* OR oracle:${term})${typeFilter}${colorFilter}${manaCostFilter}`
+      : `${baseQuery}${typeFilter}${colorFilter}${manaCostFilter}`;
   };
 
   const handleSearch = useCallback(
     async (page: number = 1) => {
-      if (!searchTerm.trim() && !selectedType && !selectedColor) return;
+      if (
+        !searchTerm.trim() &&
+        !selectedType &&
+        !selectedColor &&
+        !selectedManaCost
+      )
+        return;
 
       setLoading(true);
       setError("");
@@ -96,6 +108,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
 
         const response = await axios.get(url);
 
+        // Filter the results based on legality and image availability
         const filteredCards = response.data.data.filter(
           (card: CardData) =>
             card.legalities?.premodern === "legal" &&
@@ -103,32 +116,36 @@ const CardSearch: React.FC<CardSearchProps> = ({
               card.card_faces?.[0]?.image_uris?.normal)
         );
 
+        // Handle case where no cards are found
         if (filteredCards.length === 0) {
-          throw new Error("No cards found after filtering");
+          setSearchResults([]);
+          setError("No cards found. Try a different search.");
+          setTotalPages(1); // Set totalPages to 1 to avoid unnecessary pages
+          return;
         }
 
         setSearchResults(filteredCards);
 
+        // Calculate total pages based on the filtered results
+        const totalFilteredCards = response.data.total_cards; // Total cards matching the query
         const calculatedTotalPages = Math.ceil(
-          Math.min(response.data.total_cards, MAX_RESULTS) / CARDS_PER_PAGE
+          Math.min(totalFilteredCards, MAX_RESULTS) / CARDS_PER_PAGE
         );
         setTotalPages(calculatedTotalPages);
         setCurrentPage(page);
       } catch (error: any) {
+        // Handle actual errors (e.g., network issues)
         setError(
-          error.message === "No cards found after filtering"
-            ? "No valid cards found. Try a different search."
-            : error.response?.status === 404
+          error.response?.status === 404
             ? "No cards found. Try a different search."
             : "Error searching cards."
         );
-        setCurrentPage(1);
-        setTotalPages(1);
+        setTotalPages(1); // Reset totalPages to 1 in case of an error
       } finally {
         setLoading(false);
       }
     },
-    [searchTerm, selectedType, selectedColor]
+    [searchTerm, selectedType, selectedColor, selectedManaCost]
   );
 
   const handlePageChange = (newPage: number) => {
@@ -163,7 +180,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
 
   useEffect(() => {
     handleSearch(1);
-  }, [selectedType, selectedColor]);
+  }, [selectedType, selectedColor, selectedManaCost]);
 
   return (
     <div className="flex flex-col h-full space-y-2 md:space-y-4">
@@ -239,6 +256,47 @@ const CardSearch: React.FC<CardSearchProps> = ({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Cost Filter */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="p-2 bg-gray-800 rounded text-white w-full md:w-auto">
+              {selectedManaCost
+                ? selectedManaCost.charAt(0).toUpperCase() +
+                  selectedManaCost.slice(1)
+                : "All Costs"}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="bg-gray-800 text-white rounded shadow-md">
+            <DropdownMenuItem onClick={() => setSelectedManaCost("")}>
+              Cost
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedManaCost("1")}>
+              1
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedManaCost("2")}>
+              2
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedManaCost("3")}>
+              3
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedManaCost("4")}>
+              4
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedManaCost("5")}>
+              5
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedManaCost("6")}>
+              6
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedManaCost("7")}>
+              7
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedManaCost("8+")}>
+              8+
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Search Bar */}
@@ -267,8 +325,8 @@ const CardSearch: React.FC<CardSearchProps> = ({
       {error && <div className="text-red-500 p-2 text-sm">{error}</div>}
 
       {/* Search Results */}
-      <ScrollArea className="h-[calc(100vh-230px)] max-h-[calc(4*(350px+1rem))] p-2 overflow-auto">
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-1">
+      <ScrollArea className="h-[calc(100vh-280px)] md:h-[calc(100vh-240px)] overflow-auto pb-24 md:pb-8 min-h-0">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2">
           {searchResults.map((card) => (
             <div key={card.id} className="rounded-lg p-1 md:p-2 flex flex-col">
               <div className="flex-1 relative group">

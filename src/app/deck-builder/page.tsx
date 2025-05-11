@@ -334,6 +334,13 @@ const DeckBuilderPage: React.FC = () => {
             <p className="mt-1 md:mt-2 text-sm md:text-base">
               {previewedCard.oracle_text}
             </p>
+            <Button
+              variant="outline"
+              className="text-xs py-1 bg-green-500 hover:bg-green-700 text-white h-auto w-20 md:w-32 mt-2"
+              onClick={() => previewedCard && addCardToDeck(previewedCard)}
+            >
+              {window.innerWidth <= 768 ? "Add" : "Add to Deck"}
+            </Button>
           </div>
         ) : (
           <p className="text-gray-400 text-sm md:text-base">
