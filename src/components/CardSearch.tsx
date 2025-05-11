@@ -189,13 +189,13 @@ const CardSearch: React.FC<CardSearchProps> = ({
         {/* Type Filter */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="p-2 bg-gray-800 rounded text-white w-full md:w-auto">
+            <Button className="p-2 bg-teal-900 rounded text-white w-full md:w-auto">
               {selectedType
                 ? selectedType.charAt(0).toUpperCase() + selectedType.slice(1)
                 : "All Types"}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-gray-800 text-white rounded shadow-md">
+          <DropdownMenuContent className="bg-gray-900 text-white rounded shadow-md">
             <DropdownMenuItem onClick={() => setSelectedType("")}>
               All Types
             </DropdownMenuItem>
@@ -223,13 +223,13 @@ const CardSearch: React.FC<CardSearchProps> = ({
         {/* Color Filter */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="p-2 bg-gray-800 rounded text-white w-full md:w-auto">
+            <Button className="p-2 bg-teal-900 rounded text-white w-full md:w-auto">
               {selectedColor
                 ? selectedColor.charAt(0).toUpperCase() + selectedColor.slice(1)
                 : "All Colors"}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-gray-800 text-white rounded shadow-md">
+          <DropdownMenuContent className="bg-gray-900 text-white rounded shadow-md">
             <DropdownMenuItem onClick={() => setSelectedColor("")}>
               All Colors
             </DropdownMenuItem>
@@ -260,14 +260,14 @@ const CardSearch: React.FC<CardSearchProps> = ({
         {/* Cost Filter */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="p-2 bg-gray-800 rounded text-white w-full md:w-auto">
+            <Button className="p-2 bg-teal-900 rounded text-white w-full md:w-auto">
               {selectedManaCost
                 ? selectedManaCost.charAt(0).toUpperCase() +
                   selectedManaCost.slice(1)
                 : "All Costs"}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-gray-800 text-white rounded shadow-md">
+          <DropdownMenuContent className="bg-gray-900 text-white rounded shadow-md">
             <DropdownMenuItem onClick={() => setSelectedManaCost("")}>
               Cost
             </DropdownMenuItem>
