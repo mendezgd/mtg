@@ -185,7 +185,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
   return (
     <div className="flex flex-col h-full space-y-2 md:space-y-4">
       {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-2">
+      <div className="flex flex-row md:flex-row gap-2">
         {/* Type Filter */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -325,7 +325,7 @@ const CardSearch: React.FC<CardSearchProps> = ({
       {error && <div className="text-red-500 p-2 text-sm">{error}</div>}
 
       {/* Search Results */}
-      <ScrollArea className="h-[calc(100vh-280px)] md:h-[calc(100vh-240px)] overflow-auto pb-24 md:pb-8 min-h-0">
+      <ScrollArea className="h-[calc(100vh-280px)] md:h-[calc(100vh-240px)] overflow-auto pb-8 md:pb-8 min-h-0">
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2">
           {searchResults.map((card) => (
             <div key={card.id} className="rounded-lg p-1 md:p-2 flex flex-col">
