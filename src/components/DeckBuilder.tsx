@@ -226,14 +226,14 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
             {/* ===== MAIN CARD ROW ELEMENT =====
               Contains the card art background and all interactive elements */}
             <div
-              className="text-sm flex justify-between items-center rounded-md border-2 border-gray-700 hover:border-blue-500 transition-colors cursor-pointer overflow-hidden h-16 relative"
+              className="text-sm flex justify-between items-center rounded-md border-2 border-gray-400 hover:border-blue-500 transition-colors cursor-pointer overflow-hidden h-16 relative"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
               onTouchCancel={handleTouchEnd}
             >
               {/* ===== CARD ART BACKGROUND ZONE =====
                 Creates a full background effect with the card art as the main focus */}
-              <div className="absolute inset-0 w-full h-full overflow-hidden">
+              <div className="absolute inset-0 w-full h-full overflow-hidden group-hover:border-blue-500 transition-all duration-300">
                 {/* ===== CARD IMAGE =====
                   The actual card image with positioning and loading optimization */}
                 <img
@@ -590,7 +590,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                           key={index}
                           className="relative group flex-shrink-0 select-none"
                         >
-                          <div className="w-24 h-36 overflow-hidden shadow-lg border-2 border-gray-700 group-hover:border-blue-500 transition-all duration-300">
+                          <div className="w-24 h-36 overflow-hidden group-hover:border-blue-500 transition-all duration-300">
                             <img
                               src={
                                 card.image_uris?.normal || "/default-card.jpg"
