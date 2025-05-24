@@ -122,6 +122,64 @@ const DeckBuilderPage: React.FC = () => {
     [selectedDeckId, isMounted, updateDecks]
   );
 
+  const addCardToSideboard = useCallback(
+    (card: Card) => {
+      if (!isMounted || !selectedDeckId)
+        return alert("Por favor selecciona un mazo");
+
+      updateDecks((deck) => {
+        const currentCount = deck.sideboard?.[card.name]?.count || 0;
+        const isLand = isBasicLand(card);
+
+        if (!isLand && currentCount >= 4) {
+          alert("Máximo 4 copias permitidas para cartas no básicas");
+          return deck;
+        }
+
+        return {
+          ...deck,
+          sideboard: {
+            ...(deck.sideboard || {}),
+            [card.name]: {
+              card,
+              count: Math.min(currentCount + 1, isLand ? 1000 : 4),
+            },
+          },
+        };
+      });
+    },
+    [selectedDeckId, isMounted, isBasicLand, updateDecks]
+  );
+
+  const removeCardFromSideboard = useCallback(
+    (cardName: string) => {
+      if (!isMounted || !selectedDeckId) return;
+
+      updateDecks((deck) => {
+        if (!deck.sideboard) return deck;
+        
+        const currentCount = deck.sideboard[cardName]?.count || 0;
+
+        if (currentCount <= 1) {
+          const { [cardName]: _, ...newSideboard } = deck.sideboard;
+          return { ...deck, sideboard: newSideboard };
+        }
+
+        return {
+          ...deck,
+          sideboard: {
+            ...deck.sideboard,
+            [cardName]: {
+              ...deck.sideboard[cardName],
+              count: currentCount - 1,
+            },
+          },
+        };
+      });
+    },
+    [selectedDeckId, isMounted, updateDecks]
+  );
+
   const handleDeleteDeck = useCallback(
     (deckId: string) => {
       if (window.confirm("¿Estás seguro de eliminar este mazo?")) {
@@ -396,23 +454,9 @@ const DeckBuilderPage: React.FC = () => {
             addCardToDeck={addCardToDeck}
             handleDeleteDeck={handleDeleteDeck}
             handleRenameDeck={handleRenameDeck}
+            removeCardFromSideboard={removeCardFromSideboard}
+            addCardToSideboard={addCardToSideboard}
           />
-
-          {/* Sideboard */}
-          {selectedDeckId && (
-            <div className="mt-4 rounded-lg p-3">
-              <h3 className="text-lg md:text-xl font-bold">Sideboard</h3>
-              {decks.find((deck) => deck.id === selectedDeckId)?.sideboard &&
-                Object.entries(
-                  decks.find((deck) => deck.id === selectedDeckId)?.sideboard ||
-                    {}
-                ).map(([cardName, { card, count }]) => (
-                  <div className="bg-gray-800 p-2" key={card.id}>
-                    {count}x {cardName}
-                  </div>
-                ))}
-            </div>
-          )}
         </div>
       </div>
 

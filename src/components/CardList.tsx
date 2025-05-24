@@ -14,6 +14,7 @@ export interface Card {
   legalities?: {
     premodern: string;
   };
+  colors?: string[];
 }
 
 export interface CardType {

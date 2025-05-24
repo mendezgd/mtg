@@ -30,6 +30,7 @@ interface Deck {
   id: string;
   name: string;
   cards: { [cardName: string]: { card: Card; count: number } };
+  sideboard?: { [cardName: string]: { card: Card; count: number } };
 }
 
 interface DeckBuilderProps {
@@ -41,6 +42,8 @@ interface DeckBuilderProps {
   addCardToDeck: (card: Card) => void;
   handleDeleteDeck: (deckId: string) => void;
   handleRenameDeck: (deckId: string, newName: string) => void;
+  removeCardFromSideboard: (cardName: string) => void;
+  addCardToSideboard: (card: Card) => void;
 }
 
 const DeckBuilder: React.FC<DeckBuilderProps> = ({
@@ -52,6 +55,8 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
   addCardToDeck,
   handleDeleteDeck,
   handleRenameDeck,
+  removeCardFromSideboard,
+  addCardToSideboard,
 }) => {
   const [sampleHand, setSampleHand] = useState<Card[]>([]);
   const [newDeckName, setNewDeckName] = useState("");
@@ -59,11 +64,54 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [touchedCard, setTouchedCard] = useState<{
+    card: Card;
+    name: string;
+  } | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [editingDeckId, setEditingDeckId] = useState<string | null>(null);
   const [tempDeckName, setTempDeckName] = useState("");
 
   const router = useRouter();
+
+  const getManaSymbols = (manaCost: string) => {
+    if (!manaCost) return null;
+
+    // Remove curly braces and split into individual symbols
+    const symbols = manaCost.replace(/[{}]/g, "").split("");
+
+    return (
+      <div className="flex gap-0.5">
+        {symbols.map((symbol, idx) => {
+          const symbolClass =
+            symbol === "W"
+              ? "bg-white"
+              : symbol === "U"
+              ? "bg-blue-500"
+              : symbol === "B"
+              ? "bg-black"
+              : symbol === "R"
+              ? "bg-red-500"
+              : symbol === "G"
+              ? "bg-green-500"
+              : symbol === "C"
+              ? "bg-gray-400"
+              : "bg-gray-600"; // For numbers
+
+          return (
+            <div
+              key={idx}
+              className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold ${symbolClass} ${
+                symbol === "B" ? "text-white" : "text-black"
+              }`}
+            >
+              {symbol}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   const handleStartEditing = useCallback(
     (deckId: string, currentName: string) => {
@@ -349,37 +397,66 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
             <div className="grid gap-1">
               {Object.entries(selectedDeck.cards).map(
                 ([name, { card, count }]) => (
-                  <HoverCard key={name}>
-                    <HoverCardTrigger asChild>
-                      <div className="text-sm flex justify-between items-center p-1 bg-gray-800 rounded-md border-2 border-gray-700 hover:border-blue-500 transition-colors cursor-pointer">
-                        <span className="font-medium">{name}</span>
+                  <div key={name}>
+                    <div
+                      className="text-sm flex justify-between items-center p-1 bg-gray-800 rounded-md border-2 border-gray-700 hover:border-blue-500 transition-colors cursor-pointer"
+                      onTouchStart={() => setTouchedCard({ card, name })}
+                      onTouchEnd={() => setTouchedCard(null)}
+                    >
+                      <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1">
-                          <Button
-                            size="sm"
-                            onClick={() => removeCardFromDeck(name)}
-                            className="bg-red-500 hover:bg-red-700 w-6 h-6 rounded-full"
-                          >
-                            -
-                          </Button>
-                          <span className="w-4 text-center">{count}</span>
-                          <Button
-                            size="sm"
-                            onClick={() => addCardToDeck(card)}
-                            disabled={
-                              count >= 4 &&
-                              !card.type_line
-                                ?.toLowerCase()
-                                .includes("basic land")
-                            }
-                            className="bg-green-600 hover:bg-green-900 w-6 h-6 rounded-full"
-                          >
-                            +
-                          </Button>
+                          {card.mana_cost && getManaSymbols(card.mana_cost)}
+                          {card.colors && card.colors.length > 0 && (
+                            <div className="flex gap-0.5">
+                              {card.colors.map((color, idx) => (
+                                <div
+                                  key={idx}
+                                  className={`w-3 h-3 rounded-full ${
+                                    color === "W"
+                                      ? "bg-white"
+                                      : color === "U"
+                                      ? "bg-blue-500"
+                                      : color === "B"
+                                      ? "bg-black"
+                                      : color === "R"
+                                      ? "bg-red-500"
+                                      : color === "G"
+                                      ? "bg-green-500"
+                                      : ""
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          )}
                         </div>
+                        <span className="font-medium">{name}</span>
                       </div>
-                    </HoverCardTrigger>
-                    <HoverCardContent className="w-64 border-0 p-0 bg-transparent shadow-none">
-                      <div className="relative w-64 h-96 rounded-xl overflow-hidden border-2 border-gray-700">
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="sm"
+                          onClick={() => removeCardFromDeck(name)}
+                          className="bg-red-500 hover:bg-red-700 w-6 h-6 rounded-full"
+                        >
+                          -
+                        </Button>
+                        <span className="w-4 text-center">{count}</span>
+                        <Button
+                          size="sm"
+                          onClick={() => addCardToDeck(card)}
+                          disabled={
+                            count >= 4 &&
+                            !card.type_line
+                              ?.toLowerCase()
+                              .includes("basic land")
+                          }
+                          className="bg-green-600 hover:bg-green-900 w-6 h-6 rounded-full"
+                        >
+                          +
+                        </Button>
+                      </div>
+                    </div>
+                    {touchedCard?.name === name && (
+                      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-64 h-96 rounded-xl overflow-hidden border-2 border-gray-700 shadow-2xl">
                         <img
                           src={card.image_uris?.normal || "/default-card.jpg"}
                           alt={name}
@@ -387,11 +464,92 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
                           loading="lazy"
                         />
                       </div>
-                    </HoverCardContent>
-                  </HoverCard>
+                    )}
+                  </div>
                 )
               )}
             </div>
+
+            {selectedDeck.sideboard && Object.keys(selectedDeck.sideboard).length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-xl font-semibold mb-4">Sideboard</h3>
+                <div className="grid gap-1">
+                  {Object.entries(selectedDeck.sideboard).map(
+                    ([name, { card, count }]) => (
+                      <div key={name}>
+                        <div
+                          className="text-sm flex justify-between items-center p-1 bg-gray-800 rounded-md border-2 border-gray-700 hover:border-blue-500 transition-colors cursor-pointer"
+                          onTouchStart={() => setTouchedCard({ card, name })}
+                          onTouchEnd={() => setTouchedCard(null)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1">
+                              {card.mana_cost && getManaSymbols(card.mana_cost)}
+                              {card.colors && card.colors.length > 0 && (
+                                <div className="flex gap-0.5">
+                                  {card.colors.map((color, idx) => (
+                                    <div
+                                      key={idx}
+                                      className={`w-3 h-3 rounded-full ${
+                                        color === "W"
+                                          ? "bg-white"
+                                          : color === "U"
+                                          ? "bg-blue-500"
+                                          : color === "B"
+                                          ? "bg-black"
+                                          : color === "R"
+                                          ? "bg-red-500"
+                                          : color === "G"
+                                          ? "bg-green-500"
+                                          : ""
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <span className="font-medium">{name}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              size="sm"
+                              onClick={() => removeCardFromSideboard(name)}
+                              className="bg-red-500 hover:bg-red-700 w-6 h-6 rounded-full"
+                            >
+                              -
+                            </Button>
+                            <span className="w-4 text-center">{count}</span>
+                            <Button
+                              size="sm"
+                              onClick={() => addCardToSideboard(card)}
+                              disabled={
+                                count >= 4 &&
+                                !card.type_line
+                                  ?.toLowerCase()
+                                  .includes("basic land")
+                              }
+                              className="bg-green-600 hover:bg-green-900 w-6 h-6 rounded-full"
+                            >
+                              +
+                            </Button>
+                          </div>
+                        </div>
+                        {touchedCard?.name === name && (
+                          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-64 h-96 rounded-xl overflow-hidden border-2 border-gray-700 shadow-2xl">
+                            <img
+                              src={card.image_uris?.normal || "/default-card.jpg"}
+                              alt={name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="h-full flex items-center justify-center text-gray-400 text-xl">
