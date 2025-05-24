@@ -223,6 +223,7 @@ const DeckBuilderPage: React.FC = () => {
             type_line: cardData.type_line,
             oracle_text: cardData.oracle_text,
             mana_cost: cardData.mana_cost,
+            colors: cardData.colors || [],
           } as Card;
         }
         return null;

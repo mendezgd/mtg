@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import { Card } from "@/components/CardList";
 import { Button } from "@/components/ui/button";
 import {
@@ -74,12 +80,54 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
   const router = useRouter();
 
-  const getManaSymbols = (manaCost: string) => {
+  // Memoize selected deck to prevent unnecessary recalculations
+  const selectedDeck = useMemo(
+    () => decks.find((deck) => deck.id === selectedDeckId),
+    [decks, selectedDeckId]
+  );
+
+  // Memoize total cards calculation
+  const totalCards = useMemo(
+    () =>
+      selectedDeck
+        ? Object.values(selectedDeck.cards).reduce(
+            (acc, { count }) => acc + count,
+            0
+          )
+        : 0,
+    [selectedDeck]
+  );
+
+  // Memoize card background color function
+  const getCardBackgroundColor = useCallback((colors: string[] | undefined) => {
+    if (!colors || colors.length === 0) return "bg-gray-800"; // Colorless cards
+
+    if (colors.length === 1) {
+      switch (colors[0]) {
+        case "W":
+          return "bg-white";
+        case "U":
+          return "bg-blue-600";
+        case "B":
+          return "bg-gray-900";
+        case "R":
+          return "bg-red-600";
+        case "G":
+          return "bg-green-600";
+        default:
+          return "bg-gray-800";
+      }
+    }
+
+    // Multicolor cards
+    return "bg-gradient-to-r from-yellow-600 via-purple-600 to-yellow-600";
+  }, []);
+
+  // Memoize mana symbols function
+  const getManaSymbols = useCallback((manaCost: string) => {
     if (!manaCost) return null;
 
-    // Remove curly braces and split into individual symbols
     const symbols = manaCost.replace(/[{}]/g, "").split("");
-
     return (
       <div className="flex gap-0.5">
         {symbols.map((symbol, idx) => {
@@ -96,7 +144,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
               ? "bg-green-500"
               : symbol === "C"
               ? "bg-gray-400"
-              : "bg-gray-600"; // For numbers
+              : "bg-gray-600";
 
           return (
             <div
@@ -111,7 +159,153 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
         })}
       </div>
     );
-  };
+  }, []);
+
+  // Add effect to handle touch events outside cards
+  useEffect(() => {
+    const handleTouchOutside = (e: TouchEvent) => {
+      const target = e.target as HTMLElement;
+      // Check if the touch is outside any card row
+      if (!target.closest(".card-row")) {
+        setTouchedCard(null);
+      }
+    };
+
+    document.addEventListener("touchstart", handleTouchOutside);
+    return () => {
+      document.removeEventListener("touchstart", handleTouchOutside);
+    };
+  }, []);
+
+  // Memoize card row component
+  const CardRow = useCallback(
+    ({
+      name,
+      card,
+      count,
+      onRemove,
+      onAdd,
+      isSideboard = false,
+    }: {
+      name: string;
+      card: Card;
+      count: number;
+      onRemove: () => void;
+      onAdd: () => void;
+      isSideboard?: boolean;
+    }) => (
+      // ===== CARD ROW CONTAINER =====
+      <div className="card-row">
+        {/* ===== MAIN CARD ROW ELEMENT =====
+            Contains the card art background and all interactive elements */}
+        <div
+          className="text-sm flex justify-between items-center rounded-md border-2 border-gray-700 hover:border-blue-500 transition-colors cursor-pointer overflow-hidden h-16 relative"
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            setTouchedCard({ card, name });
+          }}
+        >
+          {/* ===== CARD ART BACKGROUND ZONE =====
+              Creates a full background effect with the card art as the main focus */}
+          <div className="absolute inset-0 w-full h-full overflow-hidden">
+            {/* ===== CARD IMAGE =====
+                The actual card image with positioning and loading optimization */}
+            <img
+              src={card.image_uris?.normal || "/default-card.jpg"}
+              alt={name}
+              className="w-full h-full object-cover opacity-40"
+              style={{ objectPosition: "center 20%" }}
+              loading="lazy"
+            />
+            {/* ===== GRADIENT OVERLAY =====
+                Adds a very subtle gradient for minimal text interference */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-black/10 to-transparent" />
+          </div>
+
+          {/* ===== CONTENT ZONE =====
+              Contains all the interactive elements and card information */}
+          <div className="relative z-10 flex justify-between items-center w-full p-2">
+            {/* ===== LEFT SIDE CONTENT =====
+                Contains mana cost, color indicators, and card name */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                {/* ===== MANA COST DISPLAY ===== */}
+                {card.mana_cost && getManaSymbols(card.mana_cost)}
+                {/* ===== COLOR INDICATORS ===== */}
+                {card.colors && card.colors.length > 0 && (
+                  <div className="flex gap-0.5">
+                    {card.colors.map((color, idx) => (
+                      <div
+                        key={idx}
+                        className={`w-3 h-3 rounded-full ${
+                          color === "W"
+                            ? "bg-white"
+                            : color === "U"
+                            ? "bg-blue-500"
+                            : color === "B"
+                            ? "bg-black"
+                            : color === "R"
+                            ? "bg-red-500"
+                            : color === "G"
+                            ? "bg-green-500"
+                            : ""
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* ===== CARD NAME ===== */}
+              <span className="font-medium text-white drop-shadow-lg">
+                {name}
+              </span>
+            </div>
+
+            {/* ===== RIGHT SIDE CONTROLS =====
+                Contains the quantity controls (+ and - buttons) */}
+            <div className="flex items-center gap-1">
+              {/* ===== REMOVE BUTTON ===== */}
+              <Button
+                size="sm"
+                onClick={onRemove}
+                className="bg-red-500 hover:bg-red-700 w-6 h-6 rounded-full"
+              >
+                -
+              </Button>
+              {/* ===== CARD COUNT ===== */}
+              <span className="w-4 text-center text-white">{count}</span>
+              {/* ===== ADD BUTTON ===== */}
+              <Button
+                size="sm"
+                onClick={onAdd}
+                disabled={
+                  count >= 4 &&
+                  !card.type_line?.toLowerCase().includes("basic land")
+                }
+                className="bg-green-600 hover:bg-green-900 w-6 h-6 rounded-full"
+              >
+                +
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* ===== CARD PREVIEW MODAL =====
+            Shows the full card image when touched */}
+        {touchedCard?.name === name && (
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-64 h-96 rounded-xl overflow-hidden border-2 border-gray-700 shadow-2xl">
+            <img
+              src={card.image_uris?.normal || "/default-card.jpg"}
+              alt={name}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        )}
+      </div>
+    ),
+    [getCardBackgroundColor, getManaSymbols, touchedCard]
+  );
 
   const handleStartEditing = useCallback(
     (deckId: string, currentName: string) => {
@@ -160,7 +354,6 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
   const duringDrag = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
       if (!isDragging || !scrollContainerRef.current) return;
-      e.preventDefault();
 
       const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
       const x = clientX - scrollContainerRef.current.offsetLeft;
@@ -212,14 +405,6 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
     localStorage.setItem("selectedDeck", JSON.stringify(selectedDeck));
     router.push("/game");
   };
-
-  const selectedDeck = decks.find((deck) => deck.id === selectedDeckId);
-  const totalCards = selectedDeck
-    ? Object.values(selectedDeck.cards).reduce(
-        (acc, { count }) => acc + count,
-        0
-      )
-    : 0;
 
   if (!mounted) return null;
 
@@ -344,7 +529,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
               <Button
                 onClick={generateSampleHand}
                 disabled={totalCards === 0}
-                className="bg-purple-600 hover:bg-purple-400 text-white"
+                className="bg-purple-700 hover:bg-purple-500 text-white"
               >
                 Generar Mano de Prueba
               </Button>
@@ -352,7 +537,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
 
             <Button
               onClick={handleChallenge}
-              className="bg-green-500 hover:bg-green-700 text-white w-full mb-6"
+              className="bg-green-600 hover:bg-green-700 text-white w-full mb-6"
             >
               Test in EzquizoMod
             </Button>
@@ -397,159 +582,39 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
             <div className="grid gap-1">
               {Object.entries(selectedDeck.cards).map(
                 ([name, { card, count }]) => (
-                  <div key={name}>
-                    <div
-                      className="text-sm flex justify-between items-center p-1 bg-gray-800 rounded-md border-2 border-gray-700 hover:border-blue-500 transition-colors cursor-pointer"
-                      onTouchStart={() => setTouchedCard({ card, name })}
-                      onTouchEnd={() => setTouchedCard(null)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1">
-                          {card.mana_cost && getManaSymbols(card.mana_cost)}
-                          {card.colors && card.colors.length > 0 && (
-                            <div className="flex gap-0.5">
-                              {card.colors.map((color, idx) => (
-                                <div
-                                  key={idx}
-                                  className={`w-3 h-3 rounded-full ${
-                                    color === "W"
-                                      ? "bg-white"
-                                      : color === "U"
-                                      ? "bg-blue-500"
-                                      : color === "B"
-                                      ? "bg-black"
-                                      : color === "R"
-                                      ? "bg-red-500"
-                                      : color === "G"
-                                      ? "bg-green-500"
-                                      : ""
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <span className="font-medium">{name}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          size="sm"
-                          onClick={() => removeCardFromDeck(name)}
-                          className="bg-red-500 hover:bg-red-700 w-6 h-6 rounded-full"
-                        >
-                          -
-                        </Button>
-                        <span className="w-4 text-center">{count}</span>
-                        <Button
-                          size="sm"
-                          onClick={() => addCardToDeck(card)}
-                          disabled={
-                            count >= 4 &&
-                            !card.type_line
-                              ?.toLowerCase()
-                              .includes("basic land")
-                          }
-                          className="bg-green-600 hover:bg-green-900 w-6 h-6 rounded-full"
-                        >
-                          +
-                        </Button>
-                      </div>
-                    </div>
-                    {touchedCard?.name === name && (
-                      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-64 h-96 rounded-xl overflow-hidden border-2 border-gray-700 shadow-2xl">
-                        <img
-                          src={card.image_uris?.normal || "/default-card.jpg"}
-                          alt={name}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                    )}
-                  </div>
+                  <CardRow
+                    key={name}
+                    name={name}
+                    card={card}
+                    count={count}
+                    onRemove={() => removeCardFromDeck(name)}
+                    onAdd={() => addCardToDeck(card)}
+                  />
                 )
               )}
             </div>
 
-            {selectedDeck.sideboard && Object.keys(selectedDeck.sideboard).length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-xl font-semibold mb-4">Sideboard</h3>
-                <div className="grid gap-1">
-                  {Object.entries(selectedDeck.sideboard).map(
-                    ([name, { card, count }]) => (
-                      <div key={name}>
-                        <div
-                          className="text-sm flex justify-between items-center p-1 bg-gray-800 rounded-md border-2 border-gray-700 hover:border-blue-500 transition-colors cursor-pointer"
-                          onTouchStart={() => setTouchedCard({ card, name })}
-                          onTouchEnd={() => setTouchedCard(null)}
-                        >
-                          <div className="flex items-center gap-2">
-                            <div className="flex items-center gap-1">
-                              {card.mana_cost && getManaSymbols(card.mana_cost)}
-                              {card.colors && card.colors.length > 0 && (
-                                <div className="flex gap-0.5">
-                                  {card.colors.map((color, idx) => (
-                                    <div
-                                      key={idx}
-                                      className={`w-3 h-3 rounded-full ${
-                                        color === "W"
-                                          ? "bg-white"
-                                          : color === "U"
-                                          ? "bg-blue-500"
-                                          : color === "B"
-                                          ? "bg-black"
-                                          : color === "R"
-                                          ? "bg-red-500"
-                                          : color === "G"
-                                          ? "bg-green-500"
-                                          : ""
-                                      }`}
-                                    />
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                            <span className="font-medium">{name}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              size="sm"
-                              onClick={() => removeCardFromSideboard(name)}
-                              className="bg-red-500 hover:bg-red-700 w-6 h-6 rounded-full"
-                            >
-                              -
-                            </Button>
-                            <span className="w-4 text-center">{count}</span>
-                            <Button
-                              size="sm"
-                              onClick={() => addCardToSideboard(card)}
-                              disabled={
-                                count >= 4 &&
-                                !card.type_line
-                                  ?.toLowerCase()
-                                  .includes("basic land")
-                              }
-                              className="bg-green-600 hover:bg-green-900 w-6 h-6 rounded-full"
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </div>
-                        {touchedCard?.name === name && (
-                          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-64 h-96 rounded-xl overflow-hidden border-2 border-gray-700 shadow-2xl">
-                            <img
-                              src={card.image_uris?.normal || "/default-card.jpg"}
-                              alt={name}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    )
-                  )}
+            {selectedDeck.sideboard &&
+              Object.keys(selectedDeck.sideboard).length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-xl font-semibold mb-4">Sideboard</h3>
+                  <div className="grid gap-1">
+                    {Object.entries(selectedDeck.sideboard).map(
+                      ([name, { card, count }]) => (
+                        <CardRow
+                          key={name}
+                          name={name}
+                          card={card}
+                          count={count}
+                          onRemove={() => removeCardFromSideboard(name)}
+                          onAdd={() => addCardToSideboard(card)}
+                          isSideboard
+                        />
+                      )
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         ) : (
           <div className="h-full flex items-center justify-center text-gray-400 text-xl">
@@ -561,4 +626,4 @@ const DeckBuilder: React.FC<DeckBuilderProps> = ({
   );
 };
 
-export default DeckBuilder;
+export default React.memo(DeckBuilder);
