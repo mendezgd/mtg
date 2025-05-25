@@ -226,7 +226,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
             {/* ===== MAIN CARD ROW ELEMENT =====
               Contains the card art background and all interactive elements */}
             <div
-              className="text-sm flex justify-between items-center rounded-md border-2 border-gray-400 hover:border-blue-500 transition-colors cursor-pointer overflow-hidden h-16 relative"
+              className="text-sm flex justify-between rounded-sm items-center border-2 border-gray-400 hover:border-blue-500 transition-colors cursor-pointer overflow-hidden h-12 relative"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
               onTouchCancel={handleTouchEnd}

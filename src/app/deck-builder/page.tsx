@@ -157,7 +157,7 @@ const DeckBuilderPage: React.FC = () => {
 
       updateDecks((deck) => {
         if (!deck.sideboard) return deck;
-        
+
         const currentCount = deck.sideboard[cardName]?.count || 0;
 
         if (currentCount <= 1) {
