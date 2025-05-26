@@ -130,8 +130,16 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
     // Function to get primary type of a card
     const getPrimaryType = useCallback((typeLine: string | undefined) => {
       if (!typeLine) return "Other";
-      
-      const types = ["Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Land"];
+
+      const types = [
+        "Creature",
+        "Instant",
+        "Sorcery",
+        "Artifact",
+        "Enchantment",
+        "Planeswalker",
+        "Land",
+      ];
       for (const type of types) {
         if (typeLine.includes(type)) return type;
       }
@@ -141,14 +149,14 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
     // Function to get type order for sorting
     const getTypeOrder = useCallback((type: string) => {
       const order: { [key: string]: number } = {
-        "Creature": 1,
-        "Instant": 2,
-        "Sorcery": 3,
-        "Artifact": 4,
-        "Enchantment": 5,
-        "Planeswalker": 6,
-        "Land": 7,
-        "Other": 8
+        Creature: 1,
+        Instant: 2,
+        Sorcery: 3,
+        Artifact: 4,
+        Enchantment: 5,
+        Planeswalker: 6,
+        Land: 7,
+        Other: 8,
       };
       return order[type] || 9;
     }, []);
@@ -157,7 +165,13 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
     const getManaSymbols = useCallback((manaCost: string) => {
       if (!manaCost) return null;
 
-      const symbols = manaCost.replace(/[{}]/g, "").split("");
+      // Extract mana symbols using regex to match {X} pattern and filter out empty ones
+      const symbols =
+        manaCost
+          .match(/\{([^}]+)\}/g)
+          ?.map((s) => s.slice(1, -1))
+          .filter((s) => s.trim()) || [];
+
       return (
         <div className="flex gap-1">
           {symbols.map((symbol, idx) => {
@@ -283,27 +297,6 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                   <div className="flex items-center gap-1">
                     {/* ===== MANA COST DISPLAY ===== */}
                     {card.mana_cost && getManaSymbols(card.mana_cost)}
-                    {/* ===== COLOR INDICATORS ===== */}
-                    {card.colors && card.colors.length > 0 && (
-                      <div className="flex gap-1">
-                        {card.colors.map((color, idx) => (
-                          <div
-                            key={idx}
-                            className={`w-5 h-5 rounded-full ${
-                              color === "W"
-                                ? "bg-white"
-                                : color === "U"
-                                ? "bg-blue-500"
-                                : color === "B"
-                                ? "bg-gray-900"
-                                : color === "R"
-                                ? "bg-red-500"
-                                : "bg-green-500"
-                            } border border-black/20 shadow-lg`}
-                          />
-                        ))}
-                      </div>
-                    )}
                   </div>
                   {/* ===== CARD NAME ===== */}
                   <span className="font-medium text-white drop-shadow-lg">
@@ -345,7 +338,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
             {/* ===== CARD PREVIEW MODAL =====
               Shows the full card image when touched */}
             {touchedCard?.name === name && (
-              <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-64 h-96 rounded-xl overflow-hidden border-2 border-gray-700 shadow-2xl">
+              <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-64 h-88 rounded-xl overflow-hidden border-2 border-gray-700 shadow-2xl">
                 <img
                   src={card.image_uris?.normal || "/default-card.jpg"}
                   alt={name}
@@ -455,6 +448,61 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
       localStorage.setItem("selectedDeck", JSON.stringify(selectedDeck));
       router.push("/game");
     }, [selectedDeck, router]);
+
+    const handleExportDeck = useCallback(() => {
+      if (!selectedDeck) return;
+
+      // Create main deck list
+      const mainDeckList = Object.entries(selectedDeck.cards)
+        .sort(([, a], [, b]) => {
+          const typeA = getPrimaryType(a.card.type_line);
+          const typeB = getPrimaryType(b.card.type_line);
+          const typeOrderA = getTypeOrder(typeA);
+          const typeOrderB = getTypeOrder(typeB);
+
+          if (typeOrderA !== typeOrderB) {
+            return typeOrderA - typeOrderB;
+          }
+          return a.card.name.localeCompare(b.card.name);
+        })
+        .map(([name, { count }]) => `${count} ${name}`)
+        .join("\n");
+
+      // Create sideboard list if it exists
+      const sideboardList =
+        selectedDeck.sideboard && Object.keys(selectedDeck.sideboard).length > 0
+          ? "\n\nSideboard\n" +
+            Object.entries(selectedDeck.sideboard)
+              .sort(([, a], [, b]) => {
+                const typeA = getPrimaryType(a.card.type_line);
+                const typeB = getPrimaryType(b.card.type_line);
+                const typeOrderA = getTypeOrder(typeA);
+                const typeOrderB = getTypeOrder(typeB);
+
+                if (typeOrderA !== typeOrderB) {
+                  return typeOrderA - typeOrderB;
+                }
+                return a.card.name.localeCompare(b.card.name);
+              })
+              .map(([name, { count }]) => `${count} ${name}`)
+              .join("\n")
+          : "";
+
+      // Combine both lists
+      const fullDeckList = `${selectedDeck.name}\n\n${mainDeckList}${sideboardList}`;
+
+      // Copy to clipboard
+      navigator.clipboard
+        .writeText(fullDeckList)
+        .then(() => {
+          // Optional: You could add a toast notification here to confirm the copy
+          alert("Deck list copied to clipboard!");
+        })
+        .catch((err) => {
+          console.error("Failed to copy deck list:", err);
+          alert("Failed to copy deck list to clipboard");
+        });
+    }, [selectedDeck, getPrimaryType, getTypeOrder]);
 
     if (!mounted) return null;
 
@@ -641,11 +689,11 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                     const typeB = getPrimaryType(b.card.type_line);
                     const typeOrderA = getTypeOrder(typeA);
                     const typeOrderB = getTypeOrder(typeB);
-                    
+
                     if (typeOrderA !== typeOrderB) {
                       return typeOrderA - typeOrderB;
                     }
-                    
+
                     // If same type, sort by name
                     return a.card.name.localeCompare(b.card.name);
                   })
@@ -672,11 +720,11 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                           const typeB = getPrimaryType(b.card.type_line);
                           const typeOrderA = getTypeOrder(typeA);
                           const typeOrderB = getTypeOrder(typeB);
-                          
+
                           if (typeOrderA !== typeOrderB) {
                             return typeOrderA - typeOrderB;
                           }
-                          
+
                           // If same type, sort by name
                           return a.card.name.localeCompare(b.card.name);
                         })
@@ -694,6 +742,15 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                     </div>
                   </div>
                 )}
+
+              <div className="mt-6">
+                <Button
+                  onClick={handleExportDeck}
+                  className="w-full bg-sky-600 hover:bg-sky-700 text-white"
+                >
+                  Copiar en portapapeles
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="h-full flex items-center justify-center text-gray-400 text-xl">
