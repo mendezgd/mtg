@@ -127,6 +127,32 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
       []
     );
 
+    // Function to get primary type of a card
+    const getPrimaryType = useCallback((typeLine: string | undefined) => {
+      if (!typeLine) return "Other";
+      
+      const types = ["Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Land"];
+      for (const type of types) {
+        if (typeLine.includes(type)) return type;
+      }
+      return "Other";
+    }, []);
+
+    // Function to get type order for sorting
+    const getTypeOrder = useCallback((type: string) => {
+      const order: { [key: string]: number } = {
+        "Creature": 1,
+        "Instant": 2,
+        "Sorcery": 3,
+        "Artifact": 4,
+        "Enchantment": 5,
+        "Planeswalker": 6,
+        "Land": 7,
+        "Other": 8
+      };
+      return order[type] || 9;
+    }, []);
+
     // Memoize mana symbols function
     const getManaSymbols = useCallback((manaCost: string) => {
       if (!manaCost) return null;
@@ -609,8 +635,21 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
               )}
 
               <div className="grid gap-1">
-                {Object.entries(selectedDeck.cards).map(
-                  ([name, { card, count }]) => (
+                {Object.entries(selectedDeck.cards)
+                  .sort(([, a], [, b]) => {
+                    const typeA = getPrimaryType(a.card.type_line);
+                    const typeB = getPrimaryType(b.card.type_line);
+                    const typeOrderA = getTypeOrder(typeA);
+                    const typeOrderB = getTypeOrder(typeB);
+                    
+                    if (typeOrderA !== typeOrderB) {
+                      return typeOrderA - typeOrderB;
+                    }
+                    
+                    // If same type, sort by name
+                    return a.card.name.localeCompare(b.card.name);
+                  })
+                  .map(([name, { card, count }]) => (
                     <CardRow
                       key={name}
                       name={name}
@@ -619,8 +658,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                       onRemove={() => removeCardFromDeck(name)}
                       onAdd={() => addCardToDeck(card)}
                     />
-                  )
-                )}
+                  ))}
               </div>
 
               {selectedDeck.sideboard &&
@@ -628,8 +666,21 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                   <div className="mt-6">
                     <h3 className="text-xl font-semibold mb-4">Sideboard</h3>
                     <div className="grid gap-1">
-                      {Object.entries(selectedDeck.sideboard).map(
-                        ([name, { card, count }]) => (
+                      {Object.entries(selectedDeck.sideboard)
+                        .sort(([, a], [, b]) => {
+                          const typeA = getPrimaryType(a.card.type_line);
+                          const typeB = getPrimaryType(b.card.type_line);
+                          const typeOrderA = getTypeOrder(typeA);
+                          const typeOrderB = getTypeOrder(typeB);
+                          
+                          if (typeOrderA !== typeOrderB) {
+                            return typeOrderA - typeOrderB;
+                          }
+                          
+                          // If same type, sort by name
+                          return a.card.name.localeCompare(b.card.name);
+                        })
+                        .map(([name, { card, count }]) => (
                           <CardRow
                             key={name}
                             name={name}
@@ -639,8 +690,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                             onAdd={() => addCardToSideboard(card)}
                             isSideboard
                           />
-                        )
-                      )}
+                        ))}
                     </div>
                   </div>
                 )}
