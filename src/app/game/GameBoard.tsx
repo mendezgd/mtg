@@ -173,7 +173,7 @@ const DeckListModal: React.FC<{
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-start justify-start z-50">
-      <div className="bg-gray-800 p-2 rounded-r-lg h-[80vh] w-28 overflow-hidden flex flex-col mt-2">
+      <div className="bg-gray-800 p-2 rounded-r-lg h-[80vh] w-32 overflow-hidden flex flex-col mt-2">
         <div className="flex justify-between mb-2">
           <h2 className="text-sm font-bold text-white">Deck</h2>
           <button onClick={onClose} className="text-white hover:text-gray-300">
@@ -360,22 +360,41 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
   };
 
   const handleCardDropToHand = (card: CardData, targetIndex?: number) => {
+    // Remove the card from play area if it exists there
+    setPlayArea((prevPlayArea) => prevPlayArea.filter((c) => c.id !== card.id));
+
     setPlayerHand((prevHand) => {
-      // Remove the card from its current position in the hand
+      // Remove the card from its current position in the hand if it exists
       const updatedHand = prevHand.filter((c) => c.id !== card.id);
 
-      // Insert the card at the target index or at the end if no index is provided
+      // If we're reordering within the hand
       if (targetIndex !== undefined) {
-        updatedHand.splice(targetIndex, 0, card);
-      } else {
-        updatedHand.push(card);
+        const cardWithId = {
+          ...card,
+          id: card.id || Math.random().toString(36).substr(2, 9),
+          x: targetIndex * 80,
+          y: 0,
+          tapped: false,
+        };
+        updatedHand.splice(targetIndex, 0, cardWithId);
+        
+        // Recalculate x positions for all cards after the insertion point
+        return updatedHand.map((c, i) => ({
+          ...c,
+          x: i * 80,
+        }));
       }
 
-      // Recalculate x positions for all cards in the hand
-      return updatedHand.map((c, i) => ({
-        ...c,
-        x: i * 80,
-      }));
+      // If we're adding from play area
+      const cardWithId = {
+        ...card,
+        id: card.id || Math.random().toString(36).substr(2, 9),
+        x: updatedHand.length * 80,
+        y: 0,
+        tapped: false,
+      };
+
+      return [...updatedHand, cardWithId];
     });
   };
 
@@ -519,13 +538,14 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                         key={card.id}
                         className="flex-shrink-0"
                         style={{
-                          transform: `translateX(${index * 30}px)`,
-                          marginLeft: index === 0 ? "0" : "-55px",
+                          transform: `translateX(${card.x}px)`,
+                          marginLeft: index === 0 ? "0" : "-90px",
                           height: "100%",
                           display: "flex",
                           alignItems: "center",
                           position: "relative",
                           zIndex: index,
+                          transition: "transform 0.2s ease",
                         }}
                       >
                         <DraggableCard
