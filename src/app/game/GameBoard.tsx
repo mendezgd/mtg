@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useDrag, useDrop, DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
@@ -125,7 +125,8 @@ const DraggableCard: React.FC<{
 const DropZone: React.FC<{
   onDrop: (card: CardData, position: { x: number; y: number }) => void;
   children?: React.ReactNode;
-}> = ({ onDrop, children }) => {
+  className?: string;
+}> = ({ onDrop, children, className }) => {
   const dropZoneRef = React.useRef<HTMLDivElement | null>(null);
 
   const [, drop] = useDrop(() => ({
@@ -147,8 +148,8 @@ const DropZone: React.FC<{
         drop(node);
         dropZoneRef.current = node;
       }}
-      className="relative flex flex-wrap p-2 md:p-6 border-2 border-dashed border-gray-500 rounded-lg bg-gray-700/50 
-                h-full w-full overflow-y-auto touch-none"
+      className={`relative flex flex-wrap p-2 md:p-6 border-2 border-dashed border-gray-500 rounded-lg bg-gray-700/50 
+                h-full w-full overflow-y-auto touch-none ${className || ''}`}
     >
       {children}
     </div>
@@ -160,7 +161,6 @@ const DeckListModal: React.FC<{
   onClose: () => void;
   onCardSelect: (card: CardData) => void;
 }> = ({ deck, onClose, onCardSelect }) => {
-  // Group cards by name and count
   const groupedDeck = deck.reduce((acc, card) => {
     const key = card.name;
     if (!acc[key]) {
@@ -172,35 +172,29 @@ const DeckListModal: React.FC<{
   }, {} as Record<string, { card: CardData; count: number }>);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 p-4 rounded-lg w-[90vw] max-w-xl max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-white">Deck List</h2>
+    <div className="fixed inset-0 bg-black/30 flex items-start justify-start z-50">
+      <div className="bg-gray-800 p-2 rounded-r-lg h-[80vh] w-28 overflow-hidden flex flex-col mt-2">
+        <div className="flex justify-between mb-2">
+          <h2 className="text-sm font-bold text-white">Deck</h2>
           <button onClick={onClose} className="text-white hover:text-gray-300">
             ✕
           </button>
         </div>
-        <div className="overflow-y-auto flex-1">
+        <div className="overflow-y-auto flex-1 scrollbar-hide">
           <div className="flex flex-col gap-2">
             {Object.entries(groupedDeck).map(([name, { card, count }]) => (
-              <div
-                key={name}
-                className="flex items-center gap-2 bg-gray-700/50 p-1 rounded hover:bg-gray-700/70 transition-colors"
+              <div 
+                key={name} 
+                className="relative w-24 h-24 mx-auto cursor-pointer hover:scale-105 transition-transform"
+                onClick={() => onCardSelect(card)}
               >
-                <div className="relative w-32 h-44 flex-shrink-0">
-                  <DraggableCard
-                    card={card}
-                    onTap={() => onCardSelect(card)}
-                    disableHover={false}
-                  />
-                  <div className="absolute top-1 right-1 bg-black/75 text-white px-1.5 py-0.5 rounded-full text-xs">
-                    x{count}
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-bold text-white truncate">
-                    {name}
-                  </h3>
+                <DraggableCard
+                  card={card}
+                  onTap={() => onCardSelect(card)}
+                  disableHover={true}
+                />
+                <div className="absolute top-1 right-1 bg-black/75 text-white px-1.5 py-0.5 rounded-full text-xs">
+                  x{count}
                 </div>
               </div>
             ))}
@@ -220,6 +214,17 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
   const [enlargedCardId, setEnlargedCardId] = useState<string | null>(null);
   const [showDeckList, setShowDeckList] = useState(false);
   const [lastClickTime, setLastClickTime] = useState(0);
+  const handContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollHand = (direction: "left" | "right") => {
+    if (handContainerRef.current) {
+      const scrollAmount = handContainerRef.current.clientWidth * 0.8;
+      handContainerRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
 
   // Shuffle the deck on component load
   useEffect(() => {
@@ -263,14 +268,31 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
       newDeck.splice(cardIndex, 1);
       setPlayerDeck(newDeck);
 
-      // Add the card to hand with a unique ID and position
-      const cardWithId = {
-        ...card,
-        id: Math.random().toString(36).substr(2, 9),
-        x: playerHand.length * 80,
-        y: 0,
-      };
-      setPlayerHand((prev) => [...prev, cardWithId]);
+      // Calculate visible area dimensions
+      const playAreaElement = document.querySelector('.play-area');
+      if (playAreaElement) {
+        const rect = playAreaElement.getBoundingClientRect();
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        // Add the card to play area with a unique ID and position
+        const cardWithId = {
+          ...card,
+          id: Math.random().toString(36).substr(2, 9),
+          x: centerX - 50, // Center the card horizontally (card width is 100px)
+          y: centerY - 70, // Center the card vertically (card height is 140px)
+        };
+        setPlayArea((prev) => [...prev, cardWithId]);
+      } else {
+        // Fallback if play area element is not found
+        const cardWithId = {
+          ...card,
+          id: Math.random().toString(36).substr(2, 9),
+          x: 100,
+          y: 100,
+        };
+        setPlayArea((prev) => [...prev, cardWithId]);
+      }
     }
     setShowDeckList(false);
   };
@@ -382,9 +404,9 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
         enableMouseEvents: true,
         enableTouchEvents: true,
         enableKeyboardEvents: true,
-        delayTouchStart: 150,
+        delayTouchStart: 0,
         delay: 0,
-        touchSlop: 10,
+        touchSlop: 0,
         ignoreContextMenu: true,
       }}
     >
@@ -403,7 +425,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
           <h2 className="text-sm md:text-lg mb-1 md:mb-2 text-[#7DF9FF]">
             Zona de Juego
           </h2>
-          <DropZone onDrop={handleCardDropToPlayArea}>
+          <DropZone onDrop={handleCardDropToPlayArea} className="play-area">
             {playArea.map((card) => (
               <DraggableCard
                 key={card.id}
@@ -434,38 +456,85 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
           </div>
         </div>
 
-        {/* Hand Area */}
+        {/* Hand Area with better horizontal scrolling */}
         <div className="flex flex-col md:flex-row items-end p-2 md:p-4 gap-2 md:gap-4">
           <div className="flex-1 w-full">
             <DropZone
               onDrop={(card: CardData, position) => {
-                const targetIndex = Math.floor(position.x / 80);
+                const targetIndex = Math.floor(position.x / 10);
                 handleCardDropToHand(card, targetIndex);
               }}
             >
-              <div 
-                className="relative w-full h-32 md:h-36 bg-gray-700 rounded-lg shadow-lg overflow-x-auto px-1"
-                style={{
-                  WebkitOverflowScrolling: 'touch',
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                }}
-              >
+              <div className="relative w-full h-28 md:h-32 bg-gray-700 rounded-lg shadow-lg">
+                {/* Navigation buttons container */}
+                <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between z-20 pointer-events-none">
+                  {playerHand.length > 4 && (
+                    <>
+                      <button
+                        onClick={() => {
+                          if (handContainerRef.current) {
+                            handContainerRef.current.scrollLeft -= 30;
+                          }
+                        }}
+                        className="w-10 h-full bg-gradient-to-r from-gray-800/90 to-transparent 
+                                 hover:from-gray-700 text-white flex items-center justify-start pl-2
+                                 pointer-events-auto active:from-gray-900 transition-colors"
+                      >
+                        <span className="text-2xl">⟪</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (handContainerRef.current) {
+                            handContainerRef.current.scrollLeft += 30;
+                          }
+                        }}
+                        className="w-10 h-full bg-gradient-to-l from-gray-800/90 to-transparent 
+                                 hover:from-gray-700 text-white flex items-center justify-end pr-2
+                                 pointer-events-auto active:from-gray-900 transition-colors"
+                      >
+                        <span className="text-2xl">⟫</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                {/* Cards container */}
                 <div
-                  className="flex flex-nowrap gap-2 min-h-full items-center"
+                  ref={handContainerRef}
+                  className="h-full w-full overflow-x-auto scrollbar-hide"
                   style={{
-                    minWidth: `${Math.max(playerHand.length * 80, 100)}px`,
-                    touchAction: 'pan-x',
+                    WebkitOverflowScrolling: "touch",
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
                   }}
                 >
-                  {playerHand.map((card, index) => (
-                    <DraggableCard
-                      key={card.id}
-                      card={card}
-                      onRightClick={() => handleCardRightClick(card.id)}
-                      enlarged={card.id === enlargedCardId}
-                    />
-                  ))}
+                  <div
+                    className="flex h-full items-center"
+                    style={{
+                      width: `${Math.max(playerHand.length * 10 + 100, 100)}px`,
+                    }}
+                  >
+                    {playerHand.map((card, index) => (
+                      <div
+                        key={card.id}
+                        className="flex-shrink-0"
+                        style={{
+                          transform: `translateX(${index * 10}px)`,
+                          height: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          position: "relative",
+                          zIndex: index,
+                        }}
+                      >
+                        <DraggableCard
+                          card={card}
+                          onRightClick={() => handleCardRightClick(card.id)}
+                          enlarged={card.id === enlargedCardId}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </DropZone>
