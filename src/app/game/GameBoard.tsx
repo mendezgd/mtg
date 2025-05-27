@@ -84,8 +84,8 @@ const DraggableCard: React.FC<{
         transformOrigin: "center center",
         transition: "transform 0.2s ease, opacity 0.2s ease",
         zIndex: enlarged ? 400 : isHovered ? 200 : "auto",
-        width: isMobile() ? "120px" : "100px",
-        height: isMobile() ? "160px" : "140px",
+        width: isMobile() ? "80px" : "100px",
+        height: isMobile() ? "112px" : "140px",
         touchAction: "none",
       }}
       className={`${
@@ -149,7 +149,7 @@ const DropZone: React.FC<{
         dropZoneRef.current = node;
       }}
       className={`relative flex flex-wrap p-2 md:p-6 border-2 border-dashed border-gray-500 rounded-lg bg-gray-700/50 
-                h-full w-full overflow-y-auto touch-none ${className || ''}`}
+                h-full w-full overflow-y-auto touch-none ${className || ""}`}
     >
       {children}
     </div>
@@ -183,8 +183,8 @@ const DeckListModal: React.FC<{
         <div className="overflow-y-auto flex-1 scrollbar-hide">
           <div className="flex flex-col gap-2">
             {Object.entries(groupedDeck).map(([name, { card, count }]) => (
-              <div 
-                key={name} 
+              <div
+                key={name}
                 className="relative w-24 h-24 mx-auto cursor-pointer hover:scale-105 transition-transform"
                 onClick={() => onCardSelect(card)}
               >
@@ -269,7 +269,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
       setPlayerDeck(newDeck);
 
       // Calculate visible area dimensions
-      const playAreaElement = document.querySelector('.play-area');
+      const playAreaElement = document.querySelector(".play-area");
       if (playAreaElement) {
         const rect = playAreaElement.getBoundingClientRect();
         const centerX = rect.width / 2;
@@ -519,7 +519,8 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                         key={card.id}
                         className="flex-shrink-0"
                         style={{
-                          transform: `translateX(${index * 10}px)`,
+                          transform: `translateX(${index * 30}px)`,
+                          marginLeft: index === 0 ? "0" : "-55px",
                           height: "100%",
                           display: "flex",
                           alignItems: "center",
