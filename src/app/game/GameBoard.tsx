@@ -205,6 +205,179 @@ const DeckListModal: React.FC<{
   );
 };
 
+const ViewTopCardsModal: React.FC<{
+  deck: CardData[];
+  onClose: () => void;
+  onCardsSelected: (selectedCards: CardData[], remainingCards: CardData[], placement: 'top' | 'bottom' | 'shuffle') => void;
+  onCardToHand: (card: CardData) => void;
+  onCardToPlay: (card: CardData) => void;
+}> = ({ deck, onClose, onCardsSelected, onCardToHand, onCardToPlay }) => {
+  const [numCards, setNumCards] = useState<number>(1);
+  const [viewedCards, setViewedCards] = useState<CardData[]>([]);
+  const [placement, setPlacement] = useState<'top' | 'bottom' | 'shuffle'>('top');
+  const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
+
+  const handleViewCards = () => {
+    const cards = deck.slice(0, numCards);
+    setViewedCards(cards);
+    setSelectedCardIndex(null);
+  };
+
+  const handleConfirm = () => {
+    if (selectedCardIndex !== null) {
+      // Remove the selected card from viewed cards
+      const remainingViewedCards = viewedCards.filter((_, index) => index !== selectedCardIndex);
+      const remainingCards = deck.slice(numCards);
+      onCardsSelected(remainingViewedCards, remainingCards, placement);
+    } else {
+      const remainingCards = deck.slice(numCards);
+      onCardsSelected(viewedCards, remainingCards, placement);
+    }
+    onClose();
+  };
+
+  const handleCardSelect = (index: number) => {
+    setSelectedCardIndex(index);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-gray-800 p-4 rounded-lg w-[90vw] max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-white">View Cards from Top</h2>
+          <button onClick={onClose} className="text-white hover:text-gray-300">
+            ✕
+          </button>
+        </div>
+
+        {viewedCards.length === 0 ? (
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <label className="text-white">Number of cards to view:</label>
+              <input
+                type="number"
+                min="1"
+                max={deck.length}
+                value={numCards}
+                onChange={(e) => setNumCards(Math.min(parseInt(e.target.value) || 1, deck.length))}
+                className="bg-gray-700 text-white px-2 py-1 rounded w-20"
+              />
+              <button
+                onClick={handleViewCards}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded"
+              >
+                View Cards
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {viewedCards.map((card, index) => (
+                <div 
+                  key={index} 
+                  className={`relative cursor-pointer transition-transform ${
+                    selectedCardIndex === index ? 'scale-105 ring-2 ring-blue-500' : 'hover:scale-105'
+                  }`}
+                  onClick={() => handleCardSelect(index)}
+                >
+                  <img
+                    src={card.image_uris?.normal || card.image_uris?.small}
+                    alt={card.name}
+                    className="w-full rounded"
+                  />
+                  <div className="absolute top-1 right-1 bg-black/75 text-white px-2 py-1 rounded-full text-xs">
+                    {index + 1}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {selectedCardIndex !== null && (
+              <div className="flex gap-4 justify-center mt-4">
+                <button
+                  onClick={() => {
+                    onCardToHand(viewedCards[selectedCardIndex]);
+                    handleConfirm();
+                  }}
+                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+                >
+                  Put in Hand
+                </button>
+                <button
+                  onClick={() => {
+                    onCardToPlay(viewedCards[selectedCardIndex]);
+                    handleConfirm();
+                  }}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                >
+                  Put in Play
+                </button>
+              </div>
+            )}
+
+            <div className="mt-4">
+              <label className="text-white block mb-2">Place remaining cards:</label>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setPlacement('top')}
+                  className={`px-4 py-2 rounded ${
+                    placement === 'top'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-700 text-white hover:bg-gray-600'
+                  }`}
+                >
+                  On Top (Reorder)
+                </button>
+                <button
+                  onClick={() => setPlacement('bottom')}
+                  className={`px-4 py-2 rounded ${
+                    placement === 'bottom'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-700 text-white hover:bg-gray-600'
+                  }`}
+                >
+                  On Bottom
+                </button>
+                <button
+                  onClick={() => setPlacement('shuffle')}
+                  className={`px-4 py-2 rounded ${
+                    placement === 'shuffle'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-700 text-white hover:bg-gray-600'
+                  }`}
+                >
+                  Shuffle
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-4 mt-4">
+              <button
+                onClick={() => {
+                  setViewedCards([]);
+                  setSelectedCardIndex(null);
+                }}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded"
+              >
+                Back
+              </button>
+              {selectedCardIndex === null && (
+                <button
+                  onClick={handleConfirm}
+                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+                >
+                  Confirm
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
   initialDeck,
 }) => {
@@ -213,6 +386,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
   const [playArea, setPlayArea] = useState<CardData[]>([]);
   const [enlargedCardId, setEnlargedCardId] = useState<string | null>(null);
   const [showDeckList, setShowDeckList] = useState(false);
+  const [showViewTopCards, setShowViewTopCards] = useState(false);
   const [lastClickTime, setLastClickTime] = useState(0);
   const handContainerRef = useRef<HTMLDivElement>(null);
 
@@ -254,7 +428,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
   const handleDeckClick = (e: React.MouseEvent) => {
     if (e.type === "contextmenu") {
       e.preventDefault();
-      setShowDeckList(true);
+      setShowViewTopCards(true);
     } else {
       drawCardFromDeck();
     }
@@ -416,6 +590,71 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
     setEnlargedCardId(null);
   };
 
+  const handleCardsSelected = (
+    selectedCards: CardData[],
+    remainingCards: CardData[],
+    placement: 'top' | 'bottom' | 'shuffle'
+  ) => {
+    let newDeck: CardData[];
+    if (placement === 'shuffle') {
+      // Combine remaining cards with unselected viewed cards
+      newDeck = [...remainingCards, ...selectedCards];
+      newDeck = shuffleDeck(newDeck);
+    } else if (placement === 'top') {
+      // Put unselected viewed cards on top, then remaining cards
+      newDeck = [...selectedCards, ...remainingCards];
+    } else {
+      // Put remaining cards first, then unselected viewed cards
+      newDeck = [...remainingCards, ...selectedCards];
+    }
+    setPlayerDeck(newDeck);
+  };
+
+  const handleCardToHand = (card: CardData) => {
+    // Remove only the specific card from the deck
+    setPlayerDeck(prevDeck => {
+      const index = prevDeck.findIndex(c => c === card);
+      if (index !== -1) {
+        return [...prevDeck.slice(0, index), ...prevDeck.slice(index + 1)];
+      }
+      return prevDeck;
+    });
+    
+    const cardWithId = {
+      ...card,
+      id: Math.random().toString(36).substr(2, 9),
+      x: playerHand.length * 80,
+      y: 0,
+    };
+    setPlayerHand((prevHand) => [...prevHand, cardWithId]);
+  };
+
+  const handleCardToPlay = (card: CardData) => {
+    // Remove only the specific card from the deck
+    setPlayerDeck(prevDeck => {
+      const index = prevDeck.findIndex(c => c === card);
+      if (index !== -1) {
+        return [...prevDeck.slice(0, index), ...prevDeck.slice(index + 1)];
+      }
+      return prevDeck;
+    });
+
+    const playAreaElement = document.querySelector(".play-area");
+    if (playAreaElement) {
+      const rect = playAreaElement.getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      const cardWithId = {
+        ...card,
+        id: Math.random().toString(36).substr(2, 9),
+        x: centerX - 50,
+        y: centerY - 70,
+      };
+      setPlayArea((prev) => [...prev, cardWithId]);
+    }
+  };
+
   return (
     <DndProvider
       backend={isMobile() ? TouchBackend : HTML5Backend}
@@ -568,6 +807,17 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
             deck={playerDeck}
             onClose={() => setShowDeckList(false)}
             onCardSelect={handleCardSelect}
+          />
+        )}
+
+        {/* View Top Cards Modal */}
+        {showViewTopCards && (
+          <ViewTopCardsModal
+            deck={playerDeck}
+            onClose={() => setShowViewTopCards(false)}
+            onCardsSelected={handleCardsSelected}
+            onCardToHand={handleCardToHand}
+            onCardToPlay={handleCardToPlay}
           />
         )}
       </div>
