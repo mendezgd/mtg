@@ -17,9 +17,8 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
   },
   experimental: {
-    optimizeCss: {
-      inlineFonts: true,
-    },
+    // Disable CSS optimization temporarily
+    optimizeCss: false,
     optimizePackageImports: [
       '@radix-ui/react-accordion',
       '@radix-ui/react-alert-dialog',
