@@ -42,12 +42,23 @@ const DeckBuilderPage: React.FC = () => {
   // Load decks from localStorage on mount
   useEffect(() => {
     setIsMounted(true);
-    const savedDecks = localStorage.getItem("decks");
-    if (savedDecks) setDecks(JSON.parse(savedDecks));
+    const savedDecks = localStorage.getItem("savedDecks");
+    if (savedDecks) {
+      try {
+        const parsedDecks = JSON.parse(savedDecks);
+        if (Array.isArray(parsedDecks)) {
+          setDecks(parsedDecks);
+        }
+      } catch (error) {
+        console.error("Error loading saved decks:", error);
+      }
+    }
   }, []);
 
   useEffect(() => {
-    if (isMounted) localStorage.setItem("decks", JSON.stringify(decks));
+    if (isMounted && decks.length > 0) {
+      localStorage.setItem("savedDecks", JSON.stringify(decks));
+    }
   }, [decks, isMounted]);
 
   const isBasicLand = useCallback(

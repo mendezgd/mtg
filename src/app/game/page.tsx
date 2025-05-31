@@ -4,86 +4,92 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { GameBoard } from "./GameBoard";
+import { CardData } from "@/types/card";
 
-export interface CardData {
-  name: string;
-  image_uris?: {
-    small: string;
-  };
+interface DeckCard {
+  card: CardData;
+  count: number;
 }
 
-const GamePage: React.FC = () => {
-  const [savedDecks, setSavedDecks] = useState<
-    { name: string; cards: CardData[] }[]
-  >([]);
-  const [selectedDeck, setSelectedDeck] = useState<CardData[] | null>(null);
+interface Deck {
+  id: string;
+  name: string;
+  cards: { [key: string]: DeckCard };
+}
 
-  // Cargar mazos desde localStorage
+export default function GamePage() {
+  const [initialDeck, setInitialDeck] = useState<CardData[]>([]);
+  const [availableDecks, setAvailableDecks] = useState<Deck[]>([]);
+
+  // Load available decks
   useEffect(() => {
-    const decks = localStorage.getItem("savedDecks");
-    if (decks) {
+    try {
+      const savedDecksStr = localStorage.getItem("savedDecks");
+      if (savedDecksStr) {
+        const parsedDecks = JSON.parse(savedDecksStr);
+        if (Array.isArray(parsedDecks)) {
+          const validDecks = parsedDecks.filter(
+            (deck): deck is Deck =>
+              deck &&
+              typeof deck === "object" &&
+              'id' in deck &&
+              'name' in deck &&
+              'cards' in deck
+          );
+          setAvailableDecks(validDecks);
+          
+          // If we have decks and no game state, use the first deck as initial deck
+          if (validDecks.length > 0 && !localStorage.getItem("gameState")) {
+            const firstDeck = validDecks[0];
+            const deckArray = Object.values(firstDeck.cards).flatMap(
+              (deckCard: DeckCard) => Array(deckCard.count).fill(deckCard.card)
+            );
+            setInitialDeck(deckArray);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error loading saved decks:", error);
+    }
+  }, []);
+
+  // Load game state if it exists
+  useEffect(() => {
+    const gameState = localStorage.getItem("gameState");
+    if (gameState) {
       try {
-        const parsedDecks = JSON.parse(decks);
-        setSavedDecks(parsedDecks);
+        const parsedState = JSON.parse(gameState);
+        if (parsedState.players && Array.isArray(parsedState.players)) {
+          // Get both players' decks
+          const player1Deck = parsedState.players[0].deck;
+          const player2Deck = parsedState.players[1].deck;
+          if (Array.isArray(player1Deck) && Array.isArray(player2Deck)) {
+            // Set both decks in the game state
+            setInitialDeck([...player1Deck, ...player2Deck]);
+          }
+        }
       } catch (error) {
-        console.error("Error parsing saved decks:", error);
+        console.error("Error loading game state:", error);
       }
     }
   }, []);
 
-  // Manejar selección de mazo
-  const handleSelectDeck = (deck: { name: string; cards: CardData[] }) => {
-    if (Array.isArray(deck.cards)) {
-      setSelectedDeck(deck.cards);
-    } else {
-      console.error("El mazo seleccionado no tiene un array de cartas válido.");
-    }
-  };
-
-  return (
-    <div className="flex flex-col h-screen bg-gray-800 text-white">
-      {!selectedDeck ? (
-        <div className="flex flex-col items-center justify-center flex-grow">
-          <h1 className="text-2xl mb-4">Selecciona un Mazo</h1>
-          {savedDecks.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {savedDecks.map((deck, index) => (
-                <Button
-                  key={index}
-                  onClick={() => handleSelectDeck(deck)}
-                  className="p-1 bg-emerald-700 rounded shadow hover:bg-emerald-600 text-white"
-                >
-                  {deck.name || `Deck ${index + 1}`} ({deck.cards.length}{" "}
-                  cartas)
-                </Button>
-              ))}
-              <Link href="/deck-builder">
-                <Button className="bg-blue-500 hover:bg-blue-700 text-white">
-                  Volver al Deck Builder
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div>
-              <p className="mb-4">
-                ¡No se encontraron mazos! Crea uno en el Constructor de Mazos.
-              </p>
-              <Link href="/deck-builder">
-                <Button className="bg-blue-500 hover:bg-blue-700 text-white">
-                  Ir al Constructor de Mazos
-                </Button>
-              </Link>
-            </div>
-          )}
+  if (initialDeck.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-800 text-white">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">No hay mazo seleccionado</h1>
+          <p className="mb-4">Por favor, selecciona un mazo en el constructor de mazos.</p>
+          <button
+            onClick={() => window.location.href = "/deck-builder"}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            Ir al Constructor de Mazos
+          </button>
         </div>
-      ) : (
-        <div className="w-full h-full flex flex-col">
-          {/* Área de Juego */}
-          <GameBoard initialDeck={selectedDeck} />
-        </div>
-      )}
-    </div>
-  );
-};
+      </div>
+    );
+  }
 
-export default GamePage;
+  return <GameBoard initialDeck={initialDeck} />;
+}
