@@ -161,15 +161,18 @@ const DeckListModal: React.FC<{
   onClose: () => void;
   onCardSelect: (card: CardData) => void;
 }> = ({ deck, onClose, onCardSelect }) => {
-  const groupedDeck = deck.reduce((acc, card) => {
-    const key = card.name;
-    if (!acc[key]) {
-      acc[key] = { card, count: 1 };
-    } else {
-      acc[key].count++;
-    }
-    return acc;
-  }, {} as Record<string, { card: CardData; count: number }>);
+  const groupedDeck = deck.reduce(
+    (acc, card) => {
+      const key = card.name;
+      if (!acc[key]) {
+        acc[key] = { card, count: 1 };
+      } else {
+        acc[key].count++;
+      }
+      return acc;
+    },
+    {} as Record<string, { card: CardData; count: number }>
+  );
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-start justify-start z-50">
@@ -208,25 +211,33 @@ const DeckListModal: React.FC<{
 const ViewTopCardsModal: React.FC<{
   deck: CardData[];
   onClose: () => void;
-  onCardsSelected: (selectedCards: CardData[], remainingCards: CardData[], placement: 'top' | 'bottom' | 'shuffle') => void;
+  onCardsSelected: (
+    selectedCards: CardData[],
+    remainingCards: CardData[],
+    placement: "top" | "bottom" | "shuffle"
+  ) => void;
   onCardToHand: (card: CardData) => void;
   onCardToPlay: (card: CardData) => void;
 }> = ({ deck, onClose, onCardsSelected, onCardToHand, onCardToPlay }) => {
   const [numCards, setNumCards] = useState<number>(1);
   const [viewedCards, setViewedCards] = useState<CardData[]>([]);
-  const [placement, setPlacement] = useState<'top' | 'bottom' | 'shuffle'>('top');
-  const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
+  const [placement, setPlacement] = useState<"top" | "bottom" | "shuffle">(
+    "top"
+  );
+  const [selectedCardIndices, setSelectedCardIndices] = useState<number[]>([]);
 
   const handleViewCards = () => {
     const cards = deck.slice(0, numCards);
     setViewedCards(cards);
-    setSelectedCardIndex(null);
+    setSelectedCardIndices([]);
   };
 
   const handleConfirm = () => {
-    if (selectedCardIndex !== null) {
-      // Remove the selected card from viewed cards
-      const remainingViewedCards = viewedCards.filter((_, index) => index !== selectedCardIndex);
+    if (selectedCardIndices.length > 0) {
+      // Remove the selected cards from viewed cards
+      const remainingViewedCards = viewedCards.filter(
+        (_, index) => !selectedCardIndices.includes(index)
+      );
       const remainingCards = deck.slice(numCards);
       onCardsSelected(remainingViewedCards, remainingCards, placement);
     } else {
@@ -237,7 +248,27 @@ const ViewTopCardsModal: React.FC<{
   };
 
   const handleCardSelect = (index: number) => {
-    setSelectedCardIndex(index);
+    setSelectedCardIndices((prev) => {
+      if (prev.includes(index)) {
+        return prev.filter((i) => i !== index);
+      } else {
+        return [...prev, index];
+      }
+    });
+  };
+
+  const handleSelectedCardsToHand = () => {
+    selectedCardIndices.forEach((index) => {
+      onCardToHand(viewedCards[index]);
+    });
+    handleConfirm();
+  };
+
+  const handleSelectedCardsToPlay = () => {
+    selectedCardIndices.forEach((index) => {
+      onCardToPlay(viewedCards[index]);
+    });
+    handleConfirm();
   };
 
   return (
@@ -259,7 +290,11 @@ const ViewTopCardsModal: React.FC<{
                 min="1"
                 max={deck.length}
                 value={numCards}
-                onChange={(e) => setNumCards(Math.min(parseInt(e.target.value) || 1, deck.length))}
+                onChange={(e) =>
+                  setNumCards(
+                    Math.min(parseInt(e.target.value) || 1, deck.length)
+                  )
+                }
                 className="bg-gray-700 text-white px-2 py-1 rounded w-20"
               />
               <button
@@ -274,10 +309,12 @@ const ViewTopCardsModal: React.FC<{
           <div className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {viewedCards.map((card, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className={`relative cursor-pointer transition-transform ${
-                    selectedCardIndex === index ? 'scale-105 ring-2 ring-blue-500' : 'hover:scale-105'
+                    selectedCardIndices.includes(index)
+                      ? "scale-105 ring-2 ring-blue-500"
+                      : "hover:scale-105"
                   }`}
                   onClick={() => handleCardSelect(index)}
                 >
@@ -289,62 +326,63 @@ const ViewTopCardsModal: React.FC<{
                   <div className="absolute top-1 right-1 bg-black/75 text-white px-2 py-1 rounded-full text-xs">
                     {index + 1}
                   </div>
+                  {selectedCardIndices.includes(index) && (
+                    <div className="absolute top-1 left-1 bg-blue-500 text-white px-2 py-1 rounded-full text-xs">
+                      ✓
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
 
-            {selectedCardIndex !== null && (
+            {selectedCardIndices.length > 0 && (
               <div className="flex gap-4 justify-center mt-4">
                 <button
-                  onClick={() => {
-                    onCardToHand(viewedCards[selectedCardIndex]);
-                    handleConfirm();
-                  }}
+                  onClick={handleSelectedCardsToHand}
                   className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
                 >
-                  Put in Hand
+                  Put Selected in Hand ({selectedCardIndices.length})
                 </button>
                 <button
-                  onClick={() => {
-                    onCardToPlay(viewedCards[selectedCardIndex]);
-                    handleConfirm();
-                  }}
+                  onClick={handleSelectedCardsToPlay}
                   className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
                 >
-                  Put in Play
+                  Put Selected in Play ({selectedCardIndices.length})
                 </button>
               </div>
             )}
 
             <div className="mt-4">
-              <label className="text-white block mb-2">Place remaining cards:</label>
+              <label className="text-white block mb-2">
+                Place remaining cards:
+              </label>
               <div className="flex gap-4">
                 <button
-                  onClick={() => setPlacement('top')}
+                  onClick={() => setPlacement("top")}
                   className={`px-4 py-2 rounded ${
-                    placement === 'top'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-700 text-white hover:bg-gray-600'
+                    placement === "top"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-700 text-white hover:bg-gray-600"
                   }`}
                 >
                   On Top (Reorder)
                 </button>
                 <button
-                  onClick={() => setPlacement('bottom')}
+                  onClick={() => setPlacement("bottom")}
                   className={`px-4 py-2 rounded ${
-                    placement === 'bottom'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-700 text-white hover:bg-gray-600'
+                    placement === "bottom"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-700 text-white hover:bg-gray-600"
                   }`}
                 >
                   On Bottom
                 </button>
                 <button
-                  onClick={() => setPlacement('shuffle')}
+                  onClick={() => setPlacement("shuffle")}
                   className={`px-4 py-2 rounded ${
-                    placement === 'shuffle'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-700 text-white hover:bg-gray-600'
+                    placement === "shuffle"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-700 text-white hover:bg-gray-600"
                   }`}
                 >
                   Shuffle
@@ -352,17 +390,17 @@ const ViewTopCardsModal: React.FC<{
               </div>
             </div>
 
-            <div className="flex justify-end gap-4 mt-4">
+            <div className="flex justify-between mt-4">
               <button
                 onClick={() => {
                   setViewedCards([]);
-                  setSelectedCardIndex(null);
+                  setSelectedCardIndices([]);
                 }}
                 className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded"
               >
                 Back
               </button>
-              {selectedCardIndex === null && (
+              {selectedCardIndices.length === 0 && (
                 <button
                   onClick={handleConfirm}
                   className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
@@ -551,7 +589,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
           tapped: false,
         };
         updatedHand.splice(targetIndex, 0, cardWithId);
-        
+
         // Recalculate x positions for all cards after the insertion point
         return updatedHand.map((c, i) => ({
           ...c,
@@ -593,14 +631,14 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
   const handleCardsSelected = (
     selectedCards: CardData[],
     remainingCards: CardData[],
-    placement: 'top' | 'bottom' | 'shuffle'
+    placement: "top" | "bottom" | "shuffle"
   ) => {
     let newDeck: CardData[];
-    if (placement === 'shuffle') {
+    if (placement === "shuffle") {
       // Combine remaining cards with unselected viewed cards
       newDeck = [...remainingCards, ...selectedCards];
       newDeck = shuffleDeck(newDeck);
-    } else if (placement === 'top') {
+    } else if (placement === "top") {
       // Put unselected viewed cards on top, then remaining cards
       newDeck = [...selectedCards, ...remainingCards];
     } else {
@@ -612,14 +650,14 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
 
   const handleCardToHand = (card: CardData) => {
     // Remove only the specific card from the deck
-    setPlayerDeck(prevDeck => {
-      const index = prevDeck.findIndex(c => c === card);
+    setPlayerDeck((prevDeck) => {
+      const index = prevDeck.findIndex((c) => c === card);
       if (index !== -1) {
         return [...prevDeck.slice(0, index), ...prevDeck.slice(index + 1)];
       }
       return prevDeck;
     });
-    
+
     const cardWithId = {
       ...card,
       id: Math.random().toString(36).substr(2, 9),
@@ -631,8 +669,8 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
 
   const handleCardToPlay = (card: CardData) => {
     // Remove only the specific card from the deck
-    setPlayerDeck(prevDeck => {
-      const index = prevDeck.findIndex(c => c === card);
+    setPlayerDeck((prevDeck) => {
+      const index = prevDeck.findIndex((c) => c === card);
       if (index !== -1) {
         return [...prevDeck.slice(0, index), ...prevDeck.slice(index + 1)];
       }
