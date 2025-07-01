@@ -43,6 +43,16 @@ const App: React.FC = () => {
               Challenge (pronto)
             </Button>
           </Link>
+
+          <Link href="/tournament" className="w-full md:w-auto">
+            <Button
+              variant="default"
+              size="lg"
+              className="w-full md:w-48 text-base md:text-lg py-4 md:py-6 bg-purple-600 hover:bg-purple-700 transition-all duration-200 hover:scale-105"
+            >
+              Tournament
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
