@@ -225,6 +225,40 @@ const SwissTournamentManager = () => {
     }, 0);
   };
 
+  // Calcular puntos reales (excluyendo bye) para desempate
+  const calculateRealPoints = (playerId: string): number => {
+    const player = players.find(p => p.id === playerId);
+    if (!player) return 0;
+
+    // Contar solo matches reales (excluyendo bye)
+    const realMatches = rounds.flatMap(r => r.matches)
+      .filter(m => (m.player1 === playerId || m.player2 === playerId) && m.completed && !m.id.includes('-bye'));
+    
+    let realPoints = 0;
+    realMatches.forEach(match => {
+      if (match.winner === playerId) {
+        realPoints += 3; // Victoria = 3 puntos
+      } else if (match.player1Wins === 1 && match.player2Wins === 1) {
+        realPoints += 1; // Empate = 1 punto
+      }
+      // Derrota = 0 puntos
+    });
+    
+    return realPoints;
+  };
+
+  // Calcular número de victorias reales (excluyendo bye)
+  const calculateRealWins = (playerId: string): number => {
+    const player = players.find(p => p.id === playerId);
+    if (!player) return 0;
+
+    // Contar solo victorias en matches reales (excluyendo bye)
+    const realMatches = rounds.flatMap(r => r.matches)
+      .filter(m => (m.player1 === playerId || m.player2 === playerId) && m.completed && !m.id.includes('-bye'));
+    
+    return realMatches.filter(match => match.winner === playerId).length;
+  };
+
   // Calcular porcentaje de juegos ganados (GW%)
   const calculateGameWinPercentage = (playerId: string): number => {
     const player = players.find(p => p.id === playerId);
@@ -539,7 +573,7 @@ const SwissTournamentManager = () => {
             <span className="font-medium">📋 Formato:</span> Best of 3 (BO3) - Primer jugador en ganar 2 games gana el match
           </div>
           <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-800">
-            <span className="font-medium">🏆 Criterios de Desempate:</span> 1. Puntos | 2. Opp% | 3. GW% | 4. Seed
+            <span className="font-medium">🏆 Criterios de Desempate:</span> 1. Puntos | 2. Victorias Reales | 3. Opp% | 4. GW% | 5. Seed
           </div>
           {players.length % 2 !== 0 && (
             <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
@@ -619,6 +653,11 @@ const SwissTournamentManager = () => {
                     const pointsB = calculatePlayerPoints(b.id);
                     if (pointsB !== pointsA) return pointsB - pointsA;
                     
+                    // Si tienen los mismos puntos totales, priorizar victorias reales sobre bye + victoria
+                    const realWinsA = calculateRealWins(a.id);
+                    const realWinsB = calculateRealWins(b.id);
+                    if (realWinsB !== realWinsA) return realWinsB - realWinsA;
+                    
                     const oppA = calculateOpp(a.id);
                     const oppB = calculateOpp(b.id);
                     if (oppB !== oppA) return oppB - oppA;
@@ -656,7 +695,7 @@ const SwissTournamentManager = () => {
                             {player.wins % 1 === 0 ? player.wins : player.wins.toFixed(1)}W - {player.losses}L
                           </div>
                           <div className="text-xs text-gray-500">
-                            {calculatePlayerPoints(player.id)} pts | Opp: {calculateOpp(player.id)} | GW: {calculateGameWinPercentage(player.id).toFixed(1)}%
+                            {calculatePlayerPoints(player.id)} pts | Real: {calculateRealWins(player.id)}W | Opp: {calculateOpp(player.id)} | GW: {calculateGameWinPercentage(player.id).toFixed(1)}%
                           </div>
                           {player.hasBye && (
                             <div className="text-xs text-blue-600 font-medium">
@@ -1015,6 +1054,11 @@ const SwissTournamentManager = () => {
                     const pointsA = calculatePlayerPoints(a.id);
                     const pointsB = calculatePlayerPoints(b.id);
                     if (pointsB !== pointsA) return pointsB - pointsA;
+                    
+                    // Si tienen los mismos puntos totales, priorizar victorias reales sobre bye + victoria
+                    const realWinsA = calculateRealWins(a.id);
+                    const realWinsB = calculateRealWins(b.id);
+                    if (realWinsB !== realWinsA) return realWinsB - realWinsA;
                     
                     const oppA = calculateOpp(a.id);
                     const oppB = calculateOpp(b.id);
