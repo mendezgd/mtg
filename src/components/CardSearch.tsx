@@ -31,24 +31,81 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
     clearResults,
   } = useCardSearch();
 
-  const handleSearch = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!searchTerm.trim()) return;
+  // Función para realizar búsqueda automática
+  const performSearch = useCallback(
+    async (term: string, filters: { type: string; color: string; manaCost: string }) => {
+      // Solo buscar si hay término de búsqueda O filtros activos
+      const hasSearchTerm = term.trim().length > 0;
+      const hasFilters = filters.type || filters.color || filters.manaCost;
+      
+      if (!hasSearchTerm && !hasFilters) {
+        clearResults();
+        return;
+      }
 
       setIsSearching(true);
       try {
-        await searchCards(searchTerm, {
-          type: selectedType,
-          color: selectedColor,
-          manaCost: selectedManaCost,
-        });
+        await searchCards(term, filters);
       } finally {
         setIsSearching(false);
       }
     },
-    [searchTerm, selectedType, selectedColor, selectedManaCost, searchCards]
+    [searchCards, clearResults]
   );
+
+  const handleSearch = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      
+      // Permitir búsqueda si hay término O filtros activos
+      const hasSearchTerm = searchTerm.trim().length > 0;
+      const hasFilters = selectedType || selectedColor || selectedManaCost;
+      
+      if (!hasSearchTerm && !hasFilters) {
+        return; // No buscar si no hay nada
+      }
+      
+      await performSearch(searchTerm, {
+        type: selectedType,
+        color: selectedColor,
+        manaCost: selectedManaCost,
+      });
+    },
+    [searchTerm, selectedType, selectedColor, selectedManaCost, performSearch]
+  );
+
+  // Función para manejar cambios de filtros
+  const handleFilterChange = useCallback(
+    (filterType: 'type' | 'color' | 'manaCost', value: string) => {
+      const newFilters = {
+        type: filterType === 'type' ? value : selectedType,
+        color: filterType === 'color' ? value : selectedColor,
+        manaCost: filterType === 'manaCost' ? value : selectedManaCost,
+      };
+
+      // Actualizar el estado del filtro
+      if (filterType === 'type') setSelectedType(value);
+      if (filterType === 'color') setSelectedColor(value);
+      if (filterType === 'manaCost') setSelectedManaCost(value);
+
+      // Realizar búsqueda automática
+      performSearch(searchTerm, newFilters);
+    },
+    [searchTerm, selectedType, selectedColor, selectedManaCost, performSearch]
+  );
+
+  // Funciones específicas para cada filtro
+  const handleTypeChange = useCallback((value: string) => {
+    handleFilterChange('type', value);
+  }, [handleFilterChange]);
+
+  const handleColorChange = useCallback((value: string) => {
+    handleFilterChange('color', value);
+  }, [handleFilterChange]);
+
+  const handleManaCostChange = useCallback((value: string) => {
+    handleFilterChange('manaCost', value);
+  }, [handleFilterChange]);
 
   const handleClear = useCallback(() => {
     setSearchTerm("");
@@ -93,16 +150,16 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
           selectedType={selectedType}
           selectedColor={selectedColor}
           selectedManaCost={selectedManaCost}
-          onTypeChange={setSelectedType}
-          onColorChange={setSelectedColor}
-          onManaCostChange={setSelectedManaCost}
+          onTypeChange={handleTypeChange}
+          onColorChange={handleColorChange}
+          onManaCostChange={handleManaCostChange}
         />
 
         {/* Search Actions */}
         <div className="flex gap-2">
           <Button
             type="submit"
-            disabled={loading || !searchTerm.trim()}
+            disabled={loading || (!searchTerm.trim() && !selectedType && !selectedColor && !selectedManaCost)}
             className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg transition-all duration-200 btn-hover"
           >
             {loading ? (
@@ -113,7 +170,7 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
             ) : (
               <>
                 <Search className="w-4 h-4 mr-2" />
-                Buscar Cartas
+                {searchTerm.trim() ? "Buscar Cartas" : "Explorar con Filtros"}
               </>
             )}
           </Button>
@@ -216,14 +273,14 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
         )}
 
         {/* Initial State */}
-        {!loading && searchResults.length === 0 && !searchTerm && (
+        {!loading && searchResults.length === 0 && !searchTerm && !selectedType && !selectedColor && !selectedManaCost && (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
             <div className="text-6xl mb-4">🃏</div>
             <h3 className="text-xl font-semibold mb-2 text-gray-300">
               Busca tu próxima carta
             </h3>
             <p className="text-gray-400 max-w-md">
-              Ingresa el nombre de una carta, tipo, color o cualquier término para comenzar tu búsqueda
+              Ingresa el nombre de una carta, tipo, color o cualquier término para comenzar tu búsqueda. También puedes usar los filtros para explorar cartas específicas.
             </p>
           </div>
         )}
