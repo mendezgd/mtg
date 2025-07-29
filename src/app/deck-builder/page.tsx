@@ -4,16 +4,13 @@ import React, { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import CardSearch from "@/components/CardSearch";
 import dynamic from "next/dynamic";
-import { Card } from "@/components/CardList";
+import { SearchableCard, DeckCard, Deck } from "@/types/card";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
-
-interface Deck {
-  id: string;
-  name: string;
-  cards: Record<string, { card: Card; count: number }>;
-  sideboard?: Record<string, { card: Card; count: number }>;
-}
+import { useDeckManagement } from "@/hooks/use-deck-management";
+import { useMobileSwipe } from "@/hooks/use-mobile-swipe";
+import { generateUUID } from "@/lib/utils";
+import { Search, Eye, Library } from "lucide-react";
 
 const DeckBuilder = dynamic(() => import("@/components/DeckBuilder"), {
   ssr: false,
@@ -23,345 +20,112 @@ const DeckBuilder = dynamic(() => import("@/components/DeckBuilder"), {
 });
 
 const DeckBuilderPage: React.FC = () => {
-  const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
-  const [previewedCard, setPreviewedCard] = useState<Card | null>(null);
-  const [decks, setDecks] = useState<Deck[]>([]);
+  const [previewedCard, setPreviewedCard] = useState<SearchableCard | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const [importText, setImportText] = useState("");
-  const [importDialogOpen, setImportDialogOpen] = useState(false);
-  const [importResults, setImportResults] = useState({
-    valid: [] as Array<{ card: Card; count: number }>,
-    invalid: [] as string[],
-    sideboard: [] as Array<{ card: Card; count: number }>,
-  });
-  const [newDeckName, setNewDeckName] = useState("");
   const [activeMobileTab, setActiveMobileTab] = useState<
-    "search" | "preview" | "deck" | "import"
+    "search" | "preview" | "deck"
   >("search");
+
+  const deckManagement = useDeckManagement();
 
   // Load decks from localStorage on mount
   useEffect(() => {
     setIsMounted(true);
-    const savedDecks = localStorage.getItem("savedDecks");
-    if (savedDecks) {
-      try {
-        const parsedDecks = JSON.parse(savedDecks);
-        if (Array.isArray(parsedDecks)) {
-          setDecks(parsedDecks);
-        }
-      } catch (error) {
-        console.error("Error loading saved decks:", error);
-      }
-    }
   }, []);
-
-  useEffect(() => {
-    if (isMounted && decks.length > 0) {
-      localStorage.setItem("savedDecks", JSON.stringify(decks));
-    }
-  }, [decks, isMounted]);
-
-  const isBasicLand = useCallback(
-    (card: Card) => card.type_line?.includes("Basic Land"),
-    []
-  );
-
-  const updateDecks = useCallback(
-    (updateFn: (deck: Deck) => Deck) => {
-      setDecks((prevDecks) =>
-        prevDecks.map((deck) =>
-          deck.id === selectedDeckId ? updateFn(deck) : deck
-        )
-      );
-    },
-    [selectedDeckId]
-  );
-
-  const addCardToDeck = useCallback(
-    (card: Card) => {
-      if (!isMounted || !selectedDeckId)
-        return alert("Por favor selecciona un mazo");
-
-      updateDecks((deck) => {
-        const currentCount = deck.cards[card.name]?.count || 0;
-        const isLand = isBasicLand(card);
-
-        if (!isLand && currentCount >= 4) {
-          alert("Máximo 4 copias permitidas para cartas no básicas");
-          return deck;
-        }
-
-        return {
-          ...deck,
-          cards: {
-            ...deck.cards,
-            [card.name]: {
-              card,
-              count: Math.min(currentCount + 1, isLand ? 1000 : 4),
-            },
-          },
-        };
-      });
-    },
-    [selectedDeckId, isMounted, isBasicLand, updateDecks]
-  );
-
-  const removeCardFromDeck = useCallback(
-    (cardName: string) => {
-      if (!isMounted || !selectedDeckId) return;
-
-      updateDecks((deck) => {
-        const currentCount = deck.cards[cardName]?.count || 0;
-
-        if (currentCount <= 1) {
-          const { [cardName]: _, ...newCards } = deck.cards;
-          return { ...deck, cards: newCards };
-        }
-
-        return {
-          ...deck,
-          cards: {
-            ...deck.cards,
-            [cardName]: {
-              ...deck.cards[cardName],
-              count: currentCount - 1,
-            },
-          },
-        };
-      });
-    },
-    [selectedDeckId, isMounted, updateDecks]
-  );
-
-  const addCardToSideboard = useCallback(
-    (card: Card) => {
-      if (!isMounted || !selectedDeckId)
-        return alert("Por favor selecciona un mazo");
-
-      updateDecks((deck) => {
-        const currentCount = deck.sideboard?.[card.name]?.count || 0;
-        const isLand = isBasicLand(card);
-
-        if (!isLand && currentCount >= 4) {
-          alert("Máximo 4 copias permitidas para cartas no básicas");
-          return deck;
-        }
-
-        return {
-          ...deck,
-          sideboard: {
-            ...(deck.sideboard || {}),
-            [card.name]: {
-              card,
-              count: Math.min(currentCount + 1, isLand ? 1000 : 4),
-            },
-          },
-        };
-      });
-    },
-    [selectedDeckId, isMounted, isBasicLand, updateDecks]
-  );
-
-  const removeCardFromSideboard = useCallback(
-    (cardName: string) => {
-      if (!isMounted || !selectedDeckId) return;
-
-      updateDecks((deck) => {
-        if (!deck.sideboard) return deck;
-
-        const currentCount = deck.sideboard[cardName]?.count || 0;
-
-        if (currentCount <= 1) {
-          const { [cardName]: _, ...newSideboard } = deck.sideboard;
-          return { ...deck, sideboard: newSideboard };
-        }
-
-        return {
-          ...deck,
-          sideboard: {
-            ...deck.sideboard,
-            [cardName]: {
-              ...deck.sideboard[cardName],
-              count: currentCount - 1,
-            },
-          },
-        };
-      });
-    },
-    [selectedDeckId, isMounted, updateDecks]
-  );
-
-  const handleDeleteDeck = useCallback(
-    (deckId: string) => {
-      if (window.confirm("¿Estás seguro de eliminar este mazo?")) {
-        setDecks((prev) => prev.filter((deck) => deck.id !== deckId));
-        if (selectedDeckId === deckId) setSelectedDeckId(null);
-      }
-    },
-    [selectedDeckId]
-  );
-
-  const handleRenameDeck = useCallback((deckId: string, newName: string) => {
-    setDecks((prev) =>
-      prev.map((deck) =>
-        deck.id === deckId ? { ...deck, name: newName } : deck
-      )
-    );
-  }, []);
-
-  const searchCardByName = useCallback(
-    async (name: string): Promise<Card | null> => {
-      try {
-        const response = await fetch(
-          `https://api.scryfall.com/cards/search?q=!"${encodeURIComponent(
-            name
-          )}"&unique=prints`
-        );
-        const data = await response.json();
-
-        if (data.data?.length > 0) {
-          const cardData =
-            data.data.find((c: any) => c.image_uris?.normal) || data.data[0];
-          return {
-            id: cardData.id,
-            name: cardData.name,
-            image_uris: {
-              normal:
-                cardData.image_uris?.normal ||
-                cardData.card_faces?.[0]?.image_uris?.normal ||
-                "/default-card.jpg",
-            },
-            type_line: cardData.type_line,
-            oracle_text: cardData.oracle_text,
-            mana_cost: cardData.mana_cost,
-            colors: cardData.colors || [],
-          } as Card;
-        }
-        return null;
-      } catch (error) {
-        console.error("Error buscando carta:", error);
-        return null;
-      }
-    },
-    []
-  );
-
-  const processImportedDeck = useCallback(
-    async (text: string) => {
-      const lines = text.split("\n");
-      const cardMap: Record<string, number> = {};
-      const sideboardMap: Record<string, number> = {};
-      const invalidCards: string[] = [];
-      let isSideboard = false;
-
-      lines.forEach((line) => {
-        if (line.trim() === "") {
-          isSideboard = true;
-          return;
-        }
-
-        const match =
-          line.match(/^(\d+)x?\s*(.+)/) || line.match(/^(.+?)\s(\d+)$/);
-        if (match) {
-          const count = parseInt(match[1] || match[2], 10);
-          const name = (match[2] || match[1]).trim();
-          if (isSideboard) {
-            sideboardMap[name] = (sideboardMap[name] || 0) + count;
-          } else {
-            cardMap[name] = (cardMap[name] || 0) + count;
-          }
-        } else {
-          invalidCards.push(line.trim());
-        }
-      });
-
-      const fetchCards = async (map: Record<string, number>) =>
-        (
-          await Promise.all(
-            Object.entries(map).map(async ([name, count]) => {
-              const card = await searchCardByName(name);
-              return card ? { card, count } : null;
-            })
-          )
-        ).filter(Boolean) as Array<{ card: Card; count: number }>;
-
-      const validCards = await fetchCards(cardMap);
-      const validSideboardCards = await fetchCards(sideboardMap);
-
-      setImportResults({
-        valid: validCards,
-        invalid: invalidCards,
-        sideboard: validSideboardCards,
-      });
-      setImportDialogOpen(true);
-    },
-    [searchCardByName]
-  );
-
-  const createDeckFromImport = useCallback(() => {
-    if (!newDeckName.trim() || importResults.valid.length === 0) return;
-
-    const newDeck: Deck = {
-      id: crypto.randomUUID(),
-      name: newDeckName,
-      cards: importResults.valid.reduce(
-        (acc, { card, count }) => ({
-          ...acc,
-          [card.name]: {
-            card,
-            count: Math.min(count, isBasicLand(card) ? 1000 : 4),
-          },
-        }),
-        {}
-      ),
-      sideboard: importResults.sideboard.reduce(
-        (acc, { card, count }) => ({
-          ...acc,
-          [card.name]: {
-            card,
-            count: Math.min(count, isBasicLand(card) ? 1000 : 4),
-          },
-        }),
-        {}
-      ),
-    };
-
-    setDecks((prev) => [...prev, newDeck]);
-    setSelectedDeckId(newDeck.id);
-    setImportDialogOpen(false);
-    setImportText("");
-    setNewDeckName("");
-  }, [importResults, newDeckName, isBasicLand]);
 
   const handleCardPreview = useCallback(
-    (card: Card) => setPreviewedCard(card),
+    (card: SearchableCard) => setPreviewedCard(card),
     []
   );
 
+  const addCardToDeck = useCallback((card: SearchableCard) => {
+      // Convert SearchableCard to DeckCard
+      const deckCard: DeckCard = {
+        ...card,
+        id: card.id || card.name, // Use name as fallback ID
+      };
+      deckManagement.addCardToDeck(deckCard);
+    }, [deckManagement]);
+
+  const addCardToSideboard = useCallback((card: SearchableCard) => {
+      // Convert SearchableCard to DeckCard
+      const deckCard: DeckCard = {
+        ...card,
+        id: card.id || card.name, // Use name as fallback ID
+      };
+      deckManagement.addCardToSideboard(deckCard);
+    }, [deckManagement]);
+
+  const handleTabChange = useCallback((tab: typeof activeMobileTab) => {
+    setActiveMobileTab(tab);
+    // Add smooth scroll to top when changing tabs
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  // Mobile swipe navigation
+  const handleSwipeLeft = useCallback(() => {
+    const tabOrder = ["search", "preview", "deck"] as const;
+    const currentIndex = tabOrder.indexOf(activeMobileTab);
+    const nextIndex = (currentIndex + 1) % tabOrder.length;
+    handleTabChange(tabOrder[nextIndex]);
+  }, [activeMobileTab, handleTabChange]);
+
+  const handleSwipeRight = useCallback(() => {
+    const tabOrder = ["search", "preview", "deck"] as const;
+    const currentIndex = tabOrder.indexOf(activeMobileTab);
+    const prevIndex = (currentIndex - 1 + tabOrder.length) % tabOrder.length;
+    handleTabChange(tabOrder[prevIndex]);
+  }, [activeMobileTab, handleTabChange]);
+
+  // Enable swipe only on mobile
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  useMobileSwipe({
+    onSwipeLeft: handleSwipeLeft,
+    onSwipeRight: handleSwipeRight,
+    enabled: isMobile,
+  });
+
   if (!isMounted) return null;
+
+  const tabs = [
+    { id: "search" as const, label: "Búsqueda", icon: Search },
+    { id: "preview" as const, label: "Vista Previa", icon: Eye },
+    { id: "deck" as const, label: "Mi Mazo", icon: Library },
+  ];
 
   return (
     <div className="flex flex-col md:flex-row absolute top-0 z-[-2] h-screen w-screen bg-neutral-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] text-white overflow-hidden">
       {/* Mobile Navigation Tabs */}
-      <div className="md:hidden flex border-b border-gray-700">
-        {["search", "preview", "deck"].map((tab) => (
-          <button
-            key={tab}
-            className={`flex-1 py-2 ${
-              activeMobileTab === tab ? "bg-gray-700" : ""
-            }`}
-            onClick={() => setActiveMobileTab(tab as typeof activeMobileTab)}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
+      <div className="md:hidden flex border-b border-gray-700 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeMobileTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              className={`flex-1 py-3 px-2 flex flex-col items-center gap-1 transition-all duration-200 ${
+                isActive 
+                  ? "bg-purple-600 text-white shadow-lg" 
+                  : "text-gray-400 hover:text-gray-200 hover:bg-gray-800/50"
+              }`}
+              onClick={() => handleTabChange(tab.id)}
+            >
+              <Icon className="w-5 h-5" />
+              <span className="text-xs font-medium">{tab.label}</span>
+            </button>
+          );
+        })}
+        {/* Swipe indicator */}
+        <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 text-xs text-gray-500 opacity-60">
+          ← Desliza →
+        </div>
       </div>
 
       {/* Search Column */}
       <div
         className={`${
           activeMobileTab === "search" ? "block" : "hidden"
-        } md:block w-full md:w-1/3 p-2 md:p-4 border-r border-gray-700 flex flex-col`}
+        } md:block w-full md:w-1/3 p-2 md:p-4 border-r border-gray-700 flex flex-col h-full`}
       >
         <div className="flex items-center gap-2 mb-2 md:mb-4">
           <Image
@@ -383,135 +147,87 @@ const DeckBuilderPage: React.FC = () => {
       <div
         className={`${
           activeMobileTab === "preview" ? "block" : "hidden"
-        } md:block w-full md:w-1/4 p-2 md:p-4 border-r border-gray-700 overflow-auto`}
+        } md:block w-full md:w-1/4 p-2 md:p-4 border-r border-gray-700 overflow-auto h-full`}
       >
-        <h2 className="text-lg md:text-xl font-bold mb-2 md:mb-4">
+        <h2 className="text-lg md:text-xl font-bold mb-2 md:mb-4 flex items-center gap-2">
+          <Eye className="w-5 h-5" />
           Vista Previa
         </h2>
         {previewedCard ? (
           <div className="animate-fade-in">
-            <img
-              src={previewedCard.image_uris?.normal || "/default-card.jpg"}
-              alt={previewedCard.name}
-              className="w-full rounded-2xl mb-2 md:mb-4 object-cover"
-            />
-            <h3 className="font-bold text-md md:text-lg">
+            <div className="relative group">
+              <img
+                src={previewedCard.image_uris?.normal || "/default-card.jpg"}
+                alt={previewedCard.name}
+                className="w-full rounded-2xl mb-2 md:mb-4 object-cover card-hover shadow-lg"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+            </div>
+            <h3 className="font-bold text-md md:text-lg mb-2">
               {previewedCard.name}
             </h3>
-            <p className="text-xs md:text-sm text-gray-300">
+            <p className="text-sm text-gray-300 mb-3">
               {previewedCard.type_line}
             </p>
-            <p className="mt-1 md:mt-2 text-sm md:text-base">
-              {previewedCard.oracle_text}
-            </p>
+            {previewedCard.oracle_text && (
+              <div className="bg-gray-900/50 rounded-lg p-3">
+                <p className="text-xs text-gray-400 whitespace-pre-line leading-relaxed">
+                  {previewedCard.oracle_text}
+                </p>
+              </div>
+            )}
             <Button
-              variant="outline"
-              className="text-xs py-1 bg-green-500 hover:bg-green-700 text-white h-auto w-20 md:w-32 mt-2"
-              onClick={() => previewedCard && addCardToDeck(previewedCard)}
+              onClick={() => addCardToDeck(previewedCard)}
+              className="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white"
             >
-              {window.innerWidth <= 768 ? "Add" : "Add to Deck"}
+              Agregar al Mazo
             </Button>
           </div>
         ) : (
-          <p className="text-gray-400 text-sm md:text-base">
-            Selecciona una carta para previsualizar
-          </p>
+          <div className="flex flex-col items-center justify-center h-full text-center p-8">
+            <div className="text-6xl mb-4">👁️</div>
+            <h3 className="text-xl font-semibold mb-2 text-gray-300">
+              Vista Previa
+            </h3>
+            <p className="text-gray-400 max-w-md">
+              Selecciona una carta en la búsqueda para ver su vista previa detallada
+            </p>
+          </div>
         )}
       </div>
 
-      {/* Deck Column */}
+      {/* Deck Builder Column */}
       <div
         className={`${
           activeMobileTab === "deck" ? "block" : "hidden"
-        } md:block w-full lg:w-auto md:w-auto p-2 md:p-4 overflow-auto`}
+        } md:block w-full md:w-5/12 p-2 md:p-4 overflow-auto h-full`}
       >
-        <div className="space-y-4">
-          {/* Import Section */}
-          <div className="bg-gray-800 rounded-lg p-3">
-            <h3 className="text-sm font-semibold mb-2">Importar Mazo</h3>
-            <textarea
-              value={importText}
-              onChange={(e) => setImportText(e.target.value)}
-              placeholder="Ejemplo: 4 Forest\n2 Shock"
-              className="w-full h-20 text-sm bg-gray-900 rounded p-2 mb-2 focus:ring-2 focus:ring-blue-500"
-            />
-            <Button
-              onClick={() => processImportedDeck(importText)}
-              className="w-full py-1 text-white bg-sky-600 hover:bg-sky-700"
-            >
-              Importar
-            </Button>
-            <Button
-              asChild
-              className="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <a
-                href="https://mtgdecks.net/premodern"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Mirolear Mazos en mtgdecks.net
-              </a>
-            </Button>
-          </div>
-
-          {/* Deck Builder */}
+        <div className="flex items-center gap-2 mb-2 md:mb-4">
+          <Library className="w-6 h-6 text-purple-400" />
           <h2 className="text-lg md:text-xl font-bold">Mi Mazo</h2>
-          <DeckBuilder
-            decks={decks}
-            setDecks={setDecks}
-            selectedDeckId={selectedDeckId}
-            setSelectedDeckId={setSelectedDeckId}
-            removeCardFromDeck={removeCardFromDeck}
-            addCardToDeck={addCardToDeck}
-            handleDeleteDeck={handleDeleteDeck}
-            handleRenameDeck={handleRenameDeck}
-            removeCardFromSideboard={removeCardFromSideboard}
-            addCardToSideboard={addCardToSideboard}
-          />
         </div>
+        <DeckBuilder
+          decks={deckManagement.decks}
+          setDecks={deckManagement.setDecks}
+          selectedDeckId={deckManagement.selectedDeckId}
+          setSelectedDeckId={(id) => {
+            if (typeof id === 'function') {
+              const currentId = deckManagement.selectedDeckId;
+              const newId = id(currentId);
+              deckManagement.selectDeck(newId);
+            } else {
+              deckManagement.selectDeck(id);
+            }
+          }}
+          removeCardFromDeck={deckManagement.removeCardFromDeck}
+          addCardToDeck={deckManagement.addCardToDeck}
+          handleDeleteDeck={deckManagement.deleteDeck}
+          handleRenameDeck={deckManagement.renameDeck}
+          removeCardFromSideboard={deckManagement.removeCardFromSideboard}
+          addCardToSideboard={deckManagement.addCardToSideboard}
+        />
       </div>
-
-      {/* Import Dialog */}
-      {importDialogOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-900 p-4 md:p-6 rounded-lg max-w-md w-full mx-2">
-            <h3 className="text-lg md:text-xl font-bold mb-4">
-              Resultados de Importación
-            </h3>
-            <div className="mb-4">
-              <p className="text-green-400">
-                Cartas válidas: {importResults.valid.length}
-              </p>
-              <p className="text-red-400">
-                Errores: {importResults.invalid.length}
-              </p>
-            </div>
-            <Input
-              type="text"
-              placeholder="Nombre del nuevo mazo"
-              value={newDeckName}
-              onChange={(e) => setNewDeckName(e.target.value)}
-              className="w-full rounded-lg p-2 mb-4"
-            />
-            <div className="flex gap-2 justify-end">
-              <Button
-                onClick={() => setImportDialogOpen(false)}
-                className="bg-gray-600 text-white hover:bg-gray-700 py-1 md:py-2"
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={createDeckFromImport}
-                className="bg-sky-600 hover:bg-sky-700 py-1 md:py-2 text-white"
-                disabled={!newDeckName.trim()}
-              >
-                Crear Mazo
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 };

@@ -1,422 +1,243 @@
 "use client";
 
-import React, { useState, useCallback, useRef, useEffect } from "react";
-import axios from "axios";
-import type { Card as CardListCard } from "@/components/CardList";
-import { Button } from "@/components/ui/button";
-import { Icons } from "@/components/icons";
+import React, { useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  DropdownMenu,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-} from "@/components/ui/dropdown-menu";
-
-interface CardData {
-  id: string;
-  name: string;
-  set_name: string;
-  image_uris?: {
-    small: string;
-    normal: string;
-    large: string;
-  };
-  card_faces?: Array<{
-    image_uris?: {
-      small: string;
-      normal: string;
-      large: string;
-    };
-  }>;
-  oracle_text?: string;
-  legalities: {
-    premodern: string;
-  };
-  mana_cost?: string;
-  type_line?: string;
-  prints_search_uri?: string;
-}
+import { Button } from "@/components/ui/button";
+import { SearchableCard } from "@/types/card";
+import { useCardSearch } from "@/hooks/use-card-search";
+import { CardGrid } from "@/components/ui/card-grid";
+import { SearchFilters } from "@/components/ui/search-filters";
+import { Search, Loader2, AlertCircle } from "lucide-react";
 
 interface CardSearchProps {
-  addCardToDeck: (card: CardData | CardListCard) => void;
-  onCardPreview: (card: CardData | CardListCard) => void;
+  addCardToDeck: (card: SearchableCard) => void;
+  onCardPreview: (card: SearchableCard) => void;
 }
 
-const MAX_RESULTS = 500; // Limit for results
-const CARDS_PER_PAGE = 25; // Maximum allowed by Scryfall
-
-const CardSearch: React.FC<CardSearchProps> = ({
-  addCardToDeck,
-  onCardPreview,
-}) => {
+const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState<CardData[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [error, setError] = useState("");
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [selectedType, setSelectedType] = useState<string>("");
+  const [selectedColor, setSelectedColor] = useState<string>("");
+  const [selectedManaCost, setSelectedManaCost] = useState<string>("");
+  const [isSearching, setIsSearching] = useState(false);
 
-  const [selectedType, setSelectedType] = useState("");
-  const [selectedColor, setSelectedColor] = useState("");
-  const [selectedManaCost, setSelectedManaCost] = useState("");
-
-  const searchResultsRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const buildSearchQuery = (term: string) => {
-    const baseQuery = "format:premodern";
-    const typeFilter = selectedType ? ` type:${selectedType}` : "";
-    const colorFilter = selectedColor ? ` color:${selectedColor}` : "";
-    const manaCostFilter = selectedManaCost
-      ? selectedManaCost === "8+"
-        ? " cmc>=8" // Correctly handle the "8+" filter
-        : ` cmc:${selectedManaCost}`
-      : "";
-
-    return term.trim()
-      ? `${baseQuery} (name:${term}* OR oracle:${term})${typeFilter}${colorFilter}${manaCostFilter}`
-      : `${baseQuery}${typeFilter}${colorFilter}${manaCostFilter}`;
-  };
+  const {
+    searchResults,
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    searchCards,
+    clearResults,
+  } = useCardSearch();
 
   const handleSearch = useCallback(
-    async (page: number = 1) => {
-      if (
-        !searchTerm.trim() &&
-        !selectedType &&
-        !selectedColor &&
-        !selectedManaCost
-      )
-        return;
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!searchTerm.trim()) return;
 
-      setLoading(true);
-      setError("");
-      setSearchResults([]);
-
+      setIsSearching(true);
       try {
-        const query = buildSearchQuery(searchTerm);
-        const url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(
-          query
-        )}&page=${page}&unique=prints&per_page=${CARDS_PER_PAGE}`;
-
-        const response = await axios.get(url);
-
-        // Filter the results based on legality and image availability
-        const filteredCards = response.data.data.filter(
-          (card: CardData) =>
-            card.legalities?.premodern === "legal" &&
-            (card.image_uris?.normal ||
-              card.card_faces?.[0]?.image_uris?.normal)
-        );
-
-        // Handle case where no cards are found
-        if (filteredCards.length === 0) {
-          setSearchResults([]);
-          setError("No cards found. Try a different search.");
-          setTotalPages(1); // Set totalPages to 1 to avoid unnecessary pages
-          return;
-        }
-
-        setSearchResults(filteredCards);
-
-        // Calculate total pages based on the filtered results
-        const totalFilteredCards = response.data.total_cards; // Total cards matching the query
-        const calculatedTotalPages = Math.ceil(
-          Math.min(totalFilteredCards, MAX_RESULTS) / CARDS_PER_PAGE
-        );
-        setTotalPages(calculatedTotalPages);
-        setCurrentPage(page);
-      } catch (error: any) {
-        // Handle actual errors (e.g., network issues)
-        setError(
-          error.response?.status === 404
-            ? "No cards found. Try a different search."
-            : "Error searching cards."
-        );
-        setTotalPages(1); // Reset totalPages to 1 in case of an error
+        await searchCards(searchTerm, {
+          type: selectedType,
+          color: selectedColor,
+          manaCost: selectedManaCost,
+        });
       } finally {
-        setLoading(false);
+        setIsSearching(false);
       }
     },
-    [searchTerm, selectedType, selectedColor, selectedManaCost]
+    [searchTerm, selectedType, selectedColor, selectedManaCost, searchCards]
   );
 
-  const handlePageChange = (newPage: number) => {
-    console.log(`Page changed to: ${newPage}`); // Debugging
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
-      handleSearch(newPage);
-      searchResultsRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
+  const handleClear = useCallback(() => {
+    setSearchTerm("");
+    setSelectedType("");
+    setSelectedColor("");
+    setSelectedManaCost("");
+    clearResults();
+  }, [clearResults]);
 
-  const getVisiblePages = () => {
-    const visiblePages = [];
-    const maxVisible = 5;
+  const handleCardClick = useCallback(
+    (card: SearchableCard) => {
+      onCardPreview(card);
+    },
+    [onCardPreview]
+  );
 
-    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-    let end = Math.min(totalPages, start + maxVisible - 1);
-
-    if (end - start + 1 < maxVisible) {
-      start = Math.max(1, end - maxVisible + 1);
-    }
-
-    for (let i = start; i <= end; i++) {
-      visiblePages.push(i);
-    }
-
-    if (start > 1) visiblePages.unshift(1, "...");
-    if (end < totalPages) visiblePages.push("...", totalPages);
-
-    return visiblePages;
-  };
-
-  useEffect(() => {
-    handleSearch(1);
-  }, [selectedType, selectedColor, selectedManaCost]);
+  const handleAddToDeck = useCallback(
+    (card: SearchableCard) => {
+      addCardToDeck(card);
+    },
+    [addCardToDeck]
+  );
 
   return (
-    <div className="flex flex-col h-full space-y-2 md:space-y-4">
-      {/* Filters */}
-      <div className="flex flex-row md:flex-row gap-2">
-        {/* Type Filter */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="p-2 bg-teal-900 rounded text-white w-full md:w-auto">
-              {selectedType
-                ? selectedType.charAt(0).toUpperCase() + selectedType.slice(1)
-                : "All Types"}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-gray-900 text-white rounded shadow-md">
-            <DropdownMenuItem onClick={() => setSelectedType("")}>
-              All Types
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedType("creature")}>
-              Creature
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedType("instant")}>
-              Instant
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedType("sorcery")}>
-              Sorcery
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedType("artifact")}>
-              Artifact
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedType("enchantment")}>
-              Enchantment
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedType("land")}>
-              Land
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Color Filter */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="p-2 bg-teal-900 rounded text-white w-full md:w-auto">
-              {selectedColor
-                ? selectedColor.charAt(0).toUpperCase() + selectedColor.slice(1)
-                : "All Colors"}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-gray-900 text-white rounded shadow-md">
-            <DropdownMenuItem onClick={() => setSelectedColor("")}>
-              All Colors
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedColor("White")}>
-              White
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedColor("Blue")}>
-              Blue
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedColor("Black")}>
-              Black
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedColor("Red")}>
-              Red
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedColor("Green")}>
-              Green
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedColor("Colorless")}>
-              Colorless
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedColor("Multicolor")}>
-              Multicolor
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Cost Filter */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="p-2 bg-teal-900 rounded text-white w-full md:w-auto">
-              {selectedManaCost
-                ? selectedManaCost.charAt(0).toUpperCase() +
-                  selectedManaCost.slice(1)
-                : "All Costs"}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-gray-900 text-white rounded shadow-md">
-            <DropdownMenuItem onClick={() => setSelectedManaCost("")}>
-              Cost
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedManaCost("1")}>
-              1
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedManaCost("2")}>
-              2
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedManaCost("3")}>
-              3
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedManaCost("4")}>
-              4
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedManaCost("5")}>
-              5
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedManaCost("6")}>
-              6
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedManaCost("7")}>
-              7
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSelectedManaCost("8+")}>
-              8+
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {/* Search Bar */}
-      <div className="flex flex-col md:flex-row gap-2">
-        <Input
-          type="text"
-          placeholder="Search cards..."
-          className="h-auto"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSearch(1)}
-        />
-        <Button
-          onClick={() => handleSearch(1)}
-          disabled={loading || !searchTerm.trim()}
-          className="md:w-auto w-full py-2 px-4 bg-sky-400 hover:bg-sky-500 text-white rounded focus:outline-none focus:ring-2 focus:ring-sky-500 text-sm md:text-base"
-        >
-          {loading ? (
-            <Icons.spinner className="animate-spin h-4 w-4" />
-          ) : (
-            "Search"
-          )}
-        </Button>
-      </div>
-
-      {error && <div className="text-red-500 p-2 text-sm">{error}</div>}
-
-      {/* Search Results */}
-      <ScrollArea className="h-[calc(100vh-280px)] md:h-[calc(100vh-240px)] overflow-auto pb-8 md:pb-8 min-h-0">
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2">
-          {searchResults.map((card) => (
-            <div key={card.id} className="rounded-lg p-1 md:p-2 flex flex-col">
-              <div className="flex-1 relative group">
-                <button
-                  onClick={() => onCardPreview(card)}
-                  className="w-full h-full"
-                >
-                  {card.image_uris?.normal ? (
-                    <img
-                      src={card.image_uris.normal}
-                      alt={card.name}
-                      className="md:rounded-xl rounded-2xl w-full h-full object-contain hover:scale-105 transition-transform"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-600 flex items-center justify-center">
-                      <span className="text-gray-400 text-xs">No Image</span>
-                    </div>
-                  )}
-                </button>
-              </div>
-              <div className="flex flex-col items-center mt-1">
-                <h3 className="font-semibold text-xs text-center truncate w-full mb-1">
-                  {card.name}
-                </h3>
-                <Button
-                  variant="outline"
-                  className="text-xs py-1 bg-green-500 hover:bg-green-700 text-white h-auto w-20"
-                  onClick={() => addCardToDeck(card)}
-                >
-                  {isMobile ? "Add" : "Add to Deck"}
-                </Button>
-              </div>
-            </div>
-          ))}
+    <div className="flex flex-col h-full">
+      {/* Search Form */}
+      <form onSubmit={handleSearch} className="mb-6 space-y-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Input
+            type="text"
+            placeholder="Buscar cartas (ej: merfolk, lightning bolt, forest...)"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 pr-4 py-3 bg-gray-900/50 border-gray-700 focus:border-purple-500 focus:ring-purple-500 rounded-lg transition-all duration-200"
+            disabled={loading}
+          />
         </div>
-      </ScrollArea>
 
-      {/* Pagination Bar */}
-      <div className="sticky bottom-0 bg-gray-900 p-2 flex items-center justify-center gap-2 shadow-md overflow-x-auto whitespace-nowrap">
-        {/* Previous Page Button */}
-        <button
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className={`px-3 py-1 rounded-md cursor-pointer ${
-            currentPage === 1
-              ? "bg-gray-500 text-gray-300 cursor-not-allowed"
-              : "bg-sky-600 text-white hover:bg-sky-700"
-          }`}
-        >
-          Previous
-        </button>
+        {/* Search Filters */}
+        <SearchFilters
+          selectedType={selectedType}
+          selectedColor={selectedColor}
+          selectedManaCost={selectedManaCost}
+          onTypeChange={setSelectedType}
+          onColorChange={setSelectedColor}
+          onManaCostChange={setSelectedManaCost}
+        />
 
-        {/* Page Numbers */}
-        {getVisiblePages().map((page, index) =>
-          typeof page === "number" ? (
-            <button
-              key={index}
-              onClick={() => handlePageChange(page)}
-              className={`px-3 py-1 rounded-md cursor-pointer ${
-                page === currentPage
-                  ? "bg-sky-700 text-white font-bold"
-                  : "bg-gray-700 text-white hover:bg-sky-600"
-              }`}
-            >
-              {page}
-            </button>
-          ) : (
-            <span key={index} className="px-3 py-1 text-gray-400">
-              ...
-            </span>
-          )
+        {/* Search Actions */}
+        <div className="flex gap-2">
+          <Button
+            type="submit"
+            disabled={loading || !searchTerm.trim()}
+            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg transition-all duration-200 btn-hover"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Buscando...
+              </>
+            ) : (
+              <>
+                <Search className="w-4 h-4 mr-2" />
+                Buscar Cartas
+              </>
+            )}
+          </Button>
+          <Button
+            type="button"
+            onClick={handleClear}
+            variant="outline"
+            className="px-4 py-3 border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white rounded-lg transition-all duration-200"
+          >
+            Limpiar
+          </Button>
+        </div>
+      </form>
+
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-900/20 border border-red-500/30 rounded-lg flex items-center gap-2 text-red-400">
+          <AlertCircle className="w-5 h-5" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Results Section */}
+      <div className="flex-1 overflow-hidden">
+        {searchResults.length > 0 && (
+          <div className="h-full flex flex-col">
+            {/* Results Header */}
+            <div className="flex justify-between items-center mb-4 p-2 bg-gray-900/30 rounded-lg">
+              <span className="text-sm text-gray-300">
+                {searchResults.length} cartas encontradas
+              </span>
+              {totalPages > 1 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-400">
+                    Página {currentPage} de {totalPages}
+                  </span>
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => searchCards(searchTerm, {
+                        type: selectedType,
+                        color: selectedColor,
+                        manaCost: selectedManaCost,
+                      }, currentPage - 1)}
+                      disabled={currentPage <= 1}
+                      className="w-8 h-8 p-0"
+                    >
+                      ←
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => searchCards(searchTerm, {
+                        type: selectedType,
+                        color: selectedColor,
+                        manaCost: selectedManaCost,
+                      }, currentPage + 1)}
+                      disabled={currentPage >= totalPages}
+                      className="w-8 h-8 p-0"
+                    >
+                      →
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Cards Grid */}
+            <div className="flex-1 overflow-auto">
+              <CardGrid
+                cards={searchResults}
+                onCardClick={handleCardClick}
+                onCardPreview={onCardPreview}
+                onAddToDeck={handleAddToDeck}
+                className="animate-fade-in"
+              />
+            </div>
+          </div>
         )}
 
-        {/* Next Page Button */}
-        <button
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className={`px-3 py-1 rounded-md cursor-pointer ${
-            currentPage === totalPages
-              ? "bg-gray-500 text-gray-300 cursor-not-allowed"
-              : "bg-sky-600 text-white hover:bg-sky-700"
-          }`}
-        >
-          Next
-        </button>
+        {/* Empty State */}
+        {!loading && searchResults.length === 0 && searchTerm && (
+          <div className="flex flex-col items-center justify-center h-full text-center p-8">
+            <div className="text-6xl mb-4">🔍</div>
+            <h3 className="text-xl font-semibold mb-2 text-gray-300">
+              No se encontraron cartas
+            </h3>
+            <p className="text-gray-400 mb-4">
+              Intenta con términos diferentes o ajusta los filtros
+            </p>
+            <Button
+              onClick={handleClear}
+              variant="outline"
+              className="border-gray-600 hover:border-gray-500"
+            >
+              Limpiar búsqueda
+            </Button>
+          </div>
+        )}
+
+        {/* Initial State */}
+        {!loading && searchResults.length === 0 && !searchTerm && (
+          <div className="flex flex-col items-center justify-center h-full text-center p-8">
+            <div className="text-6xl mb-4">🃏</div>
+            <h3 className="text-xl font-semibold mb-2 text-gray-300">
+              Busca tu próxima carta
+            </h3>
+            <p className="text-gray-400 max-w-md">
+              Ingresa el nombre de una carta, tipo, color o cualquier término para comenzar tu búsqueda
+            </p>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading && (
+          <div className="flex flex-col items-center justify-center h-full p-8">
+            <Loader2 className="w-8 h-8 animate-spin text-purple-500 mb-4" />
+            <p className="text-gray-400">Buscando cartas...</p>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default CardSearch;
-export type { CardData };

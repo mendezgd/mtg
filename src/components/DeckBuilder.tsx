@@ -7,7 +7,7 @@ import React, {
   useRef,
   useMemo,
 } from "react";
-import { Card } from "@/components/CardList";
+import { DeckCard, Deck } from "@/types/card";
 import { Button } from "@/components/ui/button";
 import {
   HoverCard,
@@ -17,6 +17,7 @@ import {
 import dynamic from "next/dynamic";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
+import { generateUUID } from "@/lib/utils";
 
 const ScrollArea = dynamic(
   () =>
@@ -32,24 +33,17 @@ const ScrollArea = dynamic(
   }
 ) as any;
 
-interface Deck {
-  id: string;
-  name: string;
-  cards: { [cardName: string]: { card: Card; count: number } };
-  sideboard?: { [cardName: string]: { card: Card; count: number } };
-}
-
 interface DeckBuilderProps {
   decks: Deck[];
   setDecks: React.Dispatch<React.SetStateAction<Deck[]>>;
   selectedDeckId: string | null;
   setSelectedDeckId: React.Dispatch<React.SetStateAction<string | null>>;
   removeCardFromDeck: (cardName: string) => void;
-  addCardToDeck: (card: Card) => void;
+  addCardToDeck: (card: DeckCard) => void;
   handleDeleteDeck: (deckId: string) => void;
   handleRenameDeck: (deckId: string, newName: string) => void;
   removeCardFromSideboard: (cardName: string) => void;
-  addCardToSideboard: (card: Card) => void;
+  addCardToSideboard: (card: DeckCard) => void;
 }
 
 const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
@@ -65,14 +59,14 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
     removeCardFromSideboard,
     addCardToSideboard,
   }) => {
-    const [sampleHand, setSampleHand] = useState<Card[]>([]);
+    const [sampleHand, setSampleHand] = useState<DeckCard[]>([]);
     const [newDeckName, setNewDeckName] = useState("");
     const [isDragging, setIsDragging] = useState(false);
     const [startX, setStartX] = useState(0);
     const [scrollLeft, setScrollLeft] = useState(0);
     const [mounted, setMounted] = useState(false);
     const [touchedCard, setTouchedCard] = useState<{
-      card: Card;
+      card: DeckCard;
       name: string;
     } | null>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -103,30 +97,79 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
     // Memoize card background color function
     const getCardBackgroundColor = useCallback(
       (colors: string[] | undefined) => {
-        if (!colors || colors.length === 0) return "bg-gray-800"; // Colorless cards
+        if (!colors || colors.length === 0)
+          return "bg-gray-800 border-gray-700"; // Colorless cards
 
         if (colors.length === 1) {
           switch (colors[0]) {
             case "W":
-              return "bg-white";
+              return "bg-gray-800 border-gray-700 text-gray-200"; // White cards with dark background
             case "U":
-              return "bg-blue-600";
+              return "bg-gray-800 border-gray-700 text-gray-200";
             case "B":
-              return "bg-gray-900";
+              return "bg-gray-900 border-gray-800 text-gray-100";
             case "R":
-              return "bg-red-600";
+              return "bg-gray-800 border-gray-700 text-gray-200";
             case "G":
-              return "bg-green-600";
+              return "bg-gray-800 border-gray-700 text-gray-200";
             default:
-              return "bg-gray-800";
+              return "bg-gray-800 border-gray-700";
           }
         }
 
         // Multicolor cards
-        return "bg-gradient-to-r from-yellow-600 via-purple-600 to-yellow-600";
+        return "bg-gray-800 border-gray-700 text-gray-200";
       },
       []
     );
+
+    // Function to get card text color based on background
+    const getCardTextColor = useCallback((colors: string[] | undefined) => {
+      if (!colors || colors.length === 0) return "text-gray-300";
+
+      if (colors.length === 1) {
+        switch (colors[0]) {
+          case "W":
+            return "text-gray-200";
+          case "U":
+            return "text-gray-200";
+          case "B":
+            return "text-gray-100";
+          case "R":
+            return "text-gray-200";
+          case "G":
+            return "text-gray-200";
+          default:
+            return "text-gray-300";
+        }
+      }
+
+      return "text-gray-200";
+    }, []);
+
+    // Function to get card border color
+    const getCardBorderColor = useCallback((colors: string[] | undefined) => {
+      if (!colors || colors.length === 0) return "border-gray-700";
+
+      if (colors.length === 1) {
+        switch (colors[0]) {
+          case "W":
+            return "border-gray-600";
+          case "U":
+            return "border-gray-600";
+          case "B":
+            return "border-gray-800";
+          case "R":
+            return "border-gray-600";
+          case "G":
+            return "border-gray-600";
+          default:
+            return "border-gray-700";
+        }
+      }
+
+      return "border-gray-600";
+    }, []);
 
     // Function to get primary type of a card
     const getPrimaryType = useCallback((typeLine: string | undefined) => {
@@ -136,166 +179,86 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
         "Creature",
         "Instant",
         "Sorcery",
-        "Artifact",
         "Enchantment",
+        "Artifact",
         "Planeswalker",
         "Land",
       ];
+
       for (const type of types) {
         if (typeLine.includes(type)) return type;
       }
+
       return "Other";
     }, []);
 
     // Function to get type order for sorting
     const getTypeOrder = useCallback((type: string) => {
-      const order: { [key: string]: number } = {
-        Creature: 1,
-        Instant: 2,
-        Sorcery: 3,
-        Artifact: 4,
+      const order = {
+        Land: 1,
+        Creature: 2,
+        Instant: 3,
+        Sorcery: 4,
         Enchantment: 5,
-        Planeswalker: 6,
-        Land: 7,
+        Artifact: 6,
+        Planeswalker: 7,
         Other: 8,
       };
-      return order[type] || 9;
+      return order[type as keyof typeof order] || 8;
     }, []);
 
-    // Memoize mana symbols function
-    const getManaSymbols = useCallback((manaCost: string) => {
-      if (!manaCost) return null;
+    // Function to get mana symbols
+    const getManaSymbols = useCallback((manaCost: string | undefined) => {
+      if (!manaCost) return [];
 
-      // Extract mana symbols using regex to match {X} pattern and filter out empty ones
-      const symbols =
-        manaCost
-          .match(/\{([^}]+)\}/g)
-          ?.map((s) => s.slice(1, -1))
-          .filter((s) => s.trim()) || [];
-
-      return (
-        <div className="flex gap-1">
-          {symbols.map((symbol, idx) => {
-            const bgColor =
-              symbol === "W"
-                ? "bg-white"
-                : symbol === "U"
-                  ? "bg-blue-500"
-                  : symbol === "B"
-                    ? "bg-gray-900"
-                    : symbol === "R"
-                      ? "bg-red-500"
-                      : symbol === "G"
-                        ? "bg-green-500"
-                        : symbol === "C"
-                          ? "bg-gray-400"
-                          : "bg-gray-600";
-
-            const textColor =
-              symbol === "B" || !isNaN(Number(symbol))
-                ? "text-white"
-                : "text-black";
-
-            return (
-              <div
-                key={idx}
-                className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${bgColor} ${textColor} border border-black/20 shadow-lg`}
-              >
-                {symbol}
-              </div>
-            );
-          })}
-        </div>
-      );
+      const symbols = manaCost.match(/\{[^}]+\}/g) || [];
+      return symbols.map((symbol) => symbol.slice(1, -1));
     }, []);
 
-    // Add effect to handle touch events outside cards
-    useEffect(() => {
-      const handleTouchOutside = (e: TouchEvent) => {
-        const target = e.target as HTMLElement;
-        // Check if the touch is outside any card row
-        if (!target.closest(".card-row")) {
-          setTouchedCard(null);
-        }
-      };
-
-      document.addEventListener("touchstart", handleTouchOutside);
-      return () => {
-        document.removeEventListener("touchstart", handleTouchOutside);
-      };
-    }, []);
-
-    // Add card validation function
+    // Validate card function
     const validateCard = useCallback(
-      (card: Card | undefined, name: string): Card | null => {
-        // Check if name is just a number
-        if (/^\d+$/.test(name)) {
-          console.warn(
-            `Invalid card name format: "${name}". Card names should not be just numbers.`
-          );
-          return null;
-        }
+      (card: any, name: string): DeckCard | null => {
+        if (!card || !card.name) return null;
 
-        if (!card) {
-          console.warn(
-            `Card data missing for "${name}". This card may need to be re-added to the deck.`
-          );
-          return null;
-        }
-
-        // Ensure required card properties exist
-        if (!card.name || !card.type_line) {
-          console.warn(
-            `Invalid card data for "${name}": missing required properties (name: ${!!card.name}, type_line: ${!!card.type_line})`
-          );
-          return null;
-        }
-
-        // Validate card name matches the key
-        if (card.name !== name) {
-          console.warn(
-            `Card name mismatch: key is "${name}" but card.name is "${card.name}"`
-          );
-          return null;
-        }
-
-        return card;
+        return {
+          id: card.id || generateUUID(),
+          name: card.name,
+          image_uris: card.image_uris,
+          type_line: card.type_line,
+          oracle_text: card.oracle_text,
+          mana_cost: card.mana_cost,
+          colors: card.colors || [],
+          legalities: card.legalities || { premodern: "legal" },
+        };
       },
       []
     );
 
-    // Add function to clean up invalid cards
+    // Cleanup invalid cards function
     const cleanupInvalidCards = useCallback(
       (deck: Deck) => {
-        const validCards: { [key: string]: { card: Card; count: number } } = {};
-        const invalidCards: string[] = [];
+        const validCards: { [key: string]: { card: DeckCard; count: number } } =
+          {};
 
-        Object.entries(deck.cards).forEach(([name, { card, count }]) => {
-          if (validateCard(card, name)) {
-            validCards[name] = { card, count };
-          } else {
-            invalidCards.push(name);
+        Object.entries(deck.cards).forEach(([name, entry]) => {
+          const validCard = validateCard(entry.card, name);
+          if (validCard) {
+            validCards[name] = { card: validCard, count: entry.count };
           }
         });
 
-        if (invalidCards.length > 0) {
-          console.warn(
-            `Found ${invalidCards.length} invalid cards in deck "${deck.name}":`,
-            invalidCards
-          );
+        if (Object.keys(validCards).length !== Object.keys(deck.cards).length) {
           setDecks((prev) =>
             prev.map((d) =>
               d.id === deck.id ? { ...d, cards: validCards } : d
             )
           );
         }
-
-        return validCards;
       },
       [validateCard, setDecks]
     );
 
-    // Memoize card row component
+    // CardRow component with stable references
     const CardRow = useCallback(
       ({
         name,
@@ -306,20 +269,24 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
         isSideboard = false,
       }: {
         name: string;
-        card: Card;
+        card: DeckCard;
         count: number;
-        onRemove: () => void;
-        onAdd: () => void;
+        onRemove: (e?: React.MouseEvent) => void;
+        onAdd: (e?: React.MouseEvent) => void;
         isSideboard?: boolean;
       }) => {
-        // Validate card data
         const validCard = validateCard(card, name);
         if (!validCard) {
           return (
-            <div className="text-sm flex justify-between rounded-sm items-center border-2 border-red-500 p-2">
-              <span className="text-red-400">
-                Error: Invalid card data for {name}
-              </span>
+            <div className="text-sm flex justify-between rounded-lg items-center border-2 border-red-500 p-3 bg-red-900/20 hover:bg-red-900/30 transition-colors">
+              <div className="flex flex-col">
+                <span className="text-red-400 font-medium">
+                  Invalid Card: {name}
+                </span>
+                <span className="text-red-300 text-xs">
+                  This card needs to be re-added to the deck
+                </span>
+              </div>
               <Button
                 size="sm"
                 onClick={onRemove}
@@ -331,85 +298,124 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
           );
         }
 
-        const touchTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-        const handleTouchStart = useCallback(
-          (e: React.TouchEvent) => {
-            e.stopPropagation();
-            touchTimerRef.current = setTimeout(() => {
-              setTouchedCard({ card: validCard, name });
-            }, 300);
-          },
-          [validCard, name]
-        );
-
-        const handleTouchEnd = useCallback(() => {
-          if (touchTimerRef.current) {
-            clearTimeout(touchTimerRef.current);
-            touchTimerRef.current = null;
-          }
-        }, []);
+        const bgColor = getCardBackgroundColor(validCard.colors);
+        const textColor = getCardTextColor(validCard.colors);
+        const borderColor = getCardBorderColor(validCard.colors);
 
         return (
-          <div className="card-row">
-            <div
-              className="text-sm flex justify-between rounded-sm items-center border-2 border-gray-400 hover:border-blue-500 transition-colors cursor-pointer overflow-hidden h-12 relative"
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-              onTouchCancel={handleTouchEnd}
-            >
-              <div className="absolute inset-0 w-full h-full overflow-hidden group-hover:border-blue-500 transition-all duration-300">
-                <img
-                  src={validCard.image_uris?.normal || "/default-card.jpg"}
-                  alt={name}
-                  className="w-full h-full object-cover opacity-40"
-                  style={{ objectPosition: "center 20%" }}
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-black/10 to-transparent" />
-              </div>
-
-              <div className="relative z-10 flex justify-between items-center w-full p-2">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    {validCard.mana_cost && getManaSymbols(validCard.mana_cost)}
+          <div
+            className={`text-sm flex justify-between rounded-md items-center p-2 border ${bgColor} ${borderColor} hover:shadow-sm transition-colors`}
+            role="listitem"
+            aria-label={`${name} - ${count} copias`}
+          >
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <HoverCard>
+                <HoverCardTrigger asChild>
+                  <button
+                    className={`text-left flex-1 min-w-0 hover:opacity-80 transition-opacity ${textColor}`}
+                    aria-label={`Ver detalles de ${name}`}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setTouchedCard({ card: validCard, name });
+                    }}
+                    onTouchEnd={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setTouchedCard(null);
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setTouchedCard({ card: validCard, name });
+                    }}
+                    onMouseUp={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setTouchedCard(null);
+                    }}
+                    onMouseLeave={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setTouchedCard(null);
+                    }}
+                  >
+                    <div className="font-medium truncate">{name}</div>
+                    <div className={`text-xs opacity-70 truncate ${textColor}`}>
+                      {validCard.type_line}
+                    </div>
+                    {validCard.mana_cost && (
+                      <div className="flex gap-1 mt-1">
+                        {getManaSymbols(validCard.mana_cost).map(
+                          (symbol, index) => (
+                            <span
+                              key={index}
+                              className="text-xs font-mono bg-gray-700 px-1 rounded text-gray-300"
+                              title={`Símbolo de maná: ${symbol}`}
+                            >
+                              {symbol}
+                            </span>
+                          )
+                        )}
+                      </div>
+                    )}
+                  </button>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-80 p-0" side="right">
+                  <div className="space-y-3 p-4">
+                    <img
+                      src={validCard.image_uris?.normal || "/default-card.jpg"}
+                      alt={`Imagen de ${name}`}
+                      className="w-full rounded shadow-sm"
+                      loading="lazy"
+                    />
+                    <div>
+                      <h4 className="font-semibold text-lg">{name}</h4>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {validCard.type_line}
+                      </p>
+                      {validCard.oracle_text && (
+                        <p className="text-sm leading-relaxed">
+                          {validCard.oracle_text}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <span className="font-medium text-white drop-shadow-lg">
-                    {name}
-                  </span>
-                </div>
+                </HoverCardContent>
+              </HoverCard>
+            </div>
 
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    onClick={onRemove}
-                    className="bg-red-500/80 hover:bg-red-600 w-6 h-6 rounded-full transition-all duration-200 hover:scale-110"
-                  >
-                    -
-                  </Button>
-                  <span className="w-8 text-center text-white text-2xl font-light tracking-wider drop-shadow-lg">
-                    {count}
-                  </span>
-                  <Button
-                    size="sm"
-                    onClick={onAdd}
-                    disabled={
-                      count >= 4 &&
-                      !validCard.type_line?.toLowerCase().includes("basic land")
-                    }
-                    className="bg-green-600/80 hover:bg-green-700 w-6 h-6 rounded-full transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:hover:scale-100"
-                  >
-                    +
-                  </Button>
-                </div>
+            <div className="flex items-center gap-2">
+              <span
+                className={`text-sm font-medium min-w-[2rem] text-center ${textColor}`}
+              >
+                {count}
+              </span>
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  onClick={onRemove}
+                  className="w-6 h-6 p-0 text-xs bg-red-600 hover:bg-red-700 text-white"
+                  aria-label={`Remover una copia de ${name}`}
+                >
+                  -
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={onAdd}
+                  className="w-6 h-6 p-0 text-xs bg-green-600 hover:bg-green-700 text-white"
+                  aria-label={`Agregar una copia de ${name}`}
+                >
+                  +
+                </Button>
               </div>
             </div>
 
             {touchedCard?.name === name && (
-              <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-64 h-88 rounded-xl overflow-hidden border-2 border-gray-700 shadow-2xl">
+              <div className="mobile-card-preview fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-64 h-88 rounded-lg overflow-hidden border border-gray-300 shadow-lg">
                 <img
                   src={validCard.image_uris?.normal || "/default-card.jpg"}
-                  alt={name}
+                  alt={`Vista previa de ${name}`}
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
@@ -418,34 +424,24 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
           </div>
         );
       },
-      [getCardBackgroundColor, getManaSymbols, touchedCard, validateCard]
+      [
+        getCardBackgroundColor,
+        getCardTextColor,
+        getCardBorderColor,
+        getManaSymbols,
+        touchedCard,
+        validateCard,
+      ]
     );
 
-    // Update useEffect to clean up invalid cards when loading
-    useEffect(() => {
-      if (decks && decks.length > 0) {
-        const hasInvalidDecks = decks.some((deck) => !deck.id);
-        if (hasInvalidDecks) {
-          const validatedDecks = decks.map(validateDeck);
-          setDecks(validatedDecks);
-        }
-
-        // Clean up invalid cards in all decks
-        decks.forEach((deck) => {
-          cleanupInvalidCards(deck);
-        });
-      }
-    }, []); // Only run once on mount
-
-    // Update renderCardList to handle invalid cards
+    // Update renderCardList to handle invalid cards with stable references
     const renderCardList = useCallback(
       (
-        cards: { [key: string]: { card: Card; count: number } },
+        cards: { [key: string]: { card: DeckCard; count: number } },
         isSideboard = false
       ) => {
         const validCards = Object.entries(cards)
           .sort(([, a], [, b]) => {
-            // Safety check for card properties
             if (!a?.card || !b?.card) return 0;
 
             const typeA = getPrimaryType(a.card.type_line);
@@ -552,7 +548,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
       if (!deck.id) {
         return {
           ...deck,
-          id: crypto.randomUUID(),
+          id: generateUUID(),
         };
       }
       return deck;
@@ -569,18 +565,11 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
       }
     }, []); // Only run once on mount
 
-    // Separate effect for saving to localStorage
-    useEffect(() => {
-      if (decks && decks.length > 0) {
-        localStorage.setItem("savedDecks", JSON.stringify(decks));
-      }
-    }, [decks]);
-
     // Update createNewDeck to ensure ID is set
     const createNewDeck = useCallback(() => {
       if (newDeckName.trim()) {
         const newDeck: Deck = {
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           name: newDeckName,
           cards: {},
         };
@@ -593,7 +582,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
     const generateSampleHand = useCallback(() => {
       if (!selectedDeck) return;
 
-      const cardPool: Card[] = [];
+      const cardPool: DeckCard[] = [];
       Object.values(selectedDeck.cards).forEach(({ card, count }) => {
         for (let i = 0; i < count; i++) cardPool.push(card);
       });
@@ -608,327 +597,290 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
     }, [selectedDeck]);
 
     const handleChallenge = useCallback(() => {
-      if (!selectedDeck) return;
-      const opponentDeck = opponentDeckId
-        ? decks.find((d) => d.id === opponentDeckId)
-        : selectedDeck;
+      if (!selectedDeck || !opponentDeckId) return;
 
+      const opponentDeck = decks.find((deck) => deck.id === opponentDeckId);
       if (!opponentDeck) return;
 
-      // Convert decks to arrays of cards
-      const playerDeckArray = Object.values(selectedDeck.cards).flatMap(
-        ({ card, count }) => Array(count).fill(card)
-      );
-      const opponentDeckArray = Object.values(opponentDeck.cards).flatMap(
-        ({ card, count }) => Array(count).fill(card)
-      );
+      const playerDeckArray: DeckCard[] = [];
+      const opponentDeckArray: DeckCard[] = [];
 
-      // Create initial hands
+      Object.values(selectedDeck.cards).forEach(({ card, count }) => {
+        for (let i = 0; i < count; i++) {
+          playerDeckArray.push({ ...card, id: generateUUID() });
+        }
+      });
+
+      Object.values(opponentDeck.cards).forEach(({ card, count }) => {
+        for (let i = 0; i < count; i++) {
+          opponentDeckArray.push({ ...card, id: generateUUID() });
+        }
+      });
+
       const initialPlayerHand = playerDeckArray
         .slice(0, 7)
         .map((card, index) => ({
           ...card,
-          id: Math.random().toString(36).substr(2, 9),
+          id: generateUUID(),
           x: index * 80,
         }));
+
       const initialOpponentHand = opponentDeckArray
         .slice(0, 7)
         .map((card, index) => ({
           ...card,
-          id: Math.random().toString(36).substr(2, 9),
+          id: generateUUID(),
           x: index * 80,
         }));
 
       const gameState = {
         players: [
           {
-            deck: playerDeckArray.slice(7),
+            deck: playerDeckArray,
             hand: initialPlayerHand,
             life: 20,
             mana: {},
           },
           {
-            deck: opponentDeckArray.slice(7),
+            deck: opponentDeckArray,
             hand: initialOpponentHand,
             life: 20,
             mana: {},
           },
         ],
-        gameState: {
-          currentTurn: 0,
-          currentPhase: "untap",
-        },
+        currentTurn: 1,
+        currentPhase: "untap",
         timestamp: Date.now(),
       };
+
       localStorage.setItem("gameState", JSON.stringify(gameState));
       router.push("/game");
     }, [selectedDeck, opponentDeckId, decks, router]);
 
-    const handleExportDeck = useCallback(() => {
-      if (!selectedDeck) return;
-
-      // Create main deck list
-      const mainDeckList = Object.entries(selectedDeck.cards)
-        .sort(([, a], [, b]) => {
-          const typeA = getPrimaryType(a.card.type_line);
-          const typeB = getPrimaryType(b.card.type_line);
-          const typeOrderA = getTypeOrder(typeA);
-          const typeOrderB = getTypeOrder(typeB);
-
-          if (typeOrderA !== typeOrderB) {
-            return typeOrderA - typeOrderB;
-          }
-          return a.card.name.localeCompare(b.card.name);
-        })
-        .map(([name, { count }]) => `${count} ${name}`)
-        .join("\n");
-
-      // Create sideboard list if it exists
-      const sideboardList =
-        selectedDeck.sideboard && Object.keys(selectedDeck.sideboard).length > 0
-          ? "\n\nSideboard\n" +
-            Object.entries(selectedDeck.sideboard)
-              .sort(([, a], [, b]) => {
-                const typeA = getPrimaryType(a.card.type_line);
-                const typeB = getPrimaryType(b.card.type_line);
-                const typeOrderA = getTypeOrder(typeA);
-                const typeOrderB = getTypeOrder(typeB);
-
-                if (typeOrderA !== typeOrderB) {
-                  return typeOrderA - typeOrderB;
-                }
-                return a.card.name.localeCompare(b.card.name);
-              })
-              .map(([name, { count }]) => `${count} ${name}`)
-              .join("\n")
-          : "";
-
-      // Combine both lists
-      const fullDeckList = `${selectedDeck.name}\n\n${mainDeckList}${sideboardList}`;
-
-      // Copy to clipboard
-      navigator.clipboard
-        .writeText(fullDeckList)
-        .then(() => {
-          // Optional: You could add a toast notification here to confirm the copy
-          alert("Deck list copied to clipboard!");
-        })
-        .catch((err) => {
-          console.error("Failed to copy deck list:", err);
-          alert("Failed to copy deck list to clipboard");
-        });
-    }, [selectedDeck, getPrimaryType, getTypeOrder]);
-
-    if (!mounted) return null;
-
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Left Column - Deck Selection and Management */}
-          <div className="w-full md:w-1/4">
-            <div className="bg-gray-800 rounded-lg p-4 shadow-lg">
-              <h2 className="text-xl font-bold mb-4 text-white">Mazos</h2>
-
-              {/* New Deck Creation */}
-              <div className="mb-4">
-                <input
-                  type="text"
-                  value={newDeckName}
-                  onChange={(e) => setNewDeckName(e.target.value)}
-                  placeholder="Nuevo mazo..."
-                  className="w-full px-3 py-2 bg-gray-700 text-white rounded mb-2"
-                />
-                <button
-                  onClick={createNewDeck}
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-                >
-                  Crear Mazo
-                </button>
-              </div>
-
-              {/* Deck List */}
-              <div className="space-y-2">
-                {decks.map((deck, index) => {
-                  // Ensure deck has an ID, use index as fallback
-                  const deckId = deck.id || `deck-${index}`;
-                  return (
-                    <div
-                      key={deckId}
-                      className={`p-2 rounded cursor-pointer ${
-                        selectedDeckId === deckId
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-700 text-white hover:bg-gray-600"
-                      }`}
-                      onClick={() => setSelectedDeckId(deckId)}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span>{deck.name}</span>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteDeck(deckId);
-                            }}
-                            className="text-red-400 hover:text-red-300"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Deck Contents and Actions */}
-          <div className="w-full md:w-3/4">
-            {selectedDeck ? (
-              <div className="space-y-6">
-                {/* Deck Header */}
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold text-white">
-                    {selectedDeck.name}
-                  </h2>
-                  <div className="flex gap-4">
-                    <button
-                      onClick={generateSampleHand}
-                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
-                    >
-                      Generar Mano de Prueba
-                    </button>
-                    <button
-                      onClick={handleChallenge}
-                      className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded"
-                    >
-                      Jugar Partida
-                    </button>
-                  </div>
-                </div>
-
-                {/* Deck Selection Section */}
-                <div className="bg-gray-800 rounded-lg p-4 shadow-lg mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Player Deck Selection */}
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2 text-white">
-                        Tu Mazo
-                      </h3>
-                      <select
-                        value={selectedDeckId || ""}
-                        onChange={(e) =>
-                          setSelectedDeckId(e.target.value || null)
-                        }
-                        className="w-full px-3 py-2 bg-gray-700 text-white rounded"
-                      >
-                        <option value="">Selecciona tu mazo</option>
-                        {decks.map((deck, index) => {
-                          const deckId = deck.id || `deck-${index}`;
-                          return (
-                            <option
-                              key={`select-player-${deckId}`}
-                              value={deckId}
-                            >
-                              {deck.name}
-                            </option>
-                          );
-                        })}
-                      </select>
-                    </div>
-
-                    {/* Opponent Deck Selection */}
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2 text-white">
-                        Mazo del Oponente
-                      </h3>
-                      <select
-                        value={opponentDeckId || ""}
-                        onChange={(e) =>
-                          setOpponentDeckId(e.target.value || null)
-                        }
-                        className="w-full px-3 py-2 bg-gray-700 text-white rounded"
-                      >
-                        <option value="">Mismo mazo</option>
-                        {decks.map((deck, index) => {
-                          const deckId = deck.id || `deck-${index}`;
-                          return (
-                            <option
-                              key={`select-opponent-${deckId}`}
-                              value={deckId}
-                            >
-                              {deck.name}
-                            </option>
-                          );
-                        })}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Play Button */}
-                <div className="flex justify-center mb-6">
-                  <button
-                    onClick={handleChallenge}
-                    disabled={!selectedDeckId}
-                    className="bg-purple-500 hover:bg-purple-600 text-white px-8 py-3 rounded-lg text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Iniciar Partida
-                  </button>
-                </div>
-
-                <div className="flex-1 p-4 overflow-auto">
-                  <div className="max-w-4xl mx-auto">
-                    <div className="flex justify-between items-center mb-6">
-                      <div>
-                        <h2 className="text-2xl font-bold">
-                          {selectedDeck.name}
-                        </h2>
-                        <p className="text-gray-400">
-                          {totalCards} cartas en el mazo
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-1">
-                      {renderCardList(selectedDeck.cards)}
-                    </div>
-
-                    {selectedDeck.sideboard &&
-                      Object.keys(selectedDeck.sideboard).length > 0 && (
-                        <div className="mt-6">
-                          <h3 className="text-xl font-semibold mb-4">
-                            Sideboard
-                          </h3>
-                          <div className="grid gap-1">
-                            {renderCardList(selectedDeck.sideboard, true)}
-                          </div>
-                        </div>
-                      )}
-
-                    <div className="mt-6">
-                      <Button
-                        onClick={handleExportDeck}
-                        className="w-full bg-sky-600 hover:bg-sky-700 text-white"
-                      >
-                        Copiar en portapapeles
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="h-full flex items-center justify-center text-gray-400 text-xl">
-                ⬅ Selecciona o crea un mazo para comenzar
-              </div>
-            )}
+    if (!mounted) {
+      return (
+        <div className="h-full flex items-center justify-center bg-gray-900">
+          <div className="text-center p-6 bg-gray-800 rounded-lg shadow-sm border border-gray-700">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-500 mx-auto mb-3"></div>
+            <p className="text-gray-400 text-sm">
+              Cargando constructor de mazos...
+            </p>
           </div>
         </div>
+      );
+    }
+
+    return (
+      <div className="h-full flex flex-col">
+        {/* Deck Selection */}
+        <div className="mb-6 p-4 bg-gray-900 border border-gray-700 rounded-lg">
+          <h3 className="text-lg font-semibold mb-3 text-gray-200">
+            Seleccionar Mazo
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {decks.map((deck) => (
+              <button
+                key={deck.id}
+                onClick={() => setSelectedDeckId(deck.id)}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  selectedDeckId === deck.id
+                    ? "bg-gray-700 text-white"
+                    : "bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-600"
+                }`}
+                aria-label={`Seleccionar mazo: ${deck.name}`}
+              >
+                {deck.name}
+              </button>
+            ))}
+            <button
+              onClick={() => setSelectedDeckId(null)}
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                selectedDeckId === null
+                  ? "bg-gray-700 text-white"
+                  : "bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-600"
+              }`}
+              aria-label="Crear nuevo mazo"
+            >
+              Nuevo Mazo
+            </button>
+          </div>
+        </div>
+
+        {/* Create New Deck */}
+        {selectedDeckId === null && (
+          <div className="mb-4 p-4 bg-gray-900 border border-gray-700 rounded-lg">
+            <h3 className="text-lg font-semibold mb-3 text-gray-200">
+              Crear Nuevo Mazo
+            </h3>
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                placeholder="Nombre del mazo"
+                value={newDeckName}
+                onChange={(e) => setNewDeckName(e.target.value)}
+                onKeyPress={(e) => e.key === "Enter" && createNewDeck()}
+                className="flex-1 bg-gray-800 border-gray-600 focus:border-gray-500 text-gray-200 placeholder-gray-400"
+              />
+              <Button
+                onClick={createNewDeck}
+                disabled={!newDeckName.trim()}
+                className="bg-gray-700 hover:bg-gray-600 text-white"
+              >
+                Crear
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Selected Deck */}
+        {selectedDeck && (
+          <div className="flex-1 flex flex-col">
+            {/* Deck Header */}
+            <div className="flex items-center justify-between mb-4 p-4 bg-gray-900 border border-gray-700 rounded-lg">
+              <div className="flex items-center gap-2">
+                {editingDeckId === selectedDeck.id ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={tempDeckName}
+                      onChange={(e) => setTempDeckName(e.target.value)}
+                      onKeyPress={(e) =>
+                        e.key === "Enter" && handleSaveRename(selectedDeck.id)
+                      }
+                      className="w-32 bg-gray-800 border-gray-600 text-gray-200"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => handleSaveRename(selectedDeck.id)}
+                      className="bg-gray-700 hover:bg-gray-600 text-white"
+                    >
+                      Guardar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setEditingDeckId(null)}
+                      className="border-gray-600 text-gray-300 hover:bg-gray-800"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-semibold text-gray-200">
+                      {selectedDeck.name}
+                    </h2>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        handleStartEditing(selectedDeck.id, selectedDeck.name)
+                      }
+                      className="border-gray-600 text-gray-300 hover:bg-gray-800"
+                    >
+                      Editar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDeleteDeck(selectedDeck.id)}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      Eliminar
+                    </Button>
+                  </div>
+                )}
+              </div>
+              <div className="text-sm text-gray-400 bg-gray-800 px-2 py-1 rounded border border-gray-600">
+                {totalCards} cartas
+              </div>
+            </div>
+
+            {/* Sample Hand */}
+            {sampleHand.length > 0 && (
+              <div className="mb-4 p-4 bg-gray-900 border border-gray-700 rounded-lg">
+                <h3 className="text-lg font-semibold mb-3 text-gray-200">
+                  Mano de Ejemplo
+                </h3>
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {sampleHand.map((card, index) => (
+                    <img
+                      key={index}
+                      src={card.image_uris?.normal || "/default-card.jpg"}
+                      alt={`Carta ${index + 1}: ${card.name}`}
+                      className="w-16 h-24 object-cover rounded shadow-sm"
+                      loading="lazy"
+                    />
+                  ))}
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => setSampleHand([])}
+                  className="bg-gray-700 hover:bg-gray-600 text-white"
+                >
+                  Limpiar
+                </Button>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-2 mb-4">
+              <Button
+                onClick={generateSampleHand}
+                disabled={totalCards < 7}
+                className="bg-gray-700 hover:bg-gray-600 text-white"
+              >
+                Generar Mano
+              </Button>
+              <Button
+                onClick={() => setSampleHand([])}
+                disabled={sampleHand.length === 0}
+                className="bg-gray-600 hover:bg-gray-500 text-white"
+              >
+                Limpiar Mano
+              </Button>
+            </div>
+
+            {/* Cards List */}
+            <div className="flex-1 overflow-auto">
+              <ScrollArea className="h-full">
+                <div className="space-y-1" role="list">
+                  {renderCardList(selectedDeck.cards)}
+                </div>
+              </ScrollArea>
+            </div>
+
+            {/* Sideboard */}
+            {selectedDeck.sideboard &&
+              Object.keys(selectedDeck.sideboard).length > 0 && (
+                <div className="mt-4 p-4 bg-gray-900 border border-gray-700 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-3 text-gray-200">
+                    Sideboard
+                  </h3>
+                  <div className="space-y-1" role="list">
+                    {renderCardList(selectedDeck.sideboard, true)}
+                  </div>
+                </div>
+              )}
+          </div>
+        )}
+
+        {/* No Deck Selected */}
+        {!selectedDeck && selectedDeckId !== null && (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center p-6 bg-gray-900 border border-gray-700 rounded-lg">
+              <p className="text-gray-400 mb-4">Mazo no encontrado</p>
+              <Button
+                onClick={() => setSelectedDeckId(null)}
+                className="bg-gray-700 hover:bg-gray-600 text-white"
+              >
+                Crear Nuevo Mazo
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 );
-
-DeckBuilder.displayName = "DeckBuilder";
 
 export default DeckBuilder;

@@ -4,29 +4,11 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useDrag, useDrop, DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
+import { generateUUID } from "@/lib/utils";
+import { GameCard, DeckCardEntry, Deck } from "@/types/card";
 
-export interface CardData {
-  name: string;
-  image_uris?: {
-    small: string;
-    normal?: string;
-  };
-  id?: string;
-  x?: number;
-  y?: number;
-  tapped?: boolean;
-}
-
-interface DeckCard {
-  card: CardData;
-  count: number;
-}
-
-interface Deck {
-  id: string;
-  name: string;
-  cards: { [key: string]: DeckCard };
-}
+// Use GameCard instead of CardData
+type CardData = GameCard;
 
 interface PlayerState {
   deck: CardData[];
@@ -119,7 +101,7 @@ const DraggableCard: React.FC<{
     item: () => {
       const cardWithId = {
         ...card,
-        id: card.id || Math.random().toString(36).substr(2, 9),
+        id: card.id || generateUUID(),
       };
       return cardWithId;
     },
@@ -779,12 +761,12 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
 
       const player1Hand = player1Deck.slice(0, 7).map((card, index) => ({
         ...card,
-        id: Math.random().toString(36).substr(2, 9),
+        id: generateUUID(),
         x: index * 80,
       }));
       const player2Hand = player2Deck.slice(0, 7).map((card, index) => ({
         ...card,
-        id: Math.random().toString(36).substr(2, 9),
+        id: generateUUID(),
         x: index * 80,
       }));
 
@@ -827,7 +809,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
       const addUniqueIds = (cards: CardData[]): CardData[] => {
         return cards.map((card) => ({
           ...card,
-          id: `${card.name}-${Math.random().toString(36).substr(2, 9)}`,
+          id: `${card.name}-${generateUUID()}`,
         }));
       };
 
@@ -892,7 +874,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
           ...prev,
           {
             ...card,
-            id: card.id || Math.random().toString(36).substr(2, 9),
+            id: card.id || generateUUID(),
             x: position.x,
             y: position.y,
           },

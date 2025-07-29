@@ -4,21 +4,10 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { GameBoard } from "./GameBoard";
-import { CardData } from "@/types/card";
-
-interface DeckCard {
-  card: CardData;
-  count: number;
-}
-
-interface Deck {
-  id: string;
-  name: string;
-  cards: { [key: string]: DeckCard };
-}
+import { GameCard, DeckCardEntry, Deck } from "@/types/card";
 
 export default function GamePage() {
-  const [initialDeck, setInitialDeck] = useState<CardData[]>([]);
+  const [initialDeck, setInitialDeck] = useState<GameCard[]>([]);
   const [availableDecks, setAvailableDecks] = useState<Deck[]>([]);
 
   // Load available decks
@@ -32,17 +21,18 @@ export default function GamePage() {
             (deck): deck is Deck =>
               deck &&
               typeof deck === "object" &&
-              'id' in deck &&
-              'name' in deck &&
-              'cards' in deck
+              "id" in deck &&
+              "name" in deck &&
+              "cards" in deck
           );
           setAvailableDecks(validDecks);
-          
+
           // If we have decks and no game state, use the first deck as initial deck
           if (validDecks.length > 0 && !localStorage.getItem("gameState")) {
             const firstDeck = validDecks[0];
             const deckArray = Object.values(firstDeck.cards).flatMap(
-              (deckCard: DeckCard) => Array(deckCard.count).fill(deckCard.card)
+              (deckCard: DeckCardEntry) =>
+                Array(deckCard.count).fill(deckCard.card)
             );
             setInitialDeck(deckArray);
           }
@@ -79,9 +69,11 @@ export default function GamePage() {
       <div className="flex items-center justify-center h-screen bg-gray-800 text-white">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">No hay mazo seleccionado</h1>
-          <p className="mb-4">Por favor, selecciona un mazo en el constructor de mazos.</p>
+          <p className="mb-4">
+            Por favor, selecciona un mazo en el constructor de mazos.
+          </p>
           <button
-            onClick={() => window.location.href = "/deck-builder"}
+            onClick={() => (window.location.href = "/deck-builder")}
             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
           >
             Ir al Constructor de Mazos

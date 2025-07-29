@@ -1,11 +1,13 @@
 {
-  "name": "nextn",
-  "version": "0.1.0",
+  "name": "mtg-premodern",
+  "version": "1.0.0",
   "private": true,
+  "description": "Constructor de mazos, simulador de juego y torneos suizos para Magic: The Gathering Premodern",
+  "keywords": ["mtg", "magic", "premodern", "deck-builder", "game-simulator", "tournament"],
+  "author": "MTG Premodern Team",
+  "license": "MIT",
   "scripts": {
     "dev": "next dev --turbopack -p 9002",
-    "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
-    "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -14,7 +16,8 @@
     "clean": "rimraf .next out",
     "optimize": "npm run clean && npm run build",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.0.4",

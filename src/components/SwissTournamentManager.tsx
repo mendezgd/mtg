@@ -461,9 +461,6 @@ const SwissTournamentManager = () => {
       return pointsA - pointsB || a.seed - b.seed;
     });
 
-    console.log(
-      `Ronda ${roundNumber}: Asignando bye a jugador ${sortedPlayers[0].name} (ID: ${sortedPlayers[0].id})`
-    );
     return sortedPlayers[0].id;
   };
 
@@ -565,11 +562,6 @@ const SwissTournamentManager = () => {
     const matches: Match[] = [];
     const availablePlayers = [...playerList]; // Copia para no modificar la lista original
 
-    console.log(
-      `Generando emparejamientos acelerados para ronda ${roundNumber}. Jugadores:`,
-      availablePlayers.map((p) => `${p.name} (seed: ${p.seed})`)
-    );
-
     // Si hay número impar de jugadores, asignar bye
     if (availablePlayers.length % 2 !== 0) {
       const byePlayerId = assignBye(roundNumber);
@@ -602,32 +594,18 @@ const SwissTournamentManager = () => {
         );
         if (byeIndex !== -1) {
           availablePlayers.splice(byeIndex, 1);
-          console.log(
-            `Jugador con bye removido de emparejamientos: ${byePlayerId}`
-          );
         }
-
-        console.log(
-          `Jugadores restantes para emparejamientos: ${availablePlayers.length}`
-        );
       }
     }
 
     // Emparejamientos acelerados: dividir en dos mitades y emparejar #1 vs #(N/2+1), #2 vs #(N/2+2), etc.
     const half = Math.ceil(availablePlayers.length / 2);
-    console.log(
-      `Dividiendo ${availablePlayers.length} jugadores en mitades de ${half}`
-    );
 
     for (let i = 0; i < half; i++) {
       const player1 = availablePlayers[i];
       const player2 = availablePlayers[i + half];
 
       if (player1 && player2) {
-        console.log(
-          `Emparejando acelerado: ${player1.name} (seed: ${player1.seed}) vs ${player2.name} (seed: ${player2.seed})`
-        );
-
         matches.push({
           id: `match-${roundNumber}-${i}`,
           player1: player1.id,
@@ -677,14 +655,6 @@ const SwissTournamentManager = () => {
       return pointsB - pointsA || a.seed - b.seed;
     });
 
-    console.log(
-      `Generando ronda ${nextRoundNumber}. Jugadores disponibles:`,
-      sortedPlayers.map(
-        (p) =>
-          `${p.name} (${calculatePlayerPoints(p.id)} pts, ${p.wins}W-${p.losses}L, bye: ${p.hasBye})`
-      )
-    );
-
     // Sistema suizo estándar después de la ronda 1
     const newMatches: Match[] = [];
     const availablePlayers = [...sortedPlayers];
@@ -712,23 +682,13 @@ const SwissTournamentManager = () => {
           player2Wins: 0,
         });
 
-        // NO agregar oponente a la lista de oponentes para bye
-        // El bye no cuenta para Opp
-
         // Remover el jugador con bye de la lista disponible para emparejamientos
         const byeIndex = availablePlayers.findIndex(
           (p) => p.id === byePlayerId
         );
         if (byeIndex !== -1) {
           availablePlayers.splice(byeIndex, 1);
-          console.log(
-            `Jugador con bye removido de emparejamientos: ${byePlayerId}`
-          );
         }
-
-        console.log(
-          `Jugadores restantes para emparejamientos: ${availablePlayers.length}`
-        );
       }
     }
 
@@ -761,10 +721,6 @@ const SwissTournamentManager = () => {
       // Si no hay oponente válido, tomar el primero disponible
       const opponentIndex = bestOpponentIndex !== -1 ? bestOpponentIndex : 0;
       const opponent = availablePlayers.splice(opponentIndex, 1)[0];
-
-      console.log(
-        `Emparejando: ${player1.name} (${player1Points} pts) vs ${opponent.name} (${calculatePlayerPoints(opponent.id)} pts)`
-      );
 
       newMatches.push({
         id: `match-${nextRoundNumber}-${newMatches.length}`,
