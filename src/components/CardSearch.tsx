@@ -8,6 +8,7 @@ import { useCardSearch } from "@/hooks/use-card-search";
 import { CardGrid } from "@/components/ui/card-grid";
 import { SearchFilters } from "@/components/ui/search-filters";
 import { Search, Loader2, AlertCircle } from "lucide-react";
+import { CardPagination } from "@/components/ui/pagination";
 
 interface CardSearchProps {
   addCardToDeck: (card: SearchableCard) => void;
@@ -190,6 +191,16 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
         <div className="mb-4 p-4 bg-red-900/20 border border-red-500/30 rounded-lg flex items-center gap-2 text-red-400">
           <AlertCircle className="w-5 h-5" />
           <span>{error}</span>
+          {(error.includes("No se encontraron cartas") || error.includes("No cards found")) && (
+            <Button
+              onClick={handleClear}
+              variant="outline"
+              size="sm"
+              className="ml-auto text-xs border-red-500/30 hover:border-red-500/50"
+            >
+              Limpiar
+            </Button>
+          )}
         </div>
       )}
 
@@ -203,38 +214,22 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
                 {searchResults.length} cartas encontradas
               </span>
               {totalPages > 1 && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-400">
                     Página {currentPage} de {totalPages}
                   </span>
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => searchCards(searchTerm, {
+                  <CardPagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={(page) => {
+                      searchCards(searchTerm, {
                         type: selectedType,
                         color: selectedColor,
                         manaCost: selectedManaCost,
-                      }, currentPage - 1)}
-                      disabled={currentPage <= 1}
-                      className="w-8 h-8 p-0"
-                    >
-                      ←
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => searchCards(searchTerm, {
-                        type: selectedType,
-                        color: selectedColor,
-                        manaCost: selectedManaCost,
-                      }, currentPage + 1)}
-                      disabled={currentPage >= totalPages}
-                      className="w-8 h-8 p-0"
-                    >
-                      →
-                    </Button>
-                  </div>
+                      }, page);
+                    }}
+                    loading={loading}
+                  />
                 </div>
               )}
             </div>
@@ -253,7 +248,7 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
         )}
 
         {/* Empty State */}
-        {!loading && searchResults.length === 0 && searchTerm && (
+        {!loading && searchResults.length === 0 && searchTerm && !error && (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
             <div className="text-6xl mb-4">🔍</div>
             <h3 className="text-xl font-semibold mb-2 text-gray-300">
@@ -272,8 +267,36 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
           </div>
         )}
 
+        {/* Error State */}
+        {!loading && searchResults.length === 0 && error && (
+          <div className="flex flex-col items-center justify-center h-full text-center p-8">
+            <div className="text-6xl mb-4">⚠️</div>
+            <h3 className="text-xl font-semibold mb-2 text-gray-300">
+              Error en la búsqueda
+            </h3>
+            <p className="text-gray-400 mb-4 max-w-md">
+              {error}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleClear}
+                variant="outline"
+                className="border-gray-600 hover:border-gray-500"
+              >
+                Limpiar búsqueda
+              </Button>
+              <Button
+                onClick={() => handleSearch(new Event('submit') as any)}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                Intentar nuevamente
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Initial State */}
-        {!loading && searchResults.length === 0 && !searchTerm && !selectedType && !selectedColor && !selectedManaCost && (
+        {!loading && searchResults.length === 0 && !searchTerm && !selectedType && !selectedColor && !selectedManaCost && !error && (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
             <div className="text-6xl mb-4">🃏</div>
             <h3 className="text-xl font-semibold mb-2 text-gray-300">
@@ -282,6 +305,26 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
             <p className="text-gray-400 max-w-md">
               Ingresa el nombre de una carta, tipo, color o cualquier término para comenzar tu búsqueda. También puedes usar los filtros para explorar cartas específicas.
             </p>
+          </div>
+        )}
+
+        {/* Filters Only State */}
+        {!loading && searchResults.length === 0 && !searchTerm && (selectedType || selectedColor || selectedManaCost) && !error && (
+          <div className="flex flex-col items-center justify-center h-full text-center p-8">
+            <div className="text-6xl mb-4">🔍</div>
+            <h3 className="text-xl font-semibold mb-2 text-gray-300">
+              Explorando con filtros
+            </h3>
+            <p className="text-gray-400 mb-4 max-w-md">
+              No se encontraron cartas con los filtros seleccionados. Intenta ajustar los filtros o agregar un término de búsqueda.
+            </p>
+            <Button
+              onClick={handleClear}
+              variant="outline"
+              className="border-gray-600 hover:border-gray-500"
+            >
+              Limpiar filtros
+            </Button>
           </div>
         )}
 
