@@ -30,6 +30,7 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
     totalPages,
     searchCards,
     clearResults,
+    adjustTotalPagesOnError,
   } = useCardSearch();
 
   // Función para realizar búsqueda automática
@@ -213,25 +214,7 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
               <span className="text-sm text-gray-300">
                 {searchResults.length} cartas encontradas
               </span>
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-400">
-                    Página {currentPage} de {totalPages}
-                  </span>
-                  <CardPagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={(page) => {
-                      searchCards(searchTerm, {
-                        type: selectedType,
-                        color: selectedColor,
-                        manaCost: selectedManaCost,
-                      }, page);
-                    }}
-                    loading={loading}
-                  />
-                </div>
-              )}
+              {/* Removed pagination since we only use 1 page now */}
             </div>
 
             {/* Cards Grid */}

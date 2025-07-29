@@ -106,30 +106,21 @@ const CardPagination: React.FC<CardPaginationProps> = ({
   disabled = false,
 }) => {
   const handlePageChange = (page: number) => {
-    // Validación más estricta para evitar errores
-    if (page >= 1 && page <= totalPages && !loading && !disabled) {
-      // Solo permitir navegación a páginas cercanas para evitar errores
-      const maxJump = 3; // Máximo salto de 3 páginas
-      const pageDiff = Math.abs(page - currentPage);
-      
-      if (pageDiff <= maxJump || page === 1 || page === totalPages) {
-        onPageChange(page);
-      } else {
-        console.warn(`Page jump too large: ${pageDiff} pages. Limiting navigation.`);
-        // Si el salto es muy grande, ir a la página más cercana válida
-        const targetPage = page > currentPage ? currentPage + maxJump : currentPage - maxJump;
-        const validPage = Math.max(1, Math.min(targetPage, totalPages));
-        onPageChange(validPage);
-      }
+    // Validación estricta para evitar errores
+    if (page >= 1 && page <= totalPages && !loading && !disabled && page !== currentPage) {
+      console.log(`Navigating to page ${page}`);
+      onPageChange(page);
+    } else {
+      console.warn(`Invalid page navigation attempt: page=${page}, totalPages=${totalPages}, loading=${loading}, disabled=${disabled}`);
     }
   };
 
   const renderPageNumbers = () => {
     const pages = [];
-    const maxVisiblePages = 5;
     
-    if (totalPages <= maxVisiblePages) {
-      // Mostrar todas las páginas si hay 5 o menos
+    // Solo mostrar máximo 3 páginas para mayor seguridad
+    if (totalPages <= 3) {
+      // Mostrar todas las páginas si hay 3 o menos
       for (let i = 1; i <= totalPages; i++) {
         pages.push(
           <PaginationItem key={i}>
@@ -146,136 +137,71 @@ const CardPagination: React.FC<CardPaginationProps> = ({
         );
       }
     } else {
-      // Mostrar páginas con ellipsis
-      if (currentPage <= 3) {
-        // Mostrar primeras páginas
-        for (let i = 1; i <= 3; i++) {
-          pages.push(
-            <PaginationItem key={i}>
-              <Button
-                variant={currentPage === i ? "default" : "outline"}
-                size="sm"
-                onClick={() => handlePageChange(i)}
-                disabled={loading || disabled}
-                className="w-8 h-8 p-0"
-              >
-                {i}
-              </Button>
-            </PaginationItem>
-          );
-        }
+      // Para más de 3 páginas, mostrar solo la página actual y los extremos
+      pages.push(
+        <PaginationItem key={1}>
+          <Button
+            variant={currentPage === 1 ? "default" : "outline"}
+            size="sm"
+            onClick={() => handlePageChange(1)}
+            disabled={loading || disabled}
+            className="w-8 h-8 p-0"
+          >
+            1
+          </Button>
+        </PaginationItem>
+      );
+      
+      if (currentPage > 2) {
         pages.push(
           <PaginationItem key="ellipsis1">
             <MoreHorizontal className="h-4 w-4" />
           </PaginationItem>
         );
+      }
+      
+      if (currentPage !== 1 && currentPage !== totalPages) {
         pages.push(
-          <PaginationItem key={totalPages}>
+          <PaginationItem key={currentPage}>
             <Button
-              variant="outline"
+              variant="default"
               size="sm"
-              onClick={() => handlePageChange(totalPages)}
               disabled={loading || disabled}
               className="w-8 h-8 p-0"
             >
-              {totalPages}
+              {currentPage}
             </Button>
           </PaginationItem>
         );
-      } else if (currentPage >= totalPages - 2) {
-        // Mostrar últimas páginas
-        pages.push(
-          <PaginationItem key={1}>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(1)}
-              disabled={loading || disabled}
-              className="w-8 h-8 p-0"
-            >
-              1
-            </Button>
-          </PaginationItem>
-        );
+      }
+      
+      if (currentPage < totalPages - 1) {
         pages.push(
           <PaginationItem key="ellipsis2">
             <MoreHorizontal className="h-4 w-4" />
           </PaginationItem>
         );
-        for (let i = totalPages - 2; i <= totalPages; i++) {
-          pages.push(
-            <PaginationItem key={i}>
-              <Button
-                variant={currentPage === i ? "default" : "outline"}
-                size="sm"
-                onClick={() => handlePageChange(i)}
-                disabled={loading || disabled}
-                className="w-8 h-8 p-0"
-              >
-                {i}
-              </Button>
-            </PaginationItem>
-          );
-        }
-      } else {
-        // Mostrar página actual con contexto
-        pages.push(
-          <PaginationItem key={1}>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(1)}
-              disabled={loading || disabled}
-              className="w-8 h-8 p-0"
-            >
-              1
-            </Button>
-          </PaginationItem>
-        );
-        pages.push(
-          <PaginationItem key="ellipsis3">
-            <MoreHorizontal className="h-4 w-4" />
-          </PaginationItem>
-        );
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          pages.push(
-            <PaginationItem key={i}>
-              <Button
-                variant={currentPage === i ? "default" : "outline"}
-                size="sm"
-                onClick={() => handlePageChange(i)}
-                disabled={loading || disabled}
-                className="w-8 h-8 p-0"
-              >
-                {i}
-              </Button>
-            </PaginationItem>
-          );
-        }
-        pages.push(
-          <PaginationItem key="ellipsis4">
-            <MoreHorizontal className="h-4 w-4" />
-          </PaginationItem>
-        );
-        pages.push(
-          <PaginationItem key={totalPages}>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(totalPages)}
-              disabled={loading || disabled}
-              className="w-8 h-8 p-0"
-            >
-              {totalPages}
-            </Button>
-          </PaginationItem>
-        );
       }
+      
+      pages.push(
+        <PaginationItem key={totalPages}>
+          <Button
+            variant={currentPage === totalPages ? "default" : "outline"}
+            size="sm"
+            onClick={() => handlePageChange(totalPages)}
+            disabled={loading || disabled}
+            className="w-8 h-8 p-0"
+          >
+            {totalPages}
+          </Button>
+        </PaginationItem>
+      );
     }
     
     return pages;
   };
 
+  // No mostrar paginación si solo hay 1 página o menos
   if (totalPages <= 1) {
     return null;
   }

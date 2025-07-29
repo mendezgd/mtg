@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { SearchableCard } from "@/types/card";
 
 interface CardGridProps {
@@ -10,6 +10,30 @@ interface CardGridProps {
   isMobile?: boolean;
 }
 
+// Custom hook to get screen size
+const useScreenSize = () => {
+  const [screenSize, setScreenSize] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
+
+  return screenSize;
+};
+
 export const CardGrid: React.FC<CardGridProps> = ({
   cards,
   onCardClick,
@@ -18,6 +42,18 @@ export const CardGrid: React.FC<CardGridProps> = ({
   className = "",
   isMobile = false,
 }) => {
+  const { width } = useScreenSize();
+
+  const getGridColumns = () => {
+    if (width >= 1280) return 5; // xl
+    if (width >= 1024) return 5; // lg
+    if (width >= 768) return 4;  // md
+    if (width >= 640) return 3;  // sm
+    return 2; // default
+  };
+
+  const gridColumns = getGridColumns();
+
   const handleCardClick = (card: SearchableCard) => {
     if (onCardClick) {
       onCardClick(card);
@@ -27,7 +63,14 @@ export const CardGrid: React.FC<CardGridProps> = ({
   };
 
   return (
-    <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 ${className}`}>
+    <div 
+      className={`grid gap-3 ${className}`}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${gridColumns}, 1fr)`,
+        gap: '0.75rem'
+      }}
+    >
       {cards.map((card) => (
         <div key={card.id || card.name} className="rounded-lg p-2 flex flex-col bg-gray-800/50 border border-gray-700 hover:border-gray-600 transition-colors">
           <div className="flex-1 relative group">
