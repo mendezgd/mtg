@@ -9,6 +9,7 @@ import { CardGrid } from "@/components/ui/card-grid";
 import { SearchFilters } from "@/components/ui/search-filters";
 import { Search, Loader2, AlertCircle } from "lucide-react";
 import { CardPagination } from "@/components/ui/pagination";
+import { scryfallAPI } from "@/lib/scryfall-api";
 
 interface CardSearchProps {
   addCardToDeck: (card: SearchableCard) => void;
@@ -118,7 +119,9 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
   }, [clearResults]);
 
   const handleCardClick = useCallback(
-    (card: SearchableCard) => {
+    async (card: SearchableCard) => {
+      // Usar directamente la carta seleccionada sin buscar precios adicionales
+      // Esto asegura que se muestre exactamente la carta que el usuario seleccionó
       onCardPreview(card);
     },
     [onCardPreview]

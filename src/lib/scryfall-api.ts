@@ -97,6 +97,39 @@ class ScryfallAPI {
     }
   }
 
+  async getCardWithPrices(name: string, cardId?: string): Promise<SearchableCard | null> {
+    try {
+      // Si se proporciona un ID, usar ese ID específico
+      if (cardId) {
+        const response = await axios.get(
+          `${SCRYFALL_BASE_URL}/cards/${cardId}`
+        );
+        return response.data;
+      }
+      
+      // Si no hay ID, buscar por nombre exacto
+      const response = await axios.get(
+        `${SCRYFALL_BASE_URL}/cards/named?exact=${encodeURIComponent(name)}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching card with prices:", error);
+      return null;
+    }
+  }
+
+  async getCardPrices(cardId: string): Promise<{ prices?: any } | null> {
+    try {
+      const response = await axios.get(
+        `${SCRYFALL_BASE_URL}/cards/${cardId}`
+      );
+      return { prices: response.data.prices };
+    } catch (error) {
+      console.error("Error fetching card prices:", error);
+      return null;
+    }
+  }
+
   filterLegalCards(cards: SearchableCard[]): SearchableCard[] {
     return cards.filter(
       (card) =>

@@ -75,11 +75,27 @@ export const useCardSearch = (): UseCardSearchReturn => {
           return;
         }
 
-        setSearchResults(filteredCards);
+        // Obtener información completa de cada carta incluyendo precios
+        const cardsWithPrices = await Promise.all(
+          filteredCards.map(async (card: SearchableCard) => {
+            if (card.id) {
+              try {
+                const fullCard = await axios.get(`https://api.scryfall.com/cards/${card.id}`);
+                return fullCard.data;
+              } catch (error) {
+                console.error(`Error fetching full card data for ${card.name}:`, error);
+                return card; // Usar la carta original si falla
+              }
+            }
+            return card;
+          })
+        );
+
+        setSearchResults(cardsWithPrices);
         setTotalPages(1); // Siempre 1 página
         setCurrentPage(1);
         
-        console.log(`Search successful: ${filteredCards.length} cards found`);
+        console.log(`Search successful: ${cardsWithPrices.length} cards found with prices`);
       } catch (error: any) {
         console.error("Search error:", error.response?.status, error.response?.data);
         

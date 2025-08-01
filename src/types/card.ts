@@ -23,6 +23,14 @@ export interface BaseCard {
   color_identity?: string[];
   set_name?: string;
   prints_search_uri?: string;
+  prices?: {
+    usd?: string;
+    usd_foil?: string;
+    usd_etched?: string;
+    eur?: string;
+    eur_foil?: string;
+    tix?: string;
+  };
 }
 
 // Carta con legalidades para búsqueda

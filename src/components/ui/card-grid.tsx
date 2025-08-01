@@ -71,8 +71,8 @@ export const CardGrid: React.FC<CardGridProps> = ({
         gap: '0.75rem'
       }}
     >
-      {cards.map((card) => (
-        <div key={card.id || card.name} className="rounded-lg p-2 flex flex-col bg-gray-800/50 border border-gray-700 hover:border-gray-600 transition-colors">
+      {cards.map((card, index) => (
+        <div key={card.id || `${card.name}-${index}`} className="rounded-lg p-2 flex flex-col bg-gray-800/50 border border-gray-700 hover:border-gray-600 transition-colors">
           <div className="flex-1 relative group">
             <button
               onClick={() => handleCardClick(card)}

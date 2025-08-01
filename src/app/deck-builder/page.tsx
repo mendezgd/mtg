@@ -11,6 +11,7 @@ import { useDeckManagement } from "@/hooks/use-deck-management";
 import { useMobileSwipe } from "@/hooks/use-mobile-swipe";
 import { generateUUID } from "@/lib/utils";
 import { Search, Eye, Library } from "lucide-react";
+import { CardPrice } from "@/components/ui/card-price";
 
 const DeckBuilder = dynamic(() => import("@/components/DeckBuilder"), {
   ssr: false,
@@ -169,6 +170,13 @@ const DeckBuilderPage: React.FC = () => {
             <p className="text-sm text-gray-300 mb-3">
               {previewedCard.type_line}
             </p>
+            
+            {/* Precios de la carta */}
+            <div className="bg-gray-900/50 rounded-lg p-3 mb-3">
+              <h4 className="text-sm font-semibold text-gray-300 mb-2">Precios</h4>
+              <CardPrice card={previewedCard} />
+            </div>
+            
             {previewedCard.oracle_text && (
               <div className="bg-gray-900/50 rounded-lg p-3">
                 <p className="text-xs text-gray-400 whitespace-pre-line leading-relaxed">
