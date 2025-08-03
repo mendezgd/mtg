@@ -450,18 +450,24 @@ const SwissTournamentManager = () => {
 
   // Asignar bye a un jugador
   const assignBye = (roundNumber: number): string | null => {
-    // Buscar jugador que no ha recibido bye en ninguna ronda anterior y tiene menos puntos
+    // Buscar jugadores que no han recibido bye en ninguna ronda anterior
     const availablePlayers = players.filter((p) => !p.hasBye);
     if (availablePlayers.length === 0) return null;
 
-    // Ordenar por puntos (menos puntos primero) y luego por seed
-    const sortedPlayers = availablePlayers.sort((a, b) => {
-      const pointsA = calculatePlayerPoints(a.id);
-      const pointsB = calculatePlayerPoints(b.id);
-      return pointsA - pointsB || a.seed - b.seed;
-    });
+    if (roundNumber === 1) {
+      // En la ronda 1: bye aleatorio si hay número impar de jugadores
+      const randomIndex = Math.floor(Math.random() * availablePlayers.length);
+      return availablePlayers[randomIndex].id;
+    } else {
+      // En rondas posteriores: bye al último en la tabla (menos puntos)
+      const sortedPlayers = availablePlayers.sort((a, b) => {
+        const pointsA = calculatePlayerPoints(a.id);
+        const pointsB = calculatePlayerPoints(b.id);
+        return pointsA - pointsB || a.seed - b.seed;
+      });
 
-    return sortedPlayers[0].id;
+      return sortedPlayers[0].id;
+    }
   };
 
   // Actualizar puntos de todos los jugadores
