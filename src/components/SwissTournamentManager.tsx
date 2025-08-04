@@ -87,12 +87,45 @@ const PlayoffMatchCard = ({
 }: {
   match: PlayoffMatch;
   players: Player[];
-  onComplete: (matchId: string, winner: string) => void;
+  onComplete: (matchId: string, winner: string, player1Wins: number, player2Wins: number) => void;
 }) => {
   const player1 = players.find((p) => p.id === match.player1);
   const player2 = players.find((p) => p.id === match.player2);
+  const [gameResults, setGameResults] = useState({
+    game1: match.games.game1 || '',
+    game2: match.games.game2 || '',
+    game3: match.games.game3 || ''
+  });
 
   if (!player1 || !player2) return null;
+
+  const handleGameResult = (game: 'game1' | 'game2' | 'game3', winner: string) => {
+    setGameResults(prev => ({
+      ...prev,
+      [game]: winner
+    }));
+  };
+
+  const calculateWins = () => {
+    let player1Wins = 0;
+    let player2Wins = 0;
+    
+    if (gameResults.game1 === player1.id) player1Wins++;
+    else if (gameResults.game1 === player2.id) player2Wins++;
+    
+    if (gameResults.game2 === player1.id) player1Wins++;
+    else if (gameResults.game2 === player2.id) player2Wins++;
+    
+    if (gameResults.game3 === player1.id) player1Wins++;
+    else if (gameResults.game3 === player2.id) player2Wins++;
+    
+    return { player1Wins, player2Wins };
+  };
+
+  const { player1Wins, player2Wins } = calculateWins();
+  const totalGames = [gameResults.game1, gameResults.game2, gameResults.game3].filter(g => g).length;
+  const canComplete = totalGames >= 2 && (player1Wins === 2 || player2Wins === 2);
+  const winner = player1Wins === 2 ? player1.id : player2Wins === 2 ? player2.id : null;
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4 border-2 border-indigo-200">
@@ -140,19 +173,107 @@ const PlayoffMatchCard = ({
       </div>
 
       {!match.completed && (
-        <div className="flex gap-2">
-          <button
-            onClick={() => onComplete(match.id, player1.id)}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition-colors"
-          >
-            Ganador: {player1.name}
-          </button>
-          <button
-            onClick={() => onComplete(match.id, player2.id)}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition-colors"
-          >
-            Ganador: {player2.name}
-          </button>
+        <div className="space-y-4">
+          {/* Game Results */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="text-center">
+              <div className="text-sm font-medium text-gray-700 mb-2">Game 1</div>
+              <div className="flex flex-col gap-1">
+                <button
+                  onClick={() => handleGameResult('game1', player1.id)}
+                  className={`px-3 py-1 text-xs rounded transition-colors ${
+                    gameResults.game1 === player1.id
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {player1.name}
+                </button>
+                <button
+                  onClick={() => handleGameResult('game1', player2.id)}
+                  className={`px-3 py-1 text-xs rounded transition-colors ${
+                    gameResults.game1 === player2.id
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {player2.name}
+                </button>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <div className="text-sm font-medium text-gray-700 mb-2">Game 2</div>
+              <div className="flex flex-col gap-1">
+                <button
+                  onClick={() => handleGameResult('game2', player1.id)}
+                  className={`px-3 py-1 text-xs rounded transition-colors ${
+                    gameResults.game2 === player1.id
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {player1.name}
+                </button>
+                <button
+                  onClick={() => handleGameResult('game2', player2.id)}
+                  className={`px-3 py-1 text-xs rounded transition-colors ${
+                    gameResults.game2 === player2.id
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {player2.name}
+                </button>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <div className="text-sm font-medium text-gray-700 mb-2">Game 3</div>
+              <div className="flex flex-col gap-1">
+                <button
+                  onClick={() => handleGameResult('game3', player1.id)}
+                  className={`px-3 py-1 text-xs rounded transition-colors ${
+                    gameResults.game3 === player1.id
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {player1.name}
+                </button>
+                <button
+                  onClick={() => handleGameResult('game3', player2.id)}
+                  className={`px-3 py-1 text-xs rounded transition-colors ${
+                    gameResults.game3 === player2.id
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {player2.name}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Score Display */}
+          <div className="text-center p-3 bg-gray-50 rounded-lg">
+            <div className="text-lg font-bold text-gray-800">
+              {player1Wins} - {player2Wins}
+            </div>
+            <div className="text-sm text-gray-600">
+              {player1.name} vs {player2.name}
+            </div>
+          </div>
+
+          {/* Complete Match Button */}
+          {canComplete && winner && (
+            <button
+              onClick={() => onComplete(match.id, winner, player1Wins, player2Wins)}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors shadow-lg"
+            >
+              ✅ Confirmar Resultado: {players.find(p => p.id === winner)?.name} gana {player1Wins}-{player2Wins}
+            </button>
+          )}
         </div>
       )}
 
@@ -160,6 +281,9 @@ const PlayoffMatchCard = ({
         <div className="bg-green-100 border border-green-300 rounded p-3">
           <div className="font-semibold text-green-800 text-center">
             🏆 Ganador: {players.find((p) => p.id === match.winner)?.name}
+          </div>
+          <div className="text-center text-sm text-green-700 mt-1">
+            Resultado: {match.player1Wins}-{match.player2Wins}
           </div>
         </div>
       )}
@@ -1132,11 +1256,17 @@ const SwissTournamentManager = () => {
     alert(`Avanzando a la ronda ${nextRound} del playoff`);
   };
 
-  const completePlayoffMatch = (matchId: string, winner: string) => {
+  const completePlayoffMatch = (matchId: string, winner: string, player1Wins: number, player2Wins: number) => {
     if (!tournamentState.playoff) return;
 
     const updatedMatches = tournamentState.playoff.matches.map((match) =>
-      match.id === matchId ? { ...match, completed: true, winner } : match
+      match.id === matchId ? { 
+        ...match, 
+        completed: true, 
+        winner,
+        player1Wins,
+        player2Wins
+      } : match
     );
 
     setTournamentState({
@@ -1403,25 +1533,104 @@ const SwissTournamentManager = () => {
                 </tr>`;
     });
 
-    // Estadísticas adicionales
-    const totalMatches = tournamentState.rounds.reduce(
-      (total, round) =>
-        total + round.matches.filter((match) => match.completed).length,
-      0
-    );
-    const totalGames = tournamentState.rounds.reduce(
-      (total, round) =>
-        total +
-        round.matches.reduce(
-          (roundTotal, match) =>
-            roundTotal + (match.player1Wins + match.player2Wins),
-          0
-        ),
-      0
-    );
-    const avgGames = totalMatches > 0 ? (totalGames / totalMatches).toFixed(1) : "0";
+    // Mostrar resultados del playoff si existe y se ha disputado
+    if (tournamentState.playoff && tournamentState.playoff.isActive && tournamentState.playoff.matches.length > 0) {
+      const completedMatches = tournamentState.playoff.matches.filter(match => match.completed);
+      
+      if (completedMatches.length > 0) {
+        htmlContent += `
+            </tbody>
+        </table>
+    </div>
 
-    htmlContent += `
+    <div class="section">
+        <h2>🏅 RESULTADOS DEL PLAYOFF</h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value">${tournamentState.playoff.format === 'top4' ? 'Top 4' : tournamentState.playoff.format === 'top8' ? 'Top 8' : 'Top 16'}</div>
+                <div class="stat-label">Formato del Playoff</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${completedMatches.length}</div>
+                <div class="stat-label">Partidas Jugadas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${tournamentState.playoff.currentRound}/${tournamentState.playoff.totalRounds}</div>
+                <div class="stat-label">Ronda Actual</div>
+            </div>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Ronda</th>
+                    <th>Jugador 1</th>
+                    <th>Jugador 2</th>
+                    <th>Ganador</th>
+                    <th>Resultado</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+        // Agrupar matches por ronda
+        const matchesByRound = tournamentState.playoff.matches.reduce((acc, match) => {
+          if (!acc[match.round]) acc[match.round] = [];
+          acc[match.round].push(match);
+          return acc;
+        }, {} as Record<number, typeof tournamentState.playoff.matches>);
+
+        // Mostrar matches por ronda
+        Object.entries(matchesByRound).forEach(([roundNum, matches]) => {
+          const roundName = roundNum === '1' ? 'Semifinales' : 
+                           roundNum === '2' ? 'Finales' : 
+                           roundNum === '3' ? 'Tercer Lugar' : `Ronda ${roundNum}`;
+          
+          matches.forEach((match, index) => {
+            const player1 = tournamentState.players.find(p => p.id === match.player1);
+            const player2 = tournamentState.players.find(p => p.id === match.player2);
+            const winner = tournamentState.players.find(p => p.id === match.winner);
+            
+            if (player1 && player2) {
+              const result = match.completed ? 
+                `${match.player1Wins}-${match.player2Wins}` : 'Pendiente';
+              const winnerName = winner ? winner.name : 'Pendiente';
+              
+              htmlContent += `
+                <tr>
+                    <td><strong>${roundName}</strong></td>
+                    <td>${player1.name}</td>
+                    <td>${player2.name}</td>
+                    <td class="winner">${winnerName}</td>
+                    <td>${result}</td>
+                </tr>`;
+            }
+          });
+        });
+
+        htmlContent += `
+            </tbody>
+        </table>
+    </div>`;
+      } else {
+        // Si no hay matches completados, mostrar estadísticas adicionales
+        const totalMatches = tournamentState.rounds.reduce(
+          (total, round) =>
+            total + round.matches.filter((match) => match.completed).length,
+          0
+        );
+        const totalGames = tournamentState.rounds.reduce(
+          (total, round) =>
+            total +
+            round.matches.reduce(
+              (roundTotal, match) =>
+                roundTotal + (match.player1Wins + match.player2Wins),
+              0
+            ),
+          0
+        );
+        const avgGames = totalMatches > 0 ? (totalGames / totalMatches).toFixed(1) : "0";
+
+        htmlContent += `
             </tbody>
         </table>
     </div>
@@ -1442,7 +1651,52 @@ const SwissTournamentManager = () => {
                 <div class="stat-label">Promedio de Games por Partida</div>
             </div>
         </div>
+    </div>`;
+      }
+    } else {
+      // Si no hay playoff, mostrar estadísticas adicionales
+      const totalMatches = tournamentState.rounds.reduce(
+        (total, round) =>
+          total + round.matches.filter((match) => match.completed).length,
+        0
+      );
+      const totalGames = tournamentState.rounds.reduce(
+        (total, round) =>
+          total +
+          round.matches.reduce(
+            (roundTotal, match) =>
+              roundTotal + (match.player1Wins + match.player2Wins),
+            0
+          ),
+        0
+      );
+      const avgGames = totalMatches > 0 ? (totalGames / totalMatches).toFixed(1) : "0";
+
+      htmlContent += `
+            </tbody>
+        </table>
     </div>
+
+    <div class="section">
+        <h2>📊 ESTADÍSTICAS ADICIONALES</h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value">${totalMatches}</div>
+                <div class="stat-label">Total de Partidas Jugadas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${totalGames}</div>
+                <div class="stat-label">Total de Games Jugados</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${avgGames}</div>
+                <div class="stat-label">Promedio de Games por Partida</div>
+            </div>
+        </div>
+    </div>`;
+    }
+
+    htmlContent += `
 </body>
 </html>`;
 
