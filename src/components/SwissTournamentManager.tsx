@@ -168,21 +168,22 @@ const PlayoffMatchCard = ({
 };
 
 const SwissTournamentManager = () => {
-  const [tournamentState, setTournamentState] = useLocalStorage<TournamentState>("tournamentState", {
-    players: [],
-    rounds: [],
-    currentRound: 0,
-    newPlayerName: "",
-    timeRemaining: 0,
-    isManualPairing: false,
-    manualMatches: [],
-    selectedPlayer1: "",
-    selectedPlayer2: "",
-    manualRounds: 0,
-    isManualRoundsEnabled: false,
-    playoff: null,
-    showPlayoffOptions: false,
-  });
+  const [tournamentState, setTournamentState] =
+    useLocalStorage<TournamentState>("tournamentState", {
+      players: [],
+      rounds: [],
+      currentRound: 0,
+      newPlayerName: "",
+      timeRemaining: 0,
+      isManualPairing: false,
+      manualMatches: [],
+      selectedPlayer1: "",
+      selectedPlayer2: "",
+      manualRounds: 0,
+      isManualRoundsEnabled: false,
+      playoff: null,
+      showPlayoffOptions: false,
+    });
   const [roundTimer, setRoundTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Agregar nuevo jugador
@@ -221,7 +222,7 @@ const SwissTournamentManager = () => {
     if (typeof window !== "undefined") {
       window.localStorage.removeItem("tournamentState");
     }
-    
+
     setTournamentState({
       ...tournamentState,
       players: [],
@@ -491,7 +492,10 @@ const SwissTournamentManager = () => {
 
   // Obtener número de rondas actual (manual o automático)
   const getCurrentTotalRounds = (): number => {
-    if (tournamentState.isManualRoundsEnabled && tournamentState.manualRounds > 0) {
+    if (
+      tournamentState.isManualRoundsEnabled &&
+      tournamentState.manualRounds > 0
+    ) {
       return tournamentState.manualRounds;
     }
     return calculateTotalRounds(tournamentState.players.length);
@@ -527,12 +531,17 @@ const SwissTournamentManager = () => {
     }
 
     // Validar número de rondas manual si está habilitado
-    if (tournamentState.isManualRoundsEnabled && !validateManualRounds(tournamentState.manualRounds)) {
+    if (
+      tournamentState.isManualRoundsEnabled &&
+      !validateManualRounds(tournamentState.manualRounds)
+    ) {
       return;
     }
 
     const totalRounds = getCurrentTotalRounds();
-    const sortedPlayers = [...tournamentState.players].sort((a, b) => a.seed - b.seed);
+    const sortedPlayers = [...tournamentState.players].sort(
+      (a, b) => a.seed - b.seed
+    );
     const round1 = generateAcceleratedPairings(sortedPlayers, 1);
 
     setTournamentState({
@@ -626,7 +635,9 @@ const SwissTournamentManager = () => {
   const generateNextRound = () => {
     // Verificar que todos los matches de la ronda actual estén completos
     const currentRoundMatches =
-      tournamentState.rounds.find((r) => r.number === tournamentState.currentRound)?.matches || [];
+      tournamentState.rounds.find(
+        (r) => r.number === tournamentState.currentRound
+      )?.matches || [];
     const incompleteMatches = currentRoundMatches.filter((m) => !m.completed);
 
     if (incompleteMatches.length > 0) {
@@ -784,10 +795,14 @@ const SwissTournamentManager = () => {
 
     // Verificar que los jugadores no estén ya emparejados
     const player1AlreadyPaired = tournamentState.manualMatches.some(
-      (m) => m.player1 === tournamentState.selectedPlayer1 || m.player2 === tournamentState.selectedPlayer1
+      (m) =>
+        m.player1 === tournamentState.selectedPlayer1 ||
+        m.player2 === tournamentState.selectedPlayer1
     );
     const player2AlreadyPaired = tournamentState.manualMatches.some(
-      (m) => m.player1 === tournamentState.selectedPlayer2 || m.player2 === tournamentState.selectedPlayer2
+      (m) =>
+        m.player1 === tournamentState.selectedPlayer2 ||
+        m.player2 === tournamentState.selectedPlayer2
     );
 
     if (player1AlreadyPaired || player2AlreadyPaired) {
@@ -816,7 +831,9 @@ const SwissTournamentManager = () => {
   const removeManualMatch = (matchId: string) => {
     setTournamentState({
       ...tournamentState,
-      manualMatches: tournamentState.manualMatches.filter((m) => m.id !== matchId),
+      manualMatches: tournamentState.manualMatches.filter(
+        (m) => m.id !== matchId
+      ),
     });
   };
 
@@ -827,7 +844,10 @@ const SwissTournamentManager = () => {
     }
 
     // Validar número de rondas manual si está habilitado
-    if (tournamentState.isManualRoundsEnabled && !validateManualRounds(tournamentState.manualRounds)) {
+    if (
+      tournamentState.isManualRoundsEnabled &&
+      !validateManualRounds(tournamentState.manualRounds)
+    ) {
       return;
     }
 
@@ -838,7 +858,9 @@ const SwissTournamentManager = () => {
       pairedPlayers.add(match.player2);
     });
 
-    const unpairedPlayers = tournamentState.players.filter((p) => !pairedPlayers.has(p.id));
+    const unpairedPlayers = tournamentState.players.filter(
+      (p) => !pairedPlayers.has(p.id)
+    );
 
     if (unpairedPlayers.length > 1) {
       alert(
@@ -868,11 +890,14 @@ const SwissTournamentManager = () => {
       // Marcar al jugador como que recibió bye
       setTournamentState({
         ...tournamentState,
-        players: tournamentState.players.map((p) => (p.id === byePlayer.id ? { ...p, hasBye: true } : p)),
+        players: tournamentState.players.map((p) =>
+          p.id === byePlayer.id ? { ...p, hasBye: true } : p
+        ),
       });
     }
 
-    const nextRoundNumber = tournamentState.currentRound === 0 ? 1 : tournamentState.currentRound + 1;
+    const nextRoundNumber =
+      tournamentState.currentRound === 0 ? 1 : tournamentState.currentRound + 1;
     const newRound: Round = {
       number: nextRoundNumber,
       matches: tournamentState.manualMatches,
@@ -1062,7 +1087,10 @@ const SwissTournamentManager = () => {
       return;
     }
 
-    if (tournamentState.playoff.currentRound >= tournamentState.playoff.totalRounds) {
+    if (
+      tournamentState.playoff.currentRound >=
+      tournamentState.playoff.totalRounds
+    ) {
       alert("El playoff ha terminado. ¡Tenemos un ganador!");
       return;
     }
@@ -1121,12 +1149,12 @@ const SwissTournamentManager = () => {
   };
 
   const exportTournamentResults = () => {
-    const currentDate = new Date().toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    const currentDate = new Date().toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
 
     // Ordenar jugadores por clasificación final
@@ -1150,58 +1178,280 @@ const SwissTournamentManager = () => {
       return a.seed - b.seed;
     });
 
-    // Crear el contenido del reporte
-    let reportContent = `🏆 RESULTADOS DEL TORNEO\n`;
-    reportContent += `📅 Fecha: ${currentDate}\n`;
-    reportContent += `👥 Total de Jugadores: ${tournamentState.players.length}\n`;
-    reportContent += `🔄 Rondas Jugadas: ${tournamentState.rounds.length}\n\n`;
+    // Crear el contenido HTML del reporte
+    let htmlContent = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados del Torneo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+        .header .date {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .section h2 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #3498db;
+        }
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        th {
+            background: #34495e;
+            color: white;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        tr:hover {
+            background-color: #e3f2fd;
+        }
+        .position-1 { background-color: #fff3cd !important; }
+        .position-2 { background-color: #f8f9fa !important; }
+        .position-3 { background-color: #ffeaa7 !important; }
+        .medal {
+            font-size: 1.2em;
+            margin-right: 5px;
+        }
+        .winner { color: #27ae60; font-weight: bold; }
+        .loser { color: #e74c3c; }
+        .points { color: #8e44ad; font-weight: bold; }
+        .opp { color: #3498db; }
+        .gw { color: #f39c12; }
+        .bye { color: #95a5a6; }
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .header h1 { font-size: 2em; }
+            .stats-grid { grid-template-columns: 1fr; }
+            table { font-size: 0.9em; }
+            th, td { padding: 8px 5px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏆 RESULTADOS DEL TORNEO</h1>
+        <div class="date">📅 ${currentDate}</div>
+    </div>
+
+    <div class="section">
+        <h2>📊 INFORMACIÓN GENERAL</h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value">${tournamentState.players.length}</div>
+                <div class="stat-label">Total de Jugadores</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${tournamentState.rounds.length}</div>
+                <div class="stat-label">Rondas Jugadas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${tournamentState.rounds.reduce((total, round) => 
+                  total + round.matches.filter(match => match.completed).length, 0)}</div>
+                <div class="stat-label">Partidas Completadas</div>
+            </div>
+        </div>
+    </div>`;
 
     // Información del playoff si existe
     if (tournamentState.playoff && tournamentState.playoff.isActive) {
-      const playoffFormat = tournamentState.playoff.format === 'top4' ? 'Top 4' :
-                           tournamentState.playoff.format === 'top8' ? 'Top 8' :
-                           tournamentState.playoff.format === 'top16' ? 'Top 16' : 'N/A';
-      reportContent += `🏅 Playoff: ${playoffFormat}\n`;
-      reportContent += `📊 Ronda Actual del Playoff: ${tournamentState.playoff.currentRound}/${tournamentState.playoff.totalRounds}\n\n`;
+      const playoffFormat =
+        tournamentState.playoff.format === "top4"
+          ? "Top 4"
+          : tournamentState.playoff.format === "top8"
+            ? "Top 8"
+            : tournamentState.playoff.format === "top16"
+              ? "Top 16"
+              : "N/A";
+      htmlContent += `
+    <div class="section">
+        <h2>🏅 INFORMACIÓN DEL PLAYOFF</h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value">${playoffFormat}</div>
+                <div class="stat-label">Formato del Playoff</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${tournamentState.playoff.currentRound}/${tournamentState.playoff.totalRounds}</div>
+                <div class="stat-label">Ronda Actual</div>
+            </div>
+        </div>
+    </div>`;
     }
 
     // Clasificación final
-    reportContent += `📋 CLASIFICACIÓN FINAL\n`;
-    reportContent += `─`.repeat(50) + `\n`;
-    reportContent += `Pos | Seed | Jugador           | V | D | Pts | Opp | GW% | Bye\n`;
-    reportContent += `─`.repeat(50) + `\n`;
+    htmlContent += `
+    <div class="section">
+        <h2>📋 CLASIFICACIÓN FINAL</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Pos</th>
+                    <th>Seed</th>
+                    <th>Jugador</th>
+                    <th>V</th>
+                    <th>D</th>
+                    <th>Pts</th>
+                    <th>Opp</th>
+                    <th>GW%</th>
+                    <th>Bye</th>
+                </tr>
+            </thead>
+            <tbody>`;
 
     sortedPlayers.forEach((player, index) => {
-      const position = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
-      const wins = player.wins % 1 === 0 ? player.wins.toString() : player.wins.toFixed(1);
+      const position =
+        index === 0
+          ? "🥇"
+          : index === 1
+            ? "🥈"
+            : index === 2
+              ? "🥉"
+              : `#${index + 1}`;
+      const wins =
+        player.wins % 1 === 0 ? player.wins.toString() : player.wins.toFixed(1);
       const points = calculatePlayerPoints(player.id);
       const opp = calculateOpp(player.id);
       const gw = calculateGameWinPercentage(player.id).toFixed(1);
-      const bye = player.hasBye ? 'Sí' : 'No';
+      const bye = player.hasBye ? "Sí" : "No";
       
-      reportContent += `${position.padEnd(3)} | ${player.seed.toString().padStart(3)} | ${player.name.padEnd(16)} | ${wins.padStart(2)} | ${player.losses.toString().padStart(1)} | ${points.toString().padStart(3)} | ${opp.toString().padStart(3)} | ${gw.padStart(4)} | ${bye}\n`;
+      const rowClass = index === 0 ? "position-1" : index === 1 ? "position-2" : index === 2 ? "position-3" : "";
+      
+      htmlContent += `
+                <tr class="${rowClass}">
+                    <td><span class="medal">${position}</span></td>
+                    <td>#${player.seed}</td>
+                    <td><strong>${player.name}</strong></td>
+                    <td class="winner">${wins}</td>
+                    <td class="loser">${player.losses}</td>
+                    <td class="points">${points}</td>
+                    <td class="opp">${opp}</td>
+                    <td class="gw">${gw}%</td>
+                    <td class="bye">${bye}</td>
+                </tr>`;
     });
 
-    reportContent += `\n📊 ESTADÍSTICAS ADICIONALES\n`;
-    reportContent += `─`.repeat(50) + `\n`;
-    
-    // Estadísticas del torneo
-    const totalMatches = tournamentState.rounds.reduce((total, round) => 
-      total + round.matches.filter(match => match.completed).length, 0);
-    const totalGames = tournamentState.rounds.reduce((total, round) => 
-      total + round.matches.reduce((roundTotal, match) => 
-        roundTotal + (match.player1Wins + match.player2Wins), 0), 0);
-    
-    reportContent += `Total de Partidas Jugadas: ${totalMatches}\n`;
-    reportContent += `Total de Games Jugados: ${totalGames}\n`;
-    reportContent += `Promedio de Games por Partida: ${totalMatches > 0 ? (totalGames / totalMatches).toFixed(1) : '0'}\n`;
+    // Estadísticas adicionales
+    const totalMatches = tournamentState.rounds.reduce(
+      (total, round) =>
+        total + round.matches.filter((match) => match.completed).length,
+      0
+    );
+    const totalGames = tournamentState.rounds.reduce(
+      (total, round) =>
+        total +
+        round.matches.reduce(
+          (roundTotal, match) =>
+            roundTotal + (match.player1Wins + match.player2Wins),
+          0
+        ),
+      0
+    );
+    const avgGames = totalMatches > 0 ? (totalGames / totalMatches).toFixed(1) : "0";
 
-    // Crear y descargar el archivo
-    const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+    htmlContent += `
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>📊 ESTADÍSTICAS ADICIONALES</h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value">${totalMatches}</div>
+                <div class="stat-label">Total de Partidas Jugadas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${totalGames}</div>
+                <div class="stat-label">Total de Games Jugados</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${avgGames}</div>
+                <div class="stat-label">Promedio de Games por Partida</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
+
+    // Crear y descargar el archivo HTML
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `torneo_resultados_${new Date().toISOString().split('T')[0]}.txt`;
+    link.download = `torneo_resultados_${new Date().toISOString().split('T')[0]}.html`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1209,88 +1459,118 @@ const SwissTournamentManager = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-gray-100 min-h-screen">
-      <div className="text-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">
-          🏆 Posada MTG Torneo
-        </h1>
-        <div className="mt-2 text-sm text-green-600 font-medium">
-          💾 Guardado automáticamente en la sesión
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        {/* Header mejorado */}
+        <div className="text-center mb-8">
+          <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-4">
+              🏆 Posada MTG Torneo
+            </h1>
+          </div>
+          <div className="flex items-center justify-center gap-4 text-sm text-gray-600">
+            <div className="flex items-center gap-2 bg-green-100 px-3 py-1 rounded-full">
+              <span className="text-green-600">💾</span>
+              <span className="font-medium text-green-700">Guardado automático</span>
+            </div>
+            <div className="flex items-center gap-2 bg-blue-100 px-3 py-1 rounded-full">
+              <span className="text-blue-600">⚡</span>
+              <span className="font-medium text-blue-700">Swiss System</span>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Estado del torneo */}
       {tournamentState.currentRound > 0 && (
-        <div className="mb-6 p-4 bg-white border border-gray-300 rounded-lg shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-800 mb-2">
-            📊 Estado del Torneo
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-700">
-            <div>
-              <span className="font-medium">👥 Jugadores:</span>{" "}
-              {tournamentState.players.length}
-            </div>
-            <div>
-              <span className="font-medium">🔄 Ronda actual:</span>{" "}
-              {tournamentState.currentRound} / {getCurrentTotalRounds()}
-            </div>
-            <div>
-              <span className="font-medium">✅ Partidos jugados:</span>{" "}
-              {
-                tournamentState.rounds.flatMap((r) => r.matches).filter((m) => m.completed)
-                  .length
-              }
-            </div>
-            <div>
-              <span className="font-medium">🎯 Total partidos:</span>{" "}
-              {tournamentState.rounds.flatMap((r) => r.matches).length}
-            </div>
+        <div className="mb-8 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
+            <h2 className="text-xl font-bold text-white flex items-center gap-3">
+              📊 Estado del Torneo
+            </h2>
           </div>
-          <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
-            <span className="font-medium">📋 Formato:</span> Best of 3 (BO3) -
-            Primer jugador en ganar 2 games gana el match
-          </div>
-          <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-800">
-            <span className="font-medium">🏆 Criterios de Desempate:</span> 1.
-            Puntos | 2. Victorias Reales | 3. Opp% | 4. GW% | 5. Seed
-          </div>
-          {tournamentState.players.length % 2 !== 0 && (
-            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
-              <span className="font-medium">🆓 Sistema Bye:</span> Jugador con
-              menos puntos recibe bye automático (3 pts, no Opp)
+          <div className="p-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+              <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                <div className="text-2xl font-bold text-blue-600 mb-1">
+                  {tournamentState.players.length}
+                </div>
+                <div className="text-sm text-blue-700 font-medium">👥 Jugadores</div>
+              </div>
+              <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200">
+                <div className="text-2xl font-bold text-green-600 mb-1">
+                  {tournamentState.currentRound} / {getCurrentTotalRounds()}
+                </div>
+                <div className="text-sm text-green-700 font-medium">🔄 Ronda Actual</div>
+              </div>
+              <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200">
+                <div className="text-2xl font-bold text-purple-600 mb-1">
+                  {tournamentState.rounds.flatMap((r) => r.matches).filter((m) => m.completed).length}
+                </div>
+                <div className="text-sm text-purple-700 font-medium">✅ Partidos Jugados</div>
+              </div>
+              <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-red-50 rounded-xl border border-orange-200">
+                <div className="text-2xl font-bold text-orange-600 mb-1">
+                  {tournamentState.rounds.flatMap((r) => r.matches).length}
+                </div>
+                <div className="text-sm text-orange-700 font-medium">🎯 Total Partidos</div>
+              </div>
             </div>
-          )}
-          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
-            <span className="font-medium">💾 Guardado Local:</span> El progreso del torneo se guarda automáticamente. 
-            Solo el botón "🔄 Resetear" elimina todos los datos.
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-blue-50 border-l-4 border-blue-400 rounded-lg">
+                <div className="font-semibold text-blue-800 mb-1">📋 Formato</div>
+                <div className="text-sm text-blue-700">Best of 3 (BO3) - Primer jugador en ganar 2 games gana el match</div>
+              </div>
+              <div className="p-4 bg-green-50 border-l-4 border-green-400 rounded-lg">
+                <div className="font-semibold text-green-800 mb-1">🏆 Criterios de Desempate</div>
+                <div className="text-sm text-green-700">1. Puntos | 2. Victorias Reales | 3. Opp% | 4. GW% | 5. Seed</div>
+              </div>
+              {tournamentState.players.length % 2 !== 0 && (
+                <div className="p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
+                  <div className="font-semibold text-yellow-800 mb-1">🆓 Sistema Bye</div>
+                  <div className="text-sm text-yellow-700">Jugador con menos puntos recibe bye automático (3 pts, no Opp)</div>
+                </div>
+              )}
+              <div className="p-4 bg-indigo-50 border-l-4 border-indigo-400 rounded-lg">
+                <div className="font-semibold text-indigo-800 mb-1">💾 Guardado Local</div>
+                <div className="text-sm text-indigo-700">El progreso del torneo se guarda automáticamente. Solo el botón "🔄 Resetear" elimina todos los datos.</div>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {/* Entrada de jugadores */}
-      <div className="mb-8 p-4 bg-white border border-gray-300 rounded-lg shadow-sm">
-        <h2 className="text-xl font-semibold mb-3 text-gray-800">
-          👥 Jugadores
-        </h2>
-        <div className="flex flex-col sm:flex-row gap-2 mb-4">
-          <input
-            type="text"
-            value={tournamentState.newPlayerName}
-            onChange={(e) => setTournamentState({
-              ...tournamentState,
-              newPlayerName: e.target.value,
-            })}
-            placeholder="Nombre del jugador"
-            className="flex-1 p-2 border border-gray-300 rounded text-gray-800 text-sm sm:text-base"
-            onKeyPress={(e) => e.key === "Enter" && addPlayer()}
-          />
-          <button
-            onClick={addPlayer}
-            className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 transition-colors text-sm sm:text-base"
-          >
-            ➕ Agregar
-          </button>
+      <div className="mb-8 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
+          <h2 className="text-xl font-bold text-white flex items-center gap-3">
+            👥 Gestión de Jugadores
+          </h2>
         </div>
+        <div className="p-6">
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+            <input
+              type="text"
+              value={tournamentState.newPlayerName}
+              onChange={(e) =>
+                setTournamentState({
+                  ...tournamentState,
+                  newPlayerName: e.target.value,
+                })
+              }
+              placeholder="Ingresa el nombre del jugador..."
+              className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-800 text-base focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200"
+              onKeyPress={(e) => e.key === "Enter" && addPlayer()}
+            />
+            <button
+              onClick={addPlayer}
+              disabled={!tournamentState.newPlayerName.trim()}
+              className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              ➕ Agregar Jugador
+            </button>
+          </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
           {tournamentState.players.map((player) => (
@@ -1313,6 +1593,7 @@ const SwissTournamentManager = () => {
             </div>
           ))}
         </div>
+      </div>
 
         {/* Configuración de rondas */}
         <div className="mt-4 p-4 bg-gray-50 rounded-lg">
@@ -1329,7 +1610,9 @@ const SwissTournamentManager = () => {
                   setTournamentState({
                     ...tournamentState,
                     isManualRoundsEnabled: e.target.checked,
-                    manualRounds: e.target.checked ? calculateTotalRounds(tournamentState.players.length) : 0,
+                    manualRounds: e.target.checked
+                      ? calculateTotalRounds(tournamentState.players.length)
+                      : 0,
                   });
                 }}
                 className="w-4 h-4 text-blue-600"
@@ -1499,7 +1782,9 @@ const SwissTournamentManager = () => {
               </h2>
 
               {/* Temporizador de ronda */}
-              {tournamentState.rounds.find((r) => r.number === tournamentState.currentRound)?.isActive && (
+              {tournamentState.rounds.find(
+                (r) => r.number === tournamentState.currentRound
+              )?.isActive && (
                 <div className="flex items-center gap-2">
                   <div className="text-sm text-gray-600">
                     ⏱️ Tiempo restante:
@@ -1529,8 +1814,12 @@ const SwissTournamentManager = () => {
                 </h3>
                 <div className="grid grid-cols-1 gap-3">
                   {round.matches.map((match) => {
-                    const player1 = tournamentState.players.find((p) => p.id === match.player1);
-                    const player2 = tournamentState.players.find((p) => p.id === match.player2);
+                    const player1 = tournamentState.players.find(
+                      (p) => p.id === match.player1
+                    );
+                    const player2 = tournamentState.players.find(
+                      (p) => p.id === match.player2
+                    );
 
                     return (
                       <div
@@ -1586,20 +1875,21 @@ const SwissTournamentManager = () => {
                                   <button
                                     onClick={() => {
                                       if (match.player1Wins > 0) {
-                                        const updatedRounds = tournamentState.rounds.map(
-                                          (round) => ({
-                                            ...round,
-                                            matches: round.matches.map((m) =>
-                                              m.id === match.id
-                                                ? {
-                                                    ...m,
-                                                    player1Wins:
-                                                      m.player1Wins - 1,
-                                                  }
-                                                : m
-                                            ),
-                                          })
-                                        );
+                                        const updatedRounds =
+                                          tournamentState.rounds.map(
+                                            (round) => ({
+                                              ...round,
+                                              matches: round.matches.map((m) =>
+                                                m.id === match.id
+                                                  ? {
+                                                      ...m,
+                                                      player1Wins:
+                                                        m.player1Wins - 1,
+                                                    }
+                                                  : m
+                                              ),
+                                            })
+                                          );
                                         setTournamentState({
                                           ...tournamentState,
                                           rounds: updatedRounds,
@@ -1622,20 +1912,21 @@ const SwissTournamentManager = () => {
                                         match.player1Wins < 2 &&
                                         !match.completed
                                       ) {
-                                        const updatedRounds = tournamentState.rounds.map(
-                                          (round) => ({
-                                            ...round,
-                                            matches: round.matches.map((m) =>
-                                              m.id === match.id
-                                                ? {
-                                                    ...m,
-                                                    player1Wins:
-                                                      m.player1Wins + 1,
-                                                  }
-                                                : m
-                                            ),
-                                          })
-                                        );
+                                        const updatedRounds =
+                                          tournamentState.rounds.map(
+                                            (round) => ({
+                                              ...round,
+                                              matches: round.matches.map((m) =>
+                                                m.id === match.id
+                                                  ? {
+                                                      ...m,
+                                                      player1Wins:
+                                                        m.player1Wins + 1,
+                                                    }
+                                                  : m
+                                              ),
+                                            })
+                                          );
                                         setTournamentState({
                                           ...tournamentState,
                                           rounds: updatedRounds,
@@ -1663,20 +1954,21 @@ const SwissTournamentManager = () => {
                                   <button
                                     onClick={() => {
                                       if (match.player2Wins > 0) {
-                                        const updatedRounds = tournamentState.rounds.map(
-                                          (round) => ({
-                                            ...round,
-                                            matches: round.matches.map((m) =>
-                                              m.id === match.id
-                                                ? {
-                                                    ...m,
-                                                    player2Wins:
-                                                      m.player2Wins - 1,
-                                                  }
-                                                : m
-                                            ),
-                                          })
-                                        );
+                                        const updatedRounds =
+                                          tournamentState.rounds.map(
+                                            (round) => ({
+                                              ...round,
+                                              matches: round.matches.map((m) =>
+                                                m.id === match.id
+                                                  ? {
+                                                      ...m,
+                                                      player2Wins:
+                                                        m.player2Wins - 1,
+                                                    }
+                                                  : m
+                                              ),
+                                            })
+                                          );
                                         setTournamentState({
                                           ...tournamentState,
                                           rounds: updatedRounds,
@@ -1699,20 +1991,21 @@ const SwissTournamentManager = () => {
                                         match.player2Wins < 2 &&
                                         !match.completed
                                       ) {
-                                        const updatedRounds = tournamentState.rounds.map(
-                                          (round) => ({
-                                            ...round,
-                                            matches: round.matches.map((m) =>
-                                              m.id === match.id
-                                                ? {
-                                                    ...m,
-                                                    player2Wins:
-                                                      m.player2Wins + 1,
-                                                  }
-                                                : m
-                                            ),
-                                          })
-                                        );
+                                        const updatedRounds =
+                                          tournamentState.rounds.map(
+                                            (round) => ({
+                                              ...round,
+                                              matches: round.matches.map((m) =>
+                                                m.id === match.id
+                                                  ? {
+                                                      ...m,
+                                                      player2Wins:
+                                                        m.player2Wins + 1,
+                                                    }
+                                                  : m
+                                              ),
+                                            })
+                                          );
                                         setTournamentState({
                                           ...tournamentState,
                                           rounds: updatedRounds,
@@ -1752,47 +2045,49 @@ const SwissTournamentManager = () => {
                                             : match.player1;
 
                                         // Actualizar jugadores y marcar match como completado en una sola operación
-                                        const updatedPlayers = tournamentState.players.map(
-                                          (player) => {
-                                            if (player.id === winner) {
-                                              return {
-                                                ...player,
-                                                wins: player.wins + 1,
-                                                points: player.points + 3,
-                                                opponents: [
-                                                  ...player.opponents,
-                                                  loser,
-                                                ],
-                                              };
-                                            } else if (player.id === loser) {
-                                              return {
-                                                ...player,
-                                                losses: player.losses + 1,
-                                                points: player.points,
-                                                opponents: [
-                                                  ...player.opponents,
-                                                  winner,
-                                                ],
-                                              };
-                                            }
-                                            return player;
-                                          }
-                                        );
-
-                                        const updatedRounds = tournamentState.rounds.map(
-                                          (round) => ({
-                                            ...round,
-                                            matches: round.matches.map((m) =>
-                                              m.id === match.id
-                                                ? {
-                                                    ...m,
-                                                    completed: true,
+                                        const updatedPlayers =
+                                          tournamentState.players.map(
+                                            (player) => {
+                                              if (player.id === winner) {
+                                                return {
+                                                  ...player,
+                                                  wins: player.wins + 1,
+                                                  points: player.points + 3,
+                                                  opponents: [
+                                                    ...player.opponents,
+                                                    loser,
+                                                  ],
+                                                };
+                                              } else if (player.id === loser) {
+                                                return {
+                                                  ...player,
+                                                  losses: player.losses + 1,
+                                                  points: player.points,
+                                                  opponents: [
+                                                    ...player.opponents,
                                                     winner,
-                                                  }
-                                                : m
-                                            ),
-                                          })
-                                        );
+                                                  ],
+                                                };
+                                              }
+                                              return player;
+                                            }
+                                          );
+
+                                        const updatedRounds =
+                                          tournamentState.rounds.map(
+                                            (round) => ({
+                                              ...round,
+                                              matches: round.matches.map((m) =>
+                                                m.id === match.id
+                                                  ? {
+                                                      ...m,
+                                                      completed: true,
+                                                      winner,
+                                                    }
+                                                  : m
+                                              ),
+                                            })
+                                          );
 
                                         setTournamentState({
                                           ...tournamentState,
@@ -1804,42 +2099,44 @@ const SwissTournamentManager = () => {
                                         match.player2Wins === 1
                                       ) {
                                         // Empate 1-1 - Actualizar jugadores y marcar match como completado en una sola operación
-                                        const updatedPlayers = tournamentState.players.map(
-                                          (player) => {
-                                            if (
-                                              player.id === match.player1 ||
-                                              player.id === match.player2
-                                            ) {
-                                              return {
-                                                ...player,
-                                                wins: player.wins + 0.5,
-                                                points: player.points + 1,
-                                                opponents: [
-                                                  ...player.opponents,
-                                                  player.id === match.player1
-                                                    ? match.player2
-                                                    : match.player1,
-                                                ],
-                                              };
+                                        const updatedPlayers =
+                                          tournamentState.players.map(
+                                            (player) => {
+                                              if (
+                                                player.id === match.player1 ||
+                                                player.id === match.player2
+                                              ) {
+                                                return {
+                                                  ...player,
+                                                  wins: player.wins + 0.5,
+                                                  points: player.points + 1,
+                                                  opponents: [
+                                                    ...player.opponents,
+                                                    player.id === match.player1
+                                                      ? match.player2
+                                                      : match.player1,
+                                                  ],
+                                                };
+                                              }
+                                              return player;
                                             }
-                                            return player;
-                                          }
-                                        );
+                                          );
 
-                                        const updatedRounds = tournamentState.rounds.map(
-                                          (round) => ({
-                                            ...round,
-                                            matches: round.matches.map((m) =>
-                                              m.id === match.id
-                                                ? {
-                                                    ...m,
-                                                    completed: true,
-                                                    winner: undefined,
-                                                  }
-                                                : m
-                                            ),
-                                          })
-                                        );
+                                        const updatedRounds =
+                                          tournamentState.rounds.map(
+                                            (round) => ({
+                                              ...round,
+                                              matches: round.matches.map((m) =>
+                                                m.id === match.id
+                                                  ? {
+                                                      ...m,
+                                                      completed: true,
+                                                      winner: undefined,
+                                                    }
+                                                  : m
+                                              ),
+                                            })
+                                          );
 
                                         setTournamentState({
                                           ...tournamentState,
@@ -1876,42 +2173,46 @@ const SwissTournamentManager = () => {
                                       <button
                                         onClick={() => {
                                           // Declarar empate 1-1 manualmente - Actualizar jugadores y marcar match como completado en una sola operación
-                                          const updatedPlayers = tournamentState.players.map(
-                                            (player) => {
-                                              if (
-                                                player.id === match.player1 ||
-                                                player.id === match.player2
-                                              ) {
-                                                return {
-                                                  ...player,
-                                                  wins: player.wins + 0.5,
-                                                  points: player.points + 1,
-                                                  opponents: [
-                                                    ...player.opponents,
-                                                    player.id === match.player1
-                                                      ? match.player2
-                                                      : match.player1,
-                                                  ],
-                                                };
+                                          const updatedPlayers =
+                                            tournamentState.players.map(
+                                              (player) => {
+                                                if (
+                                                  player.id === match.player1 ||
+                                                  player.id === match.player2
+                                                ) {
+                                                  return {
+                                                    ...player,
+                                                    wins: player.wins + 0.5,
+                                                    points: player.points + 1,
+                                                    opponents: [
+                                                      ...player.opponents,
+                                                      player.id ===
+                                                      match.player1
+                                                        ? match.player2
+                                                        : match.player1,
+                                                    ],
+                                                  };
+                                                }
+                                                return player;
                                               }
-                                              return player;
-                                            }
-                                          );
+                                            );
 
-                                          const updatedRounds = tournamentState.rounds.map(
-                                            (round) => ({
-                                              ...round,
-                                              matches: round.matches.map((m) =>
-                                                m.id === match.id
-                                                  ? {
-                                                      ...m,
-                                                      completed: true,
-                                                      winner: undefined,
-                                                    }
-                                                  : m
-                                              ),
-                                            })
-                                          );
+                                          const updatedRounds =
+                                            tournamentState.rounds.map(
+                                              (round) => ({
+                                                ...round,
+                                                matches: round.matches.map(
+                                                  (m) =>
+                                                    m.id === match.id
+                                                      ? {
+                                                          ...m,
+                                                          completed: true,
+                                                          winner: undefined,
+                                                        }
+                                                      : m
+                                                ),
+                                              })
+                                            );
 
                                           setTournamentState({
                                             ...tournamentState,
@@ -1964,9 +2265,13 @@ const SwissTournamentManager = () => {
               )}
 
               {tournamentState.currentRound > 0 &&
-                !tournamentState.rounds.find((r) => r.number === tournamentState.currentRound)?.isActive && (
+                !tournamentState.rounds.find(
+                  (r) => r.number === tournamentState.currentRound
+                )?.isActive && (
                   <button
-                    onClick={() => startRoundTimer(tournamentState.currentRound)}
+                    onClick={() =>
+                      startRoundTimer(tournamentState.currentRound)
+                    }
                     className="bg-orange-600 text-white px-4 py-3 rounded-lg hover:bg-orange-700 transition-colors font-medium text-sm sm:text-base"
                   >
                     ⏱️ Iniciar Temporizador
@@ -1983,7 +2288,9 @@ const SwissTournamentManager = () => {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-gray-800">
               ✋ Emparejamiento Manual - Ronda{" "}
-              {tournamentState.currentRound === 0 ? 1 : tournamentState.currentRound + 1}
+              {tournamentState.currentRound === 0
+                ? 1
+                : tournamentState.currentRound + 1}
             </h2>
             <button
               onClick={cancelManualPairing}
@@ -2007,8 +2314,8 @@ const SwissTournamentManager = () => {
               : `Automático: ${calculateTotalRounds(tournamentState.players.length)} rondas (${tournamentState.players.length} jugadores)`}
             {tournamentState.currentRound > 0 && (
               <div className="mt-1">
-                📈 <strong>Progreso:</strong> Ronda {tournamentState.currentRound} de{" "}
-                {getCurrentTotalRounds()}
+                📈 <strong>Progreso:</strong> Ronda{" "}
+                {tournamentState.currentRound} de {getCurrentTotalRounds()}
               </div>
             )}
           </div>
@@ -2025,10 +2332,12 @@ const SwissTournamentManager = () => {
                 </label>
                 <select
                   value={tournamentState.selectedPlayer1}
-                  onChange={(e) => setTournamentState({
-                    ...tournamentState,
-                    selectedPlayer1: e.target.value,
-                  })}
+                  onChange={(e) =>
+                    setTournamentState({
+                      ...tournamentState,
+                      selectedPlayer1: e.target.value,
+                    })
+                  }
                   className="w-full p-2 border border-gray-300 rounded text-gray-800 text-sm sm:text-base"
                 >
                   <option value="">Seleccionar jugador</option>
@@ -2060,10 +2369,12 @@ const SwissTournamentManager = () => {
                 </label>
                 <select
                   value={tournamentState.selectedPlayer2}
-                  onChange={(e) => setTournamentState({
-                    ...tournamentState,
-                    selectedPlayer2: e.target.value,
-                  })}
+                  onChange={(e) =>
+                    setTournamentState({
+                      ...tournamentState,
+                      selectedPlayer2: e.target.value,
+                    })
+                  }
                   className="w-full p-2 border border-gray-300 rounded text-gray-800 text-sm sm:text-base"
                 >
                   <option value="">Seleccionar jugador</option>
@@ -2090,12 +2401,14 @@ const SwissTournamentManager = () => {
                 disabled={
                   !tournamentState.selectedPlayer1 ||
                   !tournamentState.selectedPlayer2 ||
-                  tournamentState.selectedPlayer1 === tournamentState.selectedPlayer2
+                  tournamentState.selectedPlayer1 ===
+                    tournamentState.selectedPlayer2
                 }
                 className={`px-4 py-2 rounded transition-colors ${
                   !tournamentState.selectedPlayer1 ||
                   !tournamentState.selectedPlayer2 ||
-                  tournamentState.selectedPlayer1 === tournamentState.selectedPlayer2
+                  tournamentState.selectedPlayer1 ===
+                    tournamentState.selectedPlayer2
                     ? "bg-gray-400 cursor-not-allowed text-gray-600"
                     : "bg-emerald-600 hover:bg-emerald-700 text-white"
                 }`}
@@ -2113,8 +2426,12 @@ const SwissTournamentManager = () => {
               </h3>
               <div className="space-y-2">
                 {tournamentState.manualMatches.map((match, index) => {
-                  const player1 = tournamentState.players.find((p) => p.id === match.player1);
-                  const player2 = tournamentState.players.find((p) => p.id === match.player2);
+                  const player1 = tournamentState.players.find(
+                    (p) => p.id === match.player1
+                  );
+                  const player2 = tournamentState.players.find(
+                    (p) => p.id === match.player2
+                  );
 
                   return (
                     <div
@@ -2235,7 +2552,9 @@ const SwissTournamentManager = () => {
 
       {/* Mostrar opciones de playoff cuando el torneo suizo termine */}
       {tournamentState.currentRound > 0 &&
-        !tournamentState.rounds.find((r) => r.number === tournamentState.currentRound)?.isActive &&
+        !tournamentState.rounds.find(
+          (r) => r.number === tournamentState.currentRound
+        )?.isActive &&
         !tournamentState.playoff && (
           <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 rounded-lg shadow-lg mb-6">
             <h3 className="text-xl font-bold text-white mb-4">
@@ -2276,9 +2595,11 @@ const SwissTournamentManager = () => {
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-2xl font-bold text-white">
               🏆 Playoff {tournamentState.playoff.format.toUpperCase()} - Ronda{" "}
-              {tournamentState.playoff.currentRound}/{tournamentState.playoff.totalRounds}
+              {tournamentState.playoff.currentRound}/
+              {tournamentState.playoff.totalRounds}
             </h3>
-            {tournamentState.playoff.currentRound < tournamentState.playoff.totalRounds && (
+            {tournamentState.playoff.currentRound <
+              tournamentState.playoff.totalRounds && (
               <button
                 onClick={advancePlayoffRound}
                 className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200"
@@ -2290,8 +2611,10 @@ const SwissTournamentManager = () => {
 
           {/* Matches del playoff */}
           <div className="space-y-4">
-            {tournamentState.playoff!.matches
-              .filter((match) => match.round === tournamentState.playoff!.currentRound)
+            {tournamentState
+              .playoff!.matches.filter(
+                (match) => match.round === tournamentState.playoff!.currentRound
+              )
               .map((match) => (
                 <PlayoffMatchCard
                   key={match.id}
