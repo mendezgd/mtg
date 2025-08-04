@@ -6,22 +6,28 @@ export function useLocalStorage<T>(
 ): [T, (value: T | ((val: T) => T)) => void] {
   // State to store our value
   // Pass initial state function to useState so logic is only executed once
-  const [storedValue, setStoredValue] = useState<T>(() => {
-    if (typeof window === "undefined") {
-      return initialValue;
-    }
-    try {
-      const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
-    } catch (error) {
-      console.error(`Error reading localStorage key "${key}":`, error);
-      return initialValue;
-    }
-  });
+  const [storedValue, setStoredValue] = useState<T>(initialValue);
+  const [mounted, setMounted] = useState(false);
 
   // Use ref to store the latest value without causing re-renders
   const valueRef = useRef(storedValue);
   valueRef.current = storedValue;
+
+  // Initialize from localStorage after mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    
+    try {
+      const item = window.localStorage.getItem(key);
+      if (item) {
+        setStoredValue(JSON.parse(item));
+      }
+    } catch (error) {
+      console.error(`Error reading localStorage key "${key}":`, error);
+    }
+    
+    setMounted(true);
+  }, [key]);
 
   // Return a wrapped version of useState's setter function that ...
   // ... persists the new value to localStorage.
@@ -57,5 +63,6 @@ export function useLocalStorage<T>(
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [key]);
 
-  return [storedValue, setValue];
+  // Return initial value during SSR and before mount to prevent hydration mismatch
+  return [mounted ? storedValue : initialValue, setValue];
 } 
