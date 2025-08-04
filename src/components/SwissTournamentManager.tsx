@@ -1120,6 +1120,94 @@ const SwissTournamentManager = () => {
     });
   };
 
+  const exportTournamentResults = () => {
+    const currentDate = new Date().toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Ordenar jugadores por clasificación final
+    const sortedPlayers = [...tournamentState.players].sort((a, b) => {
+      const pointsA = calculatePlayerPoints(a.id);
+      const pointsB = calculatePlayerPoints(b.id);
+      if (pointsB !== pointsA) return pointsB - pointsA;
+
+      const realWinsA = calculateRealWins(a.id);
+      const realWinsB = calculateRealWins(b.id);
+      if (realWinsB !== realWinsA) return realWinsB - realWinsA;
+
+      const oppA = calculateOpp(a.id);
+      const oppB = calculateOpp(b.id);
+      if (oppB !== oppA) return oppB - oppA;
+
+      const gwA = calculateGameWinPercentage(a.id);
+      const gwB = calculateGameWinPercentage(b.id);
+      if (gwB !== gwA) return gwB - gwA;
+
+      return a.seed - b.seed;
+    });
+
+    // Crear el contenido del reporte
+    let reportContent = `🏆 RESULTADOS DEL TORNEO\n`;
+    reportContent += `📅 Fecha: ${currentDate}\n`;
+    reportContent += `👥 Total de Jugadores: ${tournamentState.players.length}\n`;
+    reportContent += `🔄 Rondas Jugadas: ${tournamentState.rounds.length}\n\n`;
+
+    // Información del playoff si existe
+    if (tournamentState.playoff && tournamentState.playoff.isActive) {
+      const playoffFormat = tournamentState.playoff.format === 'top4' ? 'Top 4' :
+                           tournamentState.playoff.format === 'top8' ? 'Top 8' :
+                           tournamentState.playoff.format === 'top16' ? 'Top 16' : 'N/A';
+      reportContent += `🏅 Playoff: ${playoffFormat}\n`;
+      reportContent += `📊 Ronda Actual del Playoff: ${tournamentState.playoff.currentRound}/${tournamentState.playoff.totalRounds}\n\n`;
+    }
+
+    // Clasificación final
+    reportContent += `📋 CLASIFICACIÓN FINAL\n`;
+    reportContent += `─`.repeat(50) + `\n`;
+    reportContent += `Pos | Seed | Jugador           | V | D | Pts | Opp | GW% | Bye\n`;
+    reportContent += `─`.repeat(50) + `\n`;
+
+    sortedPlayers.forEach((player, index) => {
+      const position = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+      const wins = player.wins % 1 === 0 ? player.wins.toString() : player.wins.toFixed(1);
+      const points = calculatePlayerPoints(player.id);
+      const opp = calculateOpp(player.id);
+      const gw = calculateGameWinPercentage(player.id).toFixed(1);
+      const bye = player.hasBye ? 'Sí' : 'No';
+      
+      reportContent += `${position.padEnd(3)} | ${player.seed.toString().padStart(3)} | ${player.name.padEnd(16)} | ${wins.padStart(2)} | ${player.losses.toString().padStart(1)} | ${points.toString().padStart(3)} | ${opp.toString().padStart(3)} | ${gw.padStart(4)} | ${bye}\n`;
+    });
+
+    reportContent += `\n📊 ESTADÍSTICAS ADICIONALES\n`;
+    reportContent += `─`.repeat(50) + `\n`;
+    
+    // Estadísticas del torneo
+    const totalMatches = tournamentState.rounds.reduce((total, round) => 
+      total + round.matches.filter(match => match.completed).length, 0);
+    const totalGames = tournamentState.rounds.reduce((total, round) => 
+      total + round.matches.reduce((roundTotal, match) => 
+        roundTotal + (match.player1Wins + match.player2Wins), 0), 0);
+    
+    reportContent += `Total de Partidas Jugadas: ${totalMatches}\n`;
+    reportContent += `Total de Games Jugados: ${totalGames}\n`;
+    reportContent += `Promedio de Games por Partida: ${totalMatches > 0 ? (totalGames / totalMatches).toFixed(1) : '0'}\n`;
+
+    // Crear y descargar el archivo
+    const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `torneo_resultados_${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6 bg-gray-100 min-h-screen">
       <div className="text-center mb-6">
@@ -2219,9 +2307,17 @@ const SwissTournamentManager = () => {
       {/* Clasificación final */}
       {tournamentState.players.some((p) => p.wins > 0 || p.losses > 0) && (
         <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">
-            🏅 Clasificación Final
-          </h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold text-gray-800">
+              🏅 Clasificación Final
+            </h2>
+            <button
+              onClick={exportTournamentResults}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2"
+            >
+              📄 Exportar Resultados
+            </button>
+          </div>
           <div className="overflow-x-auto bg-white border border-gray-300 rounded-lg shadow-sm">
             <table className="min-w-full">
               <thead className="bg-gray-800 text-white">
