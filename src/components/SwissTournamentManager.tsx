@@ -232,7 +232,7 @@ const SwissTournamentManager = () => {
       setTimeRemaining(remaining);
 
       if (remaining <= 0) {
-        // Tiempo agotado - aplicar empate 1-0 a matches incompletos
+        // Tiempo agotado - solo avisar, no realizar acciones automáticas
         handleTimeUp(roundNumber);
         clearInterval(timer);
         setRoundTimer(null);
@@ -242,77 +242,20 @@ const SwissTournamentManager = () => {
     setRoundTimer(timer);
   };
 
-  // Manejar tiempo agotado
+  // Manejar tiempo agotado - solo avisar
   const handleTimeUp = (roundNumber: number) => {
     const round = rounds.find((r) => r.number === roundNumber);
     if (!round) return;
 
-    // Aplicar empate 1-0 a matches incompletos
-    const updatedRounds = rounds.map((r) => {
-      if (r.number === roundNumber) {
-        return {
-          ...r,
-          isActive: false,
-          matches: r.matches.map((match) => {
-            if (!match.completed) {
-              // Aplicar empate 1-0 (gana el jugador con seed más bajo)
-              const winner =
-                match.player1 < match.player2 ? match.player1 : match.player2;
-              const loser =
-                match.player1 < match.player2 ? match.player2 : match.player1;
-
-              return {
-                ...match,
-                completed: true,
-                winner,
-                player1Wins: winner === match.player1 ? 1 : 0,
-                player2Wins: winner === match.player2 ? 1 : 0,
-              };
-            }
-            return match;
-          }),
-        };
-      }
-      return r;
-    });
-
-    setRounds(updatedRounds);
-
-    // Actualizar jugadores
-    const updatedPlayers = players.map((player) => {
-      const playerMatches = updatedRounds
-        .flatMap((r) => r.matches)
-        .filter(
-          (m) =>
-            (m.player1 === player.id || m.player2 === player.id) && m.completed
-        );
-
-      let totalWins = 0;
-      let totalLosses = 0;
-
-      playerMatches.forEach((match) => {
-        if (match.winner === player.id) {
-          totalWins += 1;
-        } else if (match.winner && match.winner !== player.id) {
-          totalLosses += 1;
-        } else if (match.player1Wins === 1 && match.player2Wins === 1) {
-          // Empate 1-1
-          totalWins += 0.5;
-        }
-      });
-
-      return {
-        ...player,
-        wins: totalWins,
-        losses: totalLosses,
-        points: calculatePlayerPoints(player.id),
-      };
-    });
-
-    setPlayers(updatedPlayers);
-    alert(
-      `¡Tiempo agotado en la Ronda ${roundNumber}! Se aplicó empate 1-0 a matches incompletos.`
+    // Solo marcar la ronda como inactiva y avisar
+    setRounds(
+      rounds.map((r) =>
+        r.number === roundNumber ? { ...r, isActive: false } : r
+      )
     );
+
+    // Mostrar notificación de tiempo agotado
+    alert(`¡Tiempo agotado en la Ronda ${roundNumber}!`);
   };
 
   // Calcular puntos totales de un jugador

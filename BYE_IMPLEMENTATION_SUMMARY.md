@@ -5,6 +5,7 @@
 ### 1. Función `assignBye(roundNumber)` - Actualizada
 
 **Antes:**
+
 ```typescript
 const assignBye = (roundNumber: number): string | null => {
   // Buscar jugador que no ha recibido bye en ninguna ronda anterior y tiene menos puntos
@@ -23,6 +24,7 @@ const assignBye = (roundNumber: number): string | null => {
 ```
 
 **Después:**
+
 ```typescript
 const assignBye = (roundNumber: number): string | null => {
   // Buscar jugadores que no han recibido bye en ninguna ronda anterior
@@ -49,11 +51,13 @@ const assignBye = (roundNumber: number): string | null => {
 ## 🎯 Reglas Implementadas
 
 ### ✅ Ronda 1 - Bye Aleatorio
+
 - **Condición**: Solo si número impar de jugadores
 - **Asignación**: Aleatoria entre todos los jugadores disponibles
 - **Puntos**: 3 puntos (igual que victoria)
 
 ### ✅ Rondas Posteriores - Bye al Último
+
 - **Condición**: Solo si número impar de jugadores
 - **Asignación**: Al jugador con menos puntos en la tabla
 - **Restricción**: Solo si no ha recibido bye previamente
@@ -61,37 +65,42 @@ const assignBye = (roundNumber: number): string | null => {
 
 ## 🎮 Sistema de Puntos (Ya Correcto)
 
-| Resultado | Puntos |
-|-----------|--------|
-| Victoria | 3 puntos |
-| **Bye** | **3 puntos** |
-| Empate | 1 punto |
-| Derrota | 0 puntos |
+| Resultado | Puntos       |
+| --------- | ------------ |
+| Victoria  | 3 puntos     |
+| **Bye**   | **3 puntos** |
+| Empate    | 1 punto      |
+| Derrota   | 0 puntos     |
 
 ## 📊 Funciones que Manejan Byes
 
 ### 1. `generateAcceleratedPairings()` - Ronda 1
+
 - Detecta número impar de jugadores
 - Llama a `assignBye(1)` para bye aleatorio
 - Crea match especial de bye con 3 puntos
 
 ### 2. `generateNextRound()` - Rondas Posteriores
+
 - Detecta número impar de jugadores
 - Llama a `assignBye(roundNumber)` para bye al último
 - Crea match especial de bye con 3 puntos
 
 ### 3. `createManualRound()` - Emparejamientos Manuales
+
 - Detecta jugador sin emparejar
 - Asigna bye automáticamente
 - Crea match especial de bye con 3 puntos
 
 ### 4. `calculatePlayerPoints()` - Cálculo de Puntos
+
 - Incluye byes como victorias (3 puntos)
 - No diferencia entre victoria normal y bye
 
 ## 🔍 Verificaciones Implementadas
 
 ### ✅ Solo número impar
+
 ```typescript
 if (availablePlayers.length % 2 !== 0) {
   // Asignar bye
@@ -99,11 +108,13 @@ if (availablePlayers.length % 2 !== 0) {
 ```
 
 ### ✅ No repetir byes
+
 ```typescript
 const availablePlayers = players.filter((p) => !p.hasBye);
 ```
 
 ### ✅ Bye cuenta como victoria
+
 ```typescript
 // Match de bye:
 {
@@ -115,6 +126,7 @@ const availablePlayers = players.filter((p) => !p.hasBye);
 ```
 
 ### ✅ 3 puntos para bye
+
 ```typescript
 if (match.winner === playerId) {
   totalPoints += 3; // Incluye bye
@@ -132,6 +144,7 @@ if (match.winner === playerId) {
 ## 📁 Archivos Modificados
 
 1. **`src/components/SwissTournamentManager.tsx`**
+
    - Función `assignBye()` actualizada
    - Lógica de bye aleatorio en ronda 1
    - Lógica de bye al último en rondas posteriores
@@ -142,15 +155,18 @@ if (match.winner === playerId) {
 ## 🧪 Casos de Prueba
 
 ### Caso 1: 5 jugadores
+
 - Ronda 1: 4 emparejados + 1 bye aleatorio
 - Ronda 2: 4 emparejados + 1 bye (último en tabla)
 - Ronda 3: 4 emparejados + 1 bye (último en tabla)
 
 ### Caso 2: 6 jugadores
+
 - No hay byes (número par)
 - Todas las rondas: 6 jugadores emparejados
 
 ### Caso 3: 7 jugadores
+
 - Ronda 1: 6 emparejados + 1 bye aleatorio
 - Rondas 2+: 6 emparejados + 1 bye (último en tabla)
 
@@ -162,4 +178,4 @@ El sistema de torneos ahora maneja correctamente las reglas de byes según tus e
 2. **Bye al último** en rondas posteriores (solo si no ha tenido bye)
 3. **3 puntos** para bye (igual que victoria)
 4. **Sistema de puntos** correcto (3/1/0)
-5. **No repetir byes** - cada jugador máximo 1 bye por torneo 
+5. **No repetir byes** - cada jugador máximo 1 bye por torneo
