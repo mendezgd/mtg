@@ -1,3 +1,5 @@
+"use client";
+
 import { Timer } from "@/components/ui/timer";
 
 export default function TimerPage() {

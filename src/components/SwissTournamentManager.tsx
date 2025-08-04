@@ -170,7 +170,7 @@ const SwissTournamentManager = () => {
     if (!newPlayerName) return;
 
     const newPlayer: Player = {
-      id: `player-${Date.now()}`,
+      id: `player-${players.length + 1}-${newPlayerName.toLowerCase().replace(/\s+/g, '-')}`,
       name: newPlayerName,
       wins: 0,
       losses: 0,
@@ -398,9 +398,10 @@ const SwissTournamentManager = () => {
     if (availablePlayers.length === 0) return null;
 
     if (roundNumber === 1) {
-      // En la ronda 1: bye aleatorio si hay número impar de jugadores
-      const randomIndex = Math.floor(Math.random() * availablePlayers.length);
-      return availablePlayers[randomIndex].id;
+      // En la ronda 1: bye determinístico basado en el seed más alto
+      // Esto evita problemas de hidratación con Math.random()
+      const sortedBySeed = availablePlayers.sort((a, b) => b.seed - a.seed);
+      return sortedBySeed[0].id;
     } else {
       // En rondas posteriores: bye al último en la tabla (menos puntos)
       const sortedPlayers = availablePlayers.sort((a, b) => {
