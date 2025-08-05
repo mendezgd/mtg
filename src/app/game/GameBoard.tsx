@@ -1185,7 +1185,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                 <div
                   className="absolute inset-0 bg-gray-700 rounded-lg shadow-lg flex items-center justify-center overflow-hidden"
                   style={{
-                    backgroundImage: "url('/pox.webp')",
+                    backgroundImage: "url('/images/pox.webp')",
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",
@@ -1303,7 +1303,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                 <div
                   className="absolute inset-0 bg-gray-700 rounded-lg shadow-lg flex items-center justify-center overflow-hidden"
                   style={{
-                    backgroundImage: "url('/pox.webp')",
+                    backgroundImage: "url('/images/pox.webp')",
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",

@@ -167,8 +167,8 @@ const LifeCounter: React.FC = () => {
   }) => {
     const isAnimating = animations[player].life;
     const colorConfig = mtgColors[playerData.color];
-         const backgroundImage =
-       player === "player1" ? "/chudixd.webp" : "/chudix.webp";
+    const backgroundImage =
+      player === "player1" ? "/images/chudixd.webp" : "/images/chudix.webp";
 
     return (
       <Card className="transition-all duration-300 relative overflow-hidden bg-gray-800 border-gray-700 h-full w-full">
@@ -205,7 +205,7 @@ const LifeCounter: React.FC = () => {
         </CardHeader>
         <CardContent className="relative z-10 flex-1 flex items-center justify-center mt-32">
           {/* Contador de vida principal */}
-          <div className="text-center relative w-full h-full flex items-center justify-center">
+          <div className="text-center relative w-full h-48 flex items-center justify-center">
             <div
               className={`text-8xl md:text-9xl font-light tracking-wider text-white transition-all duration-300 ${
                 isAnimating ? "scale-110" : "scale-100"
@@ -219,7 +219,7 @@ const LifeCounter: React.FC = () => {
           <div className="absolute inset-0 flex">
             <button
               onClick={() => changeLife(player, -1)}
-              className="w-1/2 h-full bg-transparent hover:bg-red-500/10 transition-all duration-300 flex items-center justify-center group"
+              className="w-1/2 h-64 bg-transparent hover:bg-red-500/10 transition-all duration-300 flex items-center justify-center group"
               aria-label="Reducir vida"
             >
               <span className="text-2xl md:text-3xl font-light tracking-widest text-red-400/40 group-hover:text-red-300 group-hover:scale-125 transition-all duration-300 -mt-16">
@@ -228,7 +228,7 @@ const LifeCounter: React.FC = () => {
             </button>
             <button
               onClick={() => changeLife(player, 1)}
-              className="w-1/2 h-full bg-transparent hover:bg-green-500/10 transition-all duration-300 flex items-center justify-center group"
+              className="w-1/2 h-64 bg-transparent hover:bg-green-500/10 transition-all duration-300 flex items-center justify-center group"
               aria-label="Aumentar vida"
             >
               <span className="text-2xl md:text-3xl font-light tracking-widest text-green-400/40 group-hover:text-green-300 group-hover:scale-125 transition-all duration-300 -mt-16">
