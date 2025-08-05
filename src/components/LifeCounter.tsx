@@ -182,10 +182,14 @@ const LifeCounter: React.FC = () => {
                 ? "rgba(59, 130, 246, 0.1)"
                 : "rgba(239, 68, 68, 0.1)",
           }}
+          onError={(e) => {
+            // Si la imagen falla, ocultar el elemento
+            e.currentTarget.style.display = "none";
+          }}
         />
         {/* Fallback de color de fondo */}
         <div
-          className="absolute inset-0 opacity-10"
+          className="absolute inset-0 opacity-20"
           style={{
             backgroundColor:
               player === "player1" ? "rgb(59, 130, 246)" : "rgb(239, 68, 68)",
@@ -211,27 +215,27 @@ const LifeCounter: React.FC = () => {
             </div>
           </div>
 
-                     {/* Botones invisibles que cubren toda la tarjeta */}
-           <div className="absolute inset-0 flex">
-             <button
-               onClick={() => changeLife(player, -1)}
-               className="w-1/2 h-full bg-transparent hover:bg-red-500/10 transition-all duration-300 flex items-center justify-center group"
-               aria-label="Reducir vida"
-             >
-               <span className="text-2xl md:text-3xl font-light tracking-widest text-red-400/40 group-hover:text-red-300 group-hover:scale-125 transition-all duration-300 -mt-16">
-                 −
-               </span>
-             </button>
-             <button
-               onClick={() => changeLife(player, 1)}
-               className="w-1/2 h-full bg-transparent hover:bg-green-500/10 transition-all duration-300 flex items-center justify-center group"
-               aria-label="Aumentar vida"
-             >
-               <span className="text-2xl md:text-3xl font-light tracking-widest text-green-400/40 group-hover:text-green-300 group-hover:scale-125 transition-all duration-300 -mt-16">
-                 +
-               </span>
-             </button>
-           </div>
+          {/* Botones invisibles que cubren toda la tarjeta */}
+          <div className="absolute inset-0 flex">
+            <button
+              onClick={() => changeLife(player, -1)}
+              className="w-1/2 h-full bg-transparent hover:bg-red-500/10 transition-all duration-300 flex items-center justify-center group"
+              aria-label="Reducir vida"
+            >
+              <span className="text-2xl md:text-3xl font-light tracking-widest text-red-400/40 group-hover:text-red-300 group-hover:scale-125 transition-all duration-300 -mt-16">
+                −
+              </span>
+            </button>
+            <button
+              onClick={() => changeLife(player, 1)}
+              className="w-1/2 h-full bg-transparent hover:bg-green-500/10 transition-all duration-300 flex items-center justify-center group"
+              aria-label="Aumentar vida"
+            >
+              <span className="text-2xl md:text-3xl font-light tracking-widest text-green-400/40 group-hover:text-green-300 group-hover:scale-125 transition-all duration-300 -mt-16">
+                +
+              </span>
+            </button>
+          </div>
         </CardContent>
       </Card>
     );
