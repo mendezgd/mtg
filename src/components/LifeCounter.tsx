@@ -7,6 +7,7 @@ import { Badge } from "./ui/badge";
 
 import { useLocalStorage } from "../hooks/use-local-storage";
 import { RotateCcw, Crown } from "lucide-react";
+import Image from "next/image";
 
 interface PlayerState {
   life: number;
@@ -154,16 +155,37 @@ const LifeCounter: React.FC = () => {
   }) => {
     const isAnimating = animations[player].life;
     const colorConfig = mtgColors[playerData.color];
-    const backgroundImage =
-      player === "player1" ? "/images/chudixd.webp" : "/images/chudix.webp";
+         const backgroundImage =
+       player === "player1" ? "/images/chudixd.webp" : "/images/chudix.webp";
+     
+     // Fallback para desarrollo local vs producción
+     const backgroundImageFallback = 
+       player === "player1" ? "/images/chudixd.webp" : "/images/chudix.webp";
 
     return (
       <Card className="transition-all duration-300 relative overflow-hidden bg-gray-800 border-gray-700">
-        {/* Imagen de fondo */}
-        <div
-          className="absolute inset-0 opacity-20 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${backgroundImage})` }}
-        />
+                 {/* Imagen de fondo con fallback */}
+         <div className="absolute inset-0 opacity-20">
+           <Image
+             src={backgroundImage}
+             alt={`Background for ${playerData.name}`}
+             fill
+             className="object-cover"
+             priority
+             onError={(e) => {
+               console.warn(`Error loading background image: ${backgroundImage}`);
+               // Intentar con fallback
+               e.currentTarget.src = backgroundImageFallback;
+             }}
+           />
+         </div>
+         {/* Fallback de color de fondo */}
+         <div 
+           className="absolute inset-0 opacity-10"
+           style={{
+             backgroundColor: player === "player1" ? "rgb(59, 130, 246)" : "rgb(239, 68, 68)"
+           }}
+         />
 
                  <CardHeader className="pb-4 relative z-10">
            <div className="flex items-center justify-center">
