@@ -43,6 +43,11 @@ export default function HomePage() {
                 🏆 Torneos Suizos
               </Button>
             </Link>
+            <Link href="/life-counter">
+              <Button className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 text-lg rounded-lg transition-all duration-300 transform hover:scale-105">
+                ❤️ Contador de Vidas
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
