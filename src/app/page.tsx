@@ -13,7 +13,7 @@ export default function HomePage() {
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
           <div className="flex justify-center mb-8">
             <Image
-              src="/images/pixelpox.jpg"
+              src="/pixelpox.jpg"
               alt="MTG Premodern Logo"
               width={120}
               height={120}

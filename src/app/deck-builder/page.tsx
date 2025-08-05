@@ -130,7 +130,7 @@ const DeckBuilderPage: React.FC = () => {
       >
         <div className="flex items-center gap-2 mb-2 md:mb-4">
           <Image
-            src="/images/pixelpox.jpg"
+            src="/pixelpox.jpg"
             alt="Ícono de búsqueda"
             width={24}
             height={24}
