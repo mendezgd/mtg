@@ -1,0 +1,8 @@
+[33mcommit f82fb4b3af3bf5d21394eb25b5c655638aa7fc4b[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: fattiepoX ... <mendezdg88@gmail.com>
+Date:   Tue Aug 5 16:17:07 2025 -0300
+
+    fix counterlife
+
+src/components/LifeCounter.tsx
+vercel.json

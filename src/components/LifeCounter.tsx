@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 
 import { useLocalStorage } from "../hooks/use-local-storage";
-import { RotateCcw, Crown } from "lucide-react";
+import { useSound } from "../hooks/use-sound";
+import { RotateCcw, Crown, Volume2, VolumeX } from "lucide-react";
 
 interface PlayerState {
   life: number;
@@ -24,6 +25,10 @@ interface GameState {
 }
 
 const LifeCounter: React.FC = () => {
+  // Hook para sonidos
+  const { playLifeGain, playLifeLoss, playReset, isMuted, toggleMute } =
+    useSound();
+
   // Estado principal del juego
   const [gameState, setGameState] = useLocalStorage<GameState>(
     "mtg-life-counter",
@@ -72,6 +77,7 @@ const LifeCounter: React.FC = () => {
 
   // Función para resetear partida
   const resetGame = useCallback(() => {
+    playReset();
     setGameState((prev) => ({
       ...prev,
       players: {
@@ -89,7 +95,7 @@ const LifeCounter: React.FC = () => {
         },
       },
     }));
-  }, [setGameState]);
+  }, [setGameState, playReset]);
 
   // Detectar orientación de pantalla
   useEffect(() => {
@@ -128,6 +134,13 @@ const LifeCounter: React.FC = () => {
   // Función para cambiar vida
   const changeLife = useCallback(
     (player: "player1" | "player2", amount: number) => {
+      // Reproducir sonido según el tipo de cambio
+      if (amount > 0) {
+        playLifeGain();
+      } else if (amount < 0) {
+        playLifeLoss();
+      }
+
       setGameState((prev) => ({
         ...prev,
         players: {
@@ -141,7 +154,7 @@ const LifeCounter: React.FC = () => {
 
       animateChange(player);
     },
-    [setGameState, animateChange]
+    [setGameState, animateChange, playLifeGain, playLifeLoss]
   );
 
   // Componente para mostrar jugador
@@ -158,7 +171,7 @@ const LifeCounter: React.FC = () => {
       player === "player1" ? "/images/chudixd.webp" : "/images/chudix.webp";
 
     return (
-      <Card className="transition-all duration-300 relative overflow-hidden bg-gray-800 border-gray-700">
+      <Card className="transition-all duration-300 relative overflow-hidden bg-gray-800 border-gray-700 h-full w-full">
         {/* Imagen de fondo con fallback */}
         <div
           className="absolute inset-0 opacity-20 bg-cover bg-center bg-no-repeat"
@@ -179,80 +192,92 @@ const LifeCounter: React.FC = () => {
           }}
         />
 
-        <CardHeader className="pb-4 relative z-10">
+        <CardHeader className="pb-4 relative z-10 h-16 flex items-center justify-center">
           <div className="flex items-center justify-center">
-            <CardTitle className="text-lg font-bold text-white">
+            <CardTitle className="text-lg font-bold text-white truncate max-w-full">
               {playerData.name}
             </CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="relative z-10">
+        <CardContent className="relative z-10 flex-1 flex items-center justify-center mt-32">
           {/* Contador de vida principal */}
-          <div className="text-center relative h-64 flex items-center justify-center">
+          <div className="text-center relative w-full h-full flex items-center justify-center">
             <div
-              className={`text-9xl font-light tracking-wider text-white transition-all duration-300 ${
+              className={`text-8xl md:text-9xl font-light tracking-wider text-white transition-all duration-300 ${
                 isAnimating ? "scale-110" : "scale-100"
               }`}
             >
               {playerData.life}
             </div>
-            {/* Botones invisibles que cubren la mitad izquierda y derecha */}
-            <div className="absolute inset-0 flex">
-              <button
-                onClick={() => changeLife(player, -1)}
-                className="w-1/2 h-full bg-transparent hover:bg-red-500/20 transition-all duration-300 flex items-center justify-center group"
-                aria-label="Reducir vida"
-              >
-                <span className="text-5xl font-light tracking-widest text-red-400/60 group-hover:text-red-300 group-hover:scale-125 transition-all duration-300">
-                  −
-                </span>
-              </button>
-              <button
-                onClick={() => changeLife(player, 1)}
-                className="w-1/2 h-full bg-transparent hover:bg-green-500/20 transition-all duration-300 flex items-center justify-center group"
-                aria-label="Aumentar vida"
-              >
-                <span className="text-5xl font-light tracking-widest text-green-400/60 group-hover:text-green-300 group-hover:scale-125 transition-all duration-300">
-                  +
-                </span>
-              </button>
-            </div>
           </div>
+
+                     {/* Botones invisibles que cubren toda la tarjeta */}
+           <div className="absolute inset-0 flex">
+             <button
+               onClick={() => changeLife(player, -1)}
+               className="w-1/2 h-full bg-transparent hover:bg-red-500/10 transition-all duration-300 flex items-center justify-center group"
+               aria-label="Reducir vida"
+             >
+               <span className="text-2xl md:text-3xl font-light tracking-widest text-red-400/40 group-hover:text-red-300 group-hover:scale-125 transition-all duration-300 -mt-16">
+                 −
+               </span>
+             </button>
+             <button
+               onClick={() => changeLife(player, 1)}
+               className="w-1/2 h-full bg-transparent hover:bg-green-500/10 transition-all duration-300 flex items-center justify-center group"
+               aria-label="Aumentar vida"
+             >
+               <span className="text-2xl md:text-3xl font-light tracking-widest text-green-400/40 group-hover:text-green-300 group-hover:scale-125 transition-all duration-300 -mt-16">
+                 +
+               </span>
+             </button>
+           </div>
         </CardContent>
       </Card>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gray-900 text-white relative">
+      {/* Botones en la esquina superior derecha */}
+      <div className="absolute top-4 right-4 z-50 flex gap-2">
+        {/* Botón de mute/unmute */}
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={toggleMute}
+          className="bg-gray-800/80 backdrop-blur-sm border-gray-600 hover:bg-gray-700/80"
+        >
+          {isMuted ? (
+            <VolumeX className="w-4 h-4" />
+          ) : (
+            <Volume2 className="w-4 h-4" />
+          )}
+        </Button>
+
+        {/* Botón de reset */}
+        <Button
+          variant="destructive"
+          size="icon"
+          onClick={resetGame}
+          className="flex items-center justify-center"
+        >
+          <RotateCcw className="w-4 h-4" />
+        </Button>
+      </div>
+
+      <div className="h-screen w-full">
         {/* Header */}
         {/* Contadores principales */}
         <div
-          className={`grid gap-8 ${
+          className={`h-full w-full grid ${
             gameState.landscapeMode
               ? "grid-cols-2"
               : "grid-cols-1 lg:grid-cols-2"
           }`}
         >
           <PlayerCard player="player1" playerData={gameState.players.player1} />
-          <Button
-            variant="destructive"
-            onClick={resetGame}
-            className="flex items-center space-x-2"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </Button>
           <PlayerCard player="player2" playerData={gameState.players.player2} />
-        </div>
-
-        {/* Información adicional */}
-        <div className="mt-8 text-center">
-          {gameState.landscapeMode && (
-            <Badge variant="outline" className="text-sm">
-              Modo Landscape
-            </Badge>
-          )}
         </div>
       </div>
     </div>
