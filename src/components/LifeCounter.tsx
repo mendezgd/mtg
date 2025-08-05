@@ -165,27 +165,18 @@ const LifeCounter: React.FC = () => {
           style={{ backgroundImage: `url(${backgroundImage})` }}
         />
 
-        <CardHeader className="pb-4 relative z-10">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div
-                className={`w-10 h-10 rounded-full ${colorConfig.bg} ${colorConfig.border} border-2 flex items-center justify-center`}
-              >
-                <Crown className={`w-5 h-5 ${colorConfig.text}`} />
-              </div>
-              <div>
-                <CardTitle className="text-lg font-bold text-white">
-                  {playerData.name}
-                </CardTitle>
-              </div>
-            </div>
-          </div>
-        </CardHeader>
+                 <CardHeader className="pb-4 relative z-10">
+           <div className="flex items-center justify-center">
+             <CardTitle className="text-lg font-bold text-white">
+               {playerData.name}
+             </CardTitle>
+           </div>
+         </CardHeader>
         <CardContent className="relative z-10">
           {/* Contador de vida principal */}
           <div className="text-center relative h-64 flex items-center justify-center">
                          <div
-               className={`text-9xl font-extralight tracking-wider text-white transition-all duration-300 ${
+               className={`text-9xl font-light tracking-wider text-white transition-all duration-300 ${
                  isAnimating ? "scale-110" : "scale-100"
                }`}
              >
@@ -193,20 +184,24 @@ const LifeCounter: React.FC = () => {
              </div>
             {/* Botones invisibles que cubren la mitad izquierda y derecha */}
             <div className="absolute inset-0 flex">
-              <button
-                onClick={() => changeLife(player, -1)}
-                className="w-1/2 h-full bg-transparent hover:bg-red-500/10 transition-colors duration-200 flex items-center justify-center"
-                aria-label="Reducir vida"
-              >
-                                 <span className="text-5xl font-extralight tracking-widest text-red-400/70">−</span>
-              </button>
-              <button
-                onClick={() => changeLife(player, 1)}
-                className="w-1/2 h-full bg-transparent hover:bg-green-500/10 transition-colors duration-200 flex items-center justify-center"
-                aria-label="Aumentar vida"
-              >
-                                 <span className="text-5xl font-extralight tracking-widest text-green-400/70">+</span>
-              </button>
+                             <button
+                 onClick={() => changeLife(player, -1)}
+                 className="w-1/2 h-full bg-transparent hover:bg-red-500/20 transition-all duration-300 flex items-center justify-center group"
+                 aria-label="Reducir vida"
+               >
+                 <span className="text-5xl font-light tracking-widest text-red-400/60 group-hover:text-red-300 group-hover:scale-125 transition-all duration-300">
+                   −
+                 </span>
+               </button>
+               <button
+                 onClick={() => changeLife(player, 1)}
+                 className="w-1/2 h-full bg-transparent hover:bg-green-500/20 transition-all duration-300 flex items-center justify-center group"
+                 aria-label="Aumentar vida"
+               >
+                 <span className="text-5xl font-light tracking-widest text-green-400/60 group-hover:text-green-300 group-hover:scale-125 transition-all duration-300">
+                   +
+                 </span>
+               </button>
             </div>
           </div>
         </CardContent>
