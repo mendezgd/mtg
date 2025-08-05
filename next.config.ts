@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    unoptimized: false,
+    unoptimized: true,
   },
   compress: true,
   poweredByHeader: false,
@@ -46,15 +46,28 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      {
-        source: '/images/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
+             {
+         source: '/images/(.*)',
+         headers: [
+           {
+             key: 'Cache-Control',
+             value: 'public, max-age=31536000, immutable',
+           },
+         ],
+       },
+       {
+         source: '/images/(.*).webp',
+         headers: [
+           {
+             key: 'Content-Type',
+             value: 'image/webp',
+           },
+           {
+             key: 'Cache-Control',
+             value: 'public, max-age=31536000, immutable',
+           },
+         ],
+       },
       {
         source: '/(.*).(js|css)',
         headers: [
