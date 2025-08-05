@@ -154,64 +154,68 @@ const LifeCounter: React.FC = () => {
   }) => {
     const isAnimating = animations[player].life;
     const colorConfig = mtgColors[playerData.color];
-         const backgroundImage =
-       player === "player1" ? "/images/chudixd.webp" : "/images/chudix.webp";
+    const backgroundImage =
+      player === "player1" ? "/images/chudixd.webp" : "/images/chudix.webp";
 
     return (
       <Card className="transition-all duration-300 relative overflow-hidden bg-gray-800 border-gray-700">
-                 {/* Imagen de fondo con fallback */}
-         <div 
-           className="absolute inset-0 opacity-20 bg-cover bg-center bg-no-repeat"
-           style={{ 
-             backgroundImage: `url(${backgroundImage})`,
-             backgroundColor: player === "player1" ? "rgba(59, 130, 246, 0.1)" : "rgba(239, 68, 68, 0.1)"
-           }}
-         />
-         {/* Fallback de color de fondo */}
-         <div 
-           className="absolute inset-0 opacity-10"
-           style={{
-             backgroundColor: player === "player1" ? "rgb(59, 130, 246)" : "rgb(239, 68, 68)"
-           }}
-         />
+        {/* Imagen de fondo con fallback */}
+        <div
+          className="absolute inset-0 opacity-20 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundColor:
+              player === "player1"
+                ? "rgba(59, 130, 246, 0.1)"
+                : "rgba(239, 68, 68, 0.1)",
+          }}
+        />
+        {/* Fallback de color de fondo */}
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundColor:
+              player === "player1" ? "rgb(59, 130, 246)" : "rgb(239, 68, 68)",
+          }}
+        />
 
-                 <CardHeader className="pb-4 relative z-10">
-           <div className="flex items-center justify-center">
-             <CardTitle className="text-lg font-bold text-white">
-               {playerData.name}
-             </CardTitle>
-           </div>
-         </CardHeader>
+        <CardHeader className="pb-4 relative z-10">
+          <div className="flex items-center justify-center">
+            <CardTitle className="text-lg font-bold text-white">
+              {playerData.name}
+            </CardTitle>
+          </div>
+        </CardHeader>
         <CardContent className="relative z-10">
           {/* Contador de vida principal */}
           <div className="text-center relative h-64 flex items-center justify-center">
-                         <div
-               className={`text-9xl font-light tracking-wider text-white transition-all duration-300 ${
-                 isAnimating ? "scale-110" : "scale-100"
-               }`}
-             >
-               {playerData.life}
-             </div>
+            <div
+              className={`text-9xl font-light tracking-wider text-white transition-all duration-300 ${
+                isAnimating ? "scale-110" : "scale-100"
+              }`}
+            >
+              {playerData.life}
+            </div>
             {/* Botones invisibles que cubren la mitad izquierda y derecha */}
             <div className="absolute inset-0 flex">
-                             <button
-                 onClick={() => changeLife(player, -1)}
-                 className="w-1/2 h-full bg-transparent hover:bg-red-500/20 transition-all duration-300 flex items-center justify-center group"
-                 aria-label="Reducir vida"
-               >
-                 <span className="text-5xl font-light tracking-widest text-red-400/60 group-hover:text-red-300 group-hover:scale-125 transition-all duration-300">
-                   −
-                 </span>
-               </button>
-               <button
-                 onClick={() => changeLife(player, 1)}
-                 className="w-1/2 h-full bg-transparent hover:bg-green-500/20 transition-all duration-300 flex items-center justify-center group"
-                 aria-label="Aumentar vida"
-               >
-                 <span className="text-5xl font-light tracking-widest text-green-400/60 group-hover:text-green-300 group-hover:scale-125 transition-all duration-300">
-                   +
-                 </span>
-               </button>
+              <button
+                onClick={() => changeLife(player, -1)}
+                className="w-1/2 h-full bg-transparent hover:bg-red-500/20 transition-all duration-300 flex items-center justify-center group"
+                aria-label="Reducir vida"
+              >
+                <span className="text-5xl font-light tracking-widest text-red-400/60 group-hover:text-red-300 group-hover:scale-125 transition-all duration-300">
+                  −
+                </span>
+              </button>
+              <button
+                onClick={() => changeLife(player, 1)}
+                className="w-1/2 h-full bg-transparent hover:bg-green-500/20 transition-all duration-300 flex items-center justify-center group"
+                aria-label="Aumentar vida"
+              >
+                <span className="text-5xl font-light tracking-widest text-green-400/60 group-hover:text-green-300 group-hover:scale-125 transition-all duration-300">
+                  +
+                </span>
+              </button>
             </div>
           </div>
         </CardContent>
@@ -223,20 +227,6 @@ const LifeCounter: React.FC = () => {
     <div className="min-h-screen bg-gray-900 text-white">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">MTG Life Counter</h1>
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="destructive"
-              onClick={resetGame}
-              className="flex items-center space-x-2"
-            >
-              <RotateCcw className="w-4 h-4" />
-              <span>Nueva Partida</span>
-            </Button>
-          </div>
-        </div>
-
         {/* Contadores principales */}
         <div
           className={`grid gap-8 ${
@@ -246,6 +236,13 @@ const LifeCounter: React.FC = () => {
           }`}
         >
           <PlayerCard player="player1" playerData={gameState.players.player1} />
+          <Button
+            variant="destructive"
+            onClick={resetGame}
+            className="flex items-center space-x-2"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </Button>
           <PlayerCard player="player2" playerData={gameState.players.player2} />
         </div>
 
