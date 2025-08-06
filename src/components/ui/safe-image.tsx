@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { getProxiedImageUrl, getFallbackImageUrl } from "@/lib/image-utils";
 
 interface SafeImageProps {
   src: string;
@@ -19,15 +20,16 @@ const SafeImage: React.FC<SafeImageProps> = ({
   width,
   height,
   className = "",
-  fallbackSrc = "/images/default-card.svg",
+  fallbackSrc = getFallbackImageUrl(),
   priority = false,
   loading = "lazy",
 }) => {
-  const [imgSrc, setImgSrc] = React.useState(src || fallbackSrc);
+  const [imgSrc, setImgSrc] = React.useState(() => getProxiedImageUrl(src || fallbackSrc));
   const [hasError, setHasError] = React.useState(false);
 
   React.useEffect(() => {
-    setImgSrc(src || fallbackSrc);
+    const newSrc = getProxiedImageUrl(src || fallbackSrc);
+    setImgSrc(newSrc);
     setHasError(false);
   }, [src, fallbackSrc]);
 
@@ -46,7 +48,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
       style={{ width: width || '100%', height: height || 'auto' }}
       onError={handleError}
       loading={loading}
-      crossOrigin="anonymous"
+      // Remove crossOrigin since we're now proxying through our own domain
     />
   );
 };

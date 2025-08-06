@@ -1,6 +1,7 @@
 import React from "react";
 import { SearchableCard } from "@/types/card";
 import SafeImage from "./safe-image";
+import { getFallbackImageUrl } from "@/lib/image-utils";
 
 interface CardGridProps {
   cards: SearchableCard[];
@@ -45,11 +46,11 @@ export const CardGrid: React.FC<CardGridProps> = ({
               className="w-full h-full flex items-center justify-center"
             >
               <SafeImage
-                src={card.image_uris?.normal || "/images/default-card.svg"}
+                src={card.image_uris?.normal || getFallbackImageUrl()}
                 alt={card.name}
                 className="w-full h-full object-contain hover:scale-105 transition-transform rounded-lg max-h-full"
                 loading="lazy"
-                fallbackSrc="/images/default-card.svg"
+                fallbackSrc={getFallbackImageUrl()}
               />
             </button>
           </div>
