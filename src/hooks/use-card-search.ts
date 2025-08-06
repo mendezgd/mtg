@@ -86,7 +86,6 @@ export const useCardSearch = (): UseCardSearchReturn => {
       setError("");
 
       const query = buildSearchQuery(term, filters);
-      console.log("Search query:", query); // Debug log
       
       // Verificar que la consulta no esté vacía
       if (!query || query.trim() === "") {
@@ -102,8 +101,6 @@ export const useCardSearch = (): UseCardSearchReturn => {
         const url = `/cards/search?q=${encodeURIComponent(
           query
         )}&page=1&unique=prints&per_page=${MAX_RESULTS}`;
-
-        console.log("Search URL:", url); // Debug log
 
         const response = await retryRequest(url, {
           timeout: 15000, // 15 segundos de timeout
@@ -155,7 +152,6 @@ export const useCardSearch = (): UseCardSearchReturn => {
         setTotalPages(1); // Siempre 1 página
         setCurrentPage(1);
         
-        console.log(`Search successful: ${cardsWithPrices.length} cards found with prices`);
       } catch (error: any) {
         console.error("Search error:", error.response?.status, error.response?.data, error.message);
         

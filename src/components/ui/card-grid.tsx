@@ -28,14 +28,20 @@ export const CardGrid: React.FC<CardGridProps> = ({
   };
 
   return (
-    <div 
+    <div
       className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-1.5 w-full ${className}`}
     >
       {cards.map((card, index) => (
-        <div key={card.id || `${card.name}-${index}`} className="rounded-lg p-0.5 flex flex-col bg-gray-800/50 border border-gray-700 hover:border-gray-600 transition-colors h-48 w-full min-w-0">
+        <div
+          key={card.id || `${card.name}-${index}`}
+          className="rounded-lg p-0.5 flex flex-col bg-gray-800/50 border border-gray-700 hover:border-gray-600 transition-colors h-48 w-full min-w-0"
+        >
           <div className="flex-1 relative group min-h-0 flex-shrink-0">
             <button
-              onClick={() => handleCardClick(card)}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                handleCardClick(card);
+              }}
               className="w-full h-full flex items-center justify-center"
             >
               <SafeImage
@@ -46,7 +52,7 @@ export const CardGrid: React.FC<CardGridProps> = ({
               />
             </button>
           </div>
-          
+
           <div className="mt-1 space-y-1 flex-shrink-0 min-w-0">
             <h3 className="font-medium text-xs text-gray-200 text-center truncate w-full">
               {card.name}
@@ -67,4 +73,4 @@ export const CardGrid: React.FC<CardGridProps> = ({
       ))}
     </div>
   );
-}; 
+};

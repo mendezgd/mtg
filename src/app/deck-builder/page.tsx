@@ -21,7 +21,9 @@ const DeckBuilder = dynamic(() => import("@/components/DeckBuilder"), {
 });
 
 const DeckBuilderPage: React.FC = () => {
-  const [previewedCard, setPreviewedCard] = useState<SearchableCard | null>(null);
+  const [previewedCard, setPreviewedCard] = useState<SearchableCard | null>(
+    null
+  );
   const [isMounted, setIsMounted] = useState(false);
   const [activeMobileTab, setActiveMobileTab] = useState<
     "search" | "preview" | "deck"
@@ -34,33 +36,44 @@ const DeckBuilderPage: React.FC = () => {
     setIsMounted(true);
   }, []);
 
-  const handleCardPreview = useCallback(
-    (card: SearchableCard) => setPreviewedCard(card),
-    []
-  );
+  const handleCardPreview = useCallback((card: SearchableCard) => {
+    console.log(
+      "Setting previewed card:",
+      card.name,
+      "with image:",
+      card.image_uris?.normal
+    );
+    setPreviewedCard(card);
+  }, []);
 
-  const addCardToDeck = useCallback((card: SearchableCard) => {
+  const addCardToDeck = useCallback(
+    (card: SearchableCard) => {
       // Convert SearchableCard to DeckCard
       const deckCard: DeckCard = {
         ...card,
         id: card.id || card.name, // Use name as fallback ID
       };
       deckManagement.addCardToDeck(deckCard);
-    }, [deckManagement]);
+    },
+    [deckManagement]
+  );
 
-  const addCardToSideboard = useCallback((card: SearchableCard) => {
+  const addCardToSideboard = useCallback(
+    (card: SearchableCard) => {
       // Convert SearchableCard to DeckCard
       const deckCard: DeckCard = {
         ...card,
         id: card.id || card.name, // Use name as fallback ID
       };
       deckManagement.addCardToSideboard(deckCard);
-    }, [deckManagement]);
+    },
+    [deckManagement]
+  );
 
   const handleTabChange = useCallback((tab: typeof activeMobileTab) => {
     setActiveMobileTab(tab);
     // Add smooth scroll to top when changing tabs
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   // Mobile swipe navigation
@@ -79,7 +92,7 @@ const DeckBuilderPage: React.FC = () => {
   }, [activeMobileTab, handleTabChange]);
 
   // Enable swipe only on mobile
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   useMobileSwipe({
     onSwipeLeft: handleSwipeLeft,
     onSwipeRight: handleSwipeRight,
@@ -105,8 +118,8 @@ const DeckBuilderPage: React.FC = () => {
             <button
               key={tab.id}
               className={`flex-1 py-3 px-2 flex flex-col items-center gap-1 transition-all duration-200 ${
-                isActive 
-                  ? "bg-purple-600 text-white shadow-lg" 
+                isActive
+                  ? "bg-purple-600 text-white shadow-lg"
                   : "text-gray-400 hover:text-gray-200 hover:bg-gray-800/50"
               }`}
               onClick={() => handleTabChange(tab.id)}
@@ -155,28 +168,32 @@ const DeckBuilderPage: React.FC = () => {
           Vista Previa
         </h2>
         {previewedCard ? (
-                      <div className="animate-fade-in">
-              <div className="relative group">
-                <SafeImage
-                  src={previewedCard.image_uris?.normal || "/images/default-card.jpg"}
-                  alt={previewedCard.name}
-                  className="w-full rounded-2xl mb-2 md:mb-4 object-cover card-hover shadow-lg"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-              </div>
+          <div className="animate-fade-in">
+            <div className="relative group">
+              <SafeImage
+                src={
+                  previewedCard.image_uris?.normal || "/images/default-card.jpg"
+                }
+                alt={previewedCard.name}
+                className="w-full rounded-2xl mb-2 md:mb-4 object-cover card-hover shadow-lg"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+            </div>
             <h3 className="font-bold text-md md:text-lg mb-2">
               {previewedCard.name}
             </h3>
             <p className="text-sm text-gray-300 mb-3">
               {previewedCard.type_line}
             </p>
-            
+
             {/* Precios de la carta */}
             <div className="bg-gray-900/50 rounded-lg p-3 mb-3">
-              <h4 className="text-sm font-semibold text-gray-300 mb-2">Precios</h4>
+              <h4 className="text-sm font-semibold text-gray-300 mb-2">
+                Precios
+              </h4>
               <CardPrice card={previewedCard} />
             </div>
-            
+
             {previewedCard.oracle_text && (
               <div className="bg-gray-900/50 rounded-lg p-3">
                 <p className="text-xs text-gray-400 whitespace-pre-line leading-relaxed">
@@ -198,18 +215,69 @@ const DeckBuilderPage: React.FC = () => {
               Vista Previa
             </h3>
             <p className="text-gray-400 max-w-md">
-              Selecciona una carta en la búsqueda para ver su vista previa detallada
+              Selecciona una carta en la búsqueda para ver su vista previa
+              detallada
             </p>
+            {/* Test button */}
+            <Button
+              onClick={() => {
+                const testCard: SearchableCard = {
+                  id: "test",
+                  name: "Lightning Bolt",
+                  image_uris: {
+                    small:
+                      "https://cards.scryfall.io/small/front/0/a/0a6eaa6a-8b3f-4c1e-8a1b-1b1b1b1b1b1b.jpg",
+                    normal:
+                      "https://cards.scryfall.io/normal/front/0/a/0a6eaa6a-8b3f-4c1e-8a1b-1b1b1b1b1b1b.jpg",
+                  },
+                  type_line: "Instant",
+                  oracle_text: "Lightning Bolt deals 3 damage to any target.",
+                  mana_cost: "{R}",
+                  colors: ["R"],
+                  legalities: { premodern: "legal" },
+                };
+                console.log("Test button clicked, setting test card");
+                setPreviewedCard(testCard);
+              }}
+              className="mt-4 bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              Test: Set Lightning Bolt
+            </Button>
+            {/* Test button with known working image */}
+            <Button
+              onClick={() => {
+                const testCard: SearchableCard = {
+                  id: "test2",
+                  name: "Test Card",
+                  image_uris: {
+                    small:
+                      "https://cards.scryfall.io/small/front/0/6/06b0c53c-5b8c-4c1e-8a1b-1b1b1b1b1b1b.jpg",
+                    normal:
+                      "https://cards.scryfall.io/normal/front/0/6/06b0c53c-5b8c-4c1e-8a1b-1b1b1b1b1b1b.jpg",
+                  },
+                  type_line: "Test",
+                  oracle_text: "This is a test card.",
+                  mana_cost: "{1}",
+                  colors: ["U"],
+                  legalities: { premodern: "legal" },
+                };
+                console.log(
+                  "Test button 2 clicked, setting test card with known image"
+                );
+                setPreviewedCard(testCard);
+              }}
+              className="mt-2 bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Test: Known Image URL
+            </Button>
           </div>
         )}
       </div>
 
       {/* Deck Builder Column */}
-      <div
-        className={`${
-          activeMobileTab === "deck" ? "block" : "hidden"
-        } md:block w-full md:w-5/12 p-2 md:p-4 overflow-auto h-full`}
-      >
+      <div className={`${
+        activeMobileTab === "deck" ? "block" : "hidden"
+      } md:block w-full md:w-5/12 p-2 md:p-4 overflow-auto h-full`}>
         <div className="flex items-center gap-2 mb-2 md:mb-4">
           <Library className="w-6 h-6 text-purple-400" />
           <h2 className="text-lg md:text-xl font-bold">Mi Mazo</h2>
@@ -219,7 +287,7 @@ const DeckBuilderPage: React.FC = () => {
           setDecks={deckManagement.setDecks}
           selectedDeckId={deckManagement.selectedDeckId}
           setSelectedDeckId={(id) => {
-            if (typeof id === 'function') {
+            if (typeof id === "function") {
               const currentId = deckManagement.selectedDeckId;
               const newId = id(currentId);
               deckManagement.selectDeck(newId);
@@ -235,7 +303,6 @@ const DeckBuilderPage: React.FC = () => {
           addCardToSideboard={deckManagement.addCardToSideboard}
         />
       </div>
-      
     </div>
   );
 };
