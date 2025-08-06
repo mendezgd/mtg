@@ -5,7 +5,7 @@ const path = require('path');
 const publicImagesDir = path.join(__dirname, '../public/images');
 const requiredImages = [
   'pixelpox.jpg',
-  'default-card.jpg',
+  'default-card.svg',
   'chudix.webp',
   'chudixd.webp',
   'pox.webp',

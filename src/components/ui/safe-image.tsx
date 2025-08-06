@@ -20,7 +20,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
   width,
   height,
   className = "",
-  fallbackSrc = "/images/default-card.jpg",
+  fallbackSrc = "/images/default-card.svg",
   priority = false,
   loading = "lazy",
 }) => {

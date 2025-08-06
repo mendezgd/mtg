@@ -5,8 +5,8 @@
 Se reportó un error de CORS al cargar imágenes desde `cards.scryfall.io`:
 
 ```
-Access to image at 'https://cards.scryfall.io/normal/front/9/7/970dcf24-6f33-4264-974c-65f0123bc1bd.jpg?1682525435' 
-from origin 'http://localhost:9002' has been blocked by CORS policy: 
+Access to image at 'https://cards.scryfall.io/normal/front/9/7/970dcf24-6f33-4264-974c-65f0123bc1bd.jpg?1682525435'
+from origin 'http://localhost:9002' has been blocked by CORS policy:
 No 'Access-Control-Allow-Origin' header is present on the requested resource.
 ```
 
@@ -21,6 +21,7 @@ No 'Access-Control-Allow-Origin' header is present on the requested resource.
 ### 1. Modificación del Componente SafeImage
 
 **Antes:**
+
 ```typescript
 // Usar <img> tag para imágenes externas
 if (src.startsWith("http")) {
@@ -36,6 +37,7 @@ if (src.startsWith("http")) {
 ```
 
 **Después:**
+
 ```typescript
 // Usar Next.js Image para todas las imágenes
 return (
@@ -64,11 +66,13 @@ images: {
 ### 3. Fix para Conflicto Priority/Loading
 
 **Problema Adicional:**
+
 ```
 Uncaught Error: Image with src "/images/pixelpox.jpg" has both "priority" and "loading='lazy'" properties. Only one should be used.
 ```
 
 **Solución:**
+
 ```typescript
 // Preparar las props para Next.js Image
 const imageProps: any = {
@@ -102,21 +106,25 @@ return <Image {...imageProps} />;
 ## Verificación
 
 ### Test de Accesibilidad
+
 ```bash
 node scripts/test-images.js
 ```
 
 **Resultado:**
+
 - ✅ HTTP 200: Las imágenes son accesibles
 - ✅ Content-Type: image/jpeg
 - ❌ Access-Control-Allow-Origin: undefined (esperado)
 
 ### Build de Producción
+
 ```bash
 npm run build
 ```
 
 **Resultado:**
+
 - ✅ Compilación exitosa
 - ✅ Sin errores de TypeScript
 - ✅ Sin conflictos de props
@@ -142,4 +150,4 @@ npm run build
 El problema de CORS se resolvió al eliminar el uso de `crossOrigin="anonymous"` y usar exclusivamente el componente `Image` de Next.js, que maneja automáticamente la optimización y el proxy de imágenes externas. También se resolvió el conflicto de props `priority`/`loading`.
 
 **Estado**: ✅ Resuelto
-**Impacto**: Todas las imágenes de cartas ahora cargan correctamente sin errores de consola 
+**Impacto**: Todas las imágenes de cartas ahora cargan correctamente sin errores de consola
