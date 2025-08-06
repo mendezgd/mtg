@@ -42,7 +42,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
     height: height || 140,
     className,
     onError: handleError,
-    unoptimized: false,
+    unoptimized: true,
   };
 
   // Solo usar priority o loading, no ambos
