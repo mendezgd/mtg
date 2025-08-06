@@ -8,22 +8,35 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CARD_TYPES, COLORS, MANA_COSTS } from "@/lib/constants";
 
+const BASIC_LANDS = [
+  { value: "", label: "Tierras Básicas" },
+  { value: "Mountain", label: "Mountain" },
+  { value: "Forest", label: "Forest" },
+  { value: "Island", label: "Island" },
+  { value: "Plains", label: "Plains" },
+  { value: "Swamp", label: "Swamp" },
+];
+
 interface SearchFiltersProps {
   selectedType: string;
   selectedColor: string;
   selectedManaCost: string;
+  selectedBasicLand: string;
   onTypeChange: (type: string) => void;
   onColorChange: (color: string) => void;
   onManaCostChange: (cost: string) => void;
+  onBasicLandChange: (basicLand: string) => void;
 }
 
 export const SearchFilters: React.FC<SearchFiltersProps> = ({
   selectedType,
   selectedColor,
   selectedManaCost,
+  selectedBasicLand,
   onTypeChange,
   onColorChange,
   onManaCostChange,
+  onBasicLandChange,
 }) => {
   const getSelectedLabel = (value: string, options: Array<{ value: string; label: string }>) => {
     const option = options.find(opt => opt.value === value);
@@ -84,6 +97,25 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
               onClick={() => onManaCostChange(cost.value)}
             >
               {cost.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Basic Lands Filter */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button className="p-2 bg-teal-900 rounded text-white w-full md:w-auto">
+            {getSelectedLabel(selectedBasicLand, BASIC_LANDS)}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="bg-gray-900 text-white rounded shadow-md">
+          {BASIC_LANDS.map((land) => (
+            <DropdownMenuItem
+              key={land.value}
+              onClick={() => onBasicLandChange(land.value)}
+            >
+              {land.label}
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>

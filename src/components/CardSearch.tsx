@@ -21,6 +21,7 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
   const [selectedType, setSelectedType] = useState<string>("");
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [selectedManaCost, setSelectedManaCost] = useState<string>("");
+  const [selectedBasicLand, setSelectedBasicLand] = useState<string>("");
   const [isSearching, setIsSearching] = useState(false);
 
   const {
@@ -36,12 +37,13 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
 
   // Función para realizar búsqueda automática
   const performSearch = useCallback(
-    async (term: string, filters: { type: string; color: string; manaCost: string }) => {
-      // Solo buscar si hay término de búsqueda O filtros activos
+    async (term: string, filters: { type: string; color: string; manaCost: string; basicLands: string }) => {
+      // Solo buscar si hay término de búsqueda O filtros activos O tierras básicas
       const hasSearchTerm = term.trim().length > 0;
       const hasFilters = filters.type || filters.color || filters.manaCost;
+      const hasBasicLands = filters.basicLands && filters.basicLands.trim() !== "";
       
-      if (!hasSearchTerm && !hasFilters) {
+      if (!hasSearchTerm && !hasFilters && !hasBasicLands) {
         clearResults();
         return;
       }
@@ -60,11 +62,12 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
     async (e: React.FormEvent) => {
       e.preventDefault();
       
-      // Permitir búsqueda si hay término O filtros activos
+      // Permitir búsqueda si hay término O filtros activos O tierras básicas
       const hasSearchTerm = searchTerm.trim().length > 0;
       const hasFilters = selectedType || selectedColor || selectedManaCost;
+      const hasBasicLands = selectedBasicLand && selectedBasicLand.trim() !== "";
       
-      if (!hasSearchTerm && !hasFilters) {
+      if (!hasSearchTerm && !hasFilters && !hasBasicLands) {
         return; // No buscar si no hay nada
       }
       
@@ -72,9 +75,10 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
         type: selectedType,
         color: selectedColor,
         manaCost: selectedManaCost,
+        basicLands: selectedBasicLand,
       });
     },
-    [searchTerm, selectedType, selectedColor, selectedManaCost, performSearch]
+    [searchTerm, selectedType, selectedColor, selectedManaCost, selectedBasicLand, performSearch]
   );
 
   // Función para manejar cambios de filtros
@@ -84,6 +88,7 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
         type: filterType === 'type' ? value : selectedType,
         color: filterType === 'color' ? value : selectedColor,
         manaCost: filterType === 'manaCost' ? value : selectedManaCost,
+        basicLands: selectedBasicLand,
       };
 
       // Actualizar el estado del filtro
@@ -94,7 +99,7 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
       // Realizar búsqueda automática
       performSearch(searchTerm, newFilters);
     },
-    [searchTerm, selectedType, selectedColor, selectedManaCost, performSearch]
+    [searchTerm, selectedType, selectedColor, selectedManaCost, selectedBasicLand, performSearch]
   );
 
   // Funciones específicas para cada filtro
@@ -110,11 +115,23 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
     handleFilterChange('manaCost', value);
   }, [handleFilterChange]);
 
+  const handleBasicLandChange = useCallback((value: string) => {
+    setSelectedBasicLand(value);
+    const newFilters = {
+      type: selectedType,
+      color: selectedColor,
+      manaCost: selectedManaCost,
+      basicLands: value,
+    };
+    performSearch(searchTerm, newFilters);
+  }, [selectedType, selectedColor, selectedManaCost, searchTerm, performSearch]);
+
   const handleClear = useCallback(() => {
     setSearchTerm("");
     setSelectedType("");
     setSelectedColor("");
     setSelectedManaCost("");
+    setSelectedBasicLand("");
     clearResults();
   }, [clearResults]);
 
@@ -155,16 +172,18 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
           selectedType={selectedType}
           selectedColor={selectedColor}
           selectedManaCost={selectedManaCost}
+          selectedBasicLand={selectedBasicLand}
           onTypeChange={handleTypeChange}
           onColorChange={handleColorChange}
           onManaCostChange={handleManaCostChange}
+          onBasicLandChange={handleBasicLandChange}
         />
 
         {/* Search Actions */}
         <div className="flex gap-2">
           <Button
             type="submit"
-            disabled={loading || (!searchTerm.trim() && !selectedType && !selectedColor && !selectedManaCost)}
+            disabled={loading || (!searchTerm.trim() && !selectedType && !selectedColor && !selectedManaCost && !selectedBasicLand)}
             className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg transition-all duration-200 btn-hover"
           >
             {loading ? (
@@ -195,16 +214,28 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
         <div className="mb-4 p-4 bg-red-900/20 border border-red-500/30 rounded-lg flex items-center gap-2 text-red-400">
           <AlertCircle className="w-5 h-5" />
           <span>{error}</span>
-          {(error.includes("No se encontraron cartas") || error.includes("No cards found")) && (
-            <Button
-              onClick={handleClear}
-              variant="outline"
-              size="sm"
-              className="ml-auto text-xs border-red-500/30 hover:border-red-500/50"
-            >
-              Limpiar
-            </Button>
-          )}
+          <div className="ml-auto flex gap-2">
+            {error.includes("Error de conexión") && (
+              <Button
+                onClick={() => handleSearch(new Event('submit') as any)}
+                variant="outline"
+                size="sm"
+                className="text-xs border-red-500/30 hover:border-red-500/50"
+              >
+                Reintentar
+              </Button>
+            )}
+            {(error.includes("No se encontraron cartas") || error.includes("No cards found")) && (
+              <Button
+                onClick={handleClear}
+                variant="outline"
+                size="sm"
+                className="text-xs border-red-500/30 hover:border-red-500/50"
+              >
+                Limpiar
+              </Button>
+            )}
+          </div>
         </div>
       )}
 
@@ -221,13 +252,13 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
             </div>
 
             {/* Cards Grid */}
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 overflow-auto w-full">
               <CardGrid
                 cards={searchResults}
                 onCardClick={handleCardClick}
                 onCardPreview={onCardPreview}
                 onAddToDeck={handleAddToDeck}
-                className="animate-fade-in"
+                className="animate-fade-in w-full"
               />
             </div>
           </div>
