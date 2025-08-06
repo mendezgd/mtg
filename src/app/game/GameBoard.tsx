@@ -6,6 +6,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { generateUUID } from "@/lib/utils";
 import { GameCard, DeckCardEntry, Deck } from "@/types/card";
+import SafeImage from "@/components/ui/safe-image";
 
 // Use GameCard instead of CardData
 type CardData = GameCard;
@@ -156,18 +157,12 @@ const DraggableCard: React.FC<{
       onTouchEnd={handleTouchEnd}
       onTouchMove={handleTouchMove}
     >
-      {card.image_uris?.normal ? (
-        <img
-          src={card.image_uris.normal}
-          alt={card.name}
-          className="w-full h-full object-cover rounded"
-          draggable="false"
-        />
-      ) : (
-        <div className="text-center text-xs bg-gray-600 text-white p-2 rounded">
-          Sin Imagen
-        </div>
-      )}
+      <SafeImage
+        src={card.image_uris?.normal || "/images/default-card.jpg"}
+        alt={card.name}
+        className="w-full h-full object-cover rounded"
+        loading="lazy"
+      />
     </div>
   );
 };
@@ -454,17 +449,12 @@ const CardSelectionModal: React.FC<{
                     selectedCards.has(card.id!) ? "ring-2 ring-blue-500" : ""
                   } ${draggedCard?.id === card.id ? "opacity-50" : ""}`}
                 >
-                  {card.image_uris?.normal ? (
-                    <img
-                      src={card.image_uris.normal}
-                      alt={card.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white text-sm bg-gray-700">
-                      {card.name}
-                    </div>
-                  )}
+                  <SafeImage
+                    src={card.image_uris?.normal || "/images/default-card.jpg"}
+                    alt={card.name}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
                   {isArranging && (
                     <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-sm">
                       {arrangedCards.findIndex((c) => c.id === card.id) + 1}
@@ -567,17 +557,12 @@ const ViewTopCardsModal: React.FC<{
           {arrangedCards.map((card, index) => (
             <div key={card.id} className="relative group">
               <div className="relative w-full aspect-[2.5/3.5] bg-gray-700 rounded-lg overflow-hidden">
-                {card.image_uris?.normal ? (
-                  <img
-                    src={card.image_uris.normal}
-                    alt={card.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white text-sm">
-                    {card.name}
-                  </div>
-                )}
+                <SafeImage
+                  src={card.image_uris?.normal || "/images/default-card.jpg"}
+                  alt={card.name}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
                 <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-sm">
                   {index + 1}
                 </div>

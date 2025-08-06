@@ -1,5 +1,6 @@
 import React from "react";
 import { SearchableCard } from "@/types/card";
+import SafeImage from "./safe-image";
 
 interface CardGridProps {
   cards: SearchableCard[];
@@ -37,18 +38,12 @@ export const CardGrid: React.FC<CardGridProps> = ({
               onClick={() => handleCardClick(card)}
               className="w-full h-full flex items-center justify-center"
             >
-              {card.image_uris?.normal ? (
-                <img
-                  src={card.image_uris.normal}
-                  alt={card.name}
-                  className="w-full h-full object-contain hover:scale-105 transition-transform rounded-lg max-h-full"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="w-full h-full bg-gray-700 flex items-center justify-center rounded-lg">
-                  <span className="text-gray-400 text-xs">No Image</span>
-                </div>
-              )}
+              <SafeImage
+                src={card.image_uris?.normal || "/images/default-card.jpg"}
+                alt={card.name}
+                className="w-full h-full object-contain hover:scale-105 transition-transform rounded-lg max-h-full"
+                loading="lazy"
+              />
             </button>
           </div>
           

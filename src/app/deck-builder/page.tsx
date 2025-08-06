@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import CardSearch from "@/components/CardSearch";
 import dynamic from "next/dynamic";
 import { SearchableCard, DeckCard, Deck } from "@/types/card";
-import Image from "next/image";
+import SafeImage from "@/components/ui/safe-image";
 import { Input } from "@/components/ui/input";
 import { useDeckManagement } from "@/hooks/use-deck-management";
 import { useMobileSwipe } from "@/hooks/use-mobile-swipe";
@@ -129,7 +129,7 @@ const DeckBuilderPage: React.FC = () => {
         } md:block w-full md:w-1/3 p-2 md:p-4 border-r border-gray-700 flex flex-col h-full`}
       >
         <div className="flex items-center gap-2 mb-2 md:mb-4">
-          <Image
+          <SafeImage
             src="/images/pixelpox.jpg"
             alt="Ícono de búsqueda"
             width={24}
@@ -155,15 +155,15 @@ const DeckBuilderPage: React.FC = () => {
           Vista Previa
         </h2>
         {previewedCard ? (
-          <div className="animate-fade-in">
-            <div className="relative group">
-              <img
-                src={previewedCard.image_uris?.normal || "/default-card.jpg"}
-                alt={previewedCard.name}
-                className="w-full rounded-2xl mb-2 md:mb-4 object-cover card-hover shadow-lg"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-            </div>
+                      <div className="animate-fade-in">
+              <div className="relative group">
+                <SafeImage
+                  src={previewedCard.image_uris?.normal || "/images/default-card.jpg"}
+                  alt={previewedCard.name}
+                  className="w-full rounded-2xl mb-2 md:mb-4 object-cover card-hover shadow-lg"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+              </div>
             <h3 className="font-bold text-md md:text-lg mb-2">
               {previewedCard.name}
             </h3>

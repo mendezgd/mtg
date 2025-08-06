@@ -18,6 +18,7 @@ import dynamic from "next/dynamic";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { generateUUID } from "@/lib/utils";
+import SafeImage from "@/components/ui/safe-image";
 
 const ScrollArea = dynamic(
   () =>
@@ -363,8 +364,8 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                 </HoverCardTrigger>
                 <HoverCardContent className="w-80 p-0" side="right">
                   <div className="space-y-3 p-4">
-                    <img
-                      src={validCard.image_uris?.normal || "/default-card.jpg"}
+                    <SafeImage
+                      src={validCard.image_uris?.normal || "/images/default-card.jpg"}
                       alt={`Imagen de ${name}`}
                       className="w-full rounded shadow-sm"
                       loading="lazy"
@@ -413,8 +414,8 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
 
             {touchedCard?.name === name && (
               <div className="mobile-card-preview fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-64 h-88 rounded-lg overflow-hidden border border-gray-300 shadow-lg">
-                <img
-                  src={validCard.image_uris?.normal || "/default-card.jpg"}
+                <SafeImage
+                  src={validCard.image_uris?.normal || "/images/default-card.jpg"}
                   alt={`Vista previa de ${name}`}
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -803,9 +804,9 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                 </h3>
                 <div className="flex gap-2 overflow-x-auto pb-2">
                   {sampleHand.map((card, index) => (
-                    <img
+                    <SafeImage
                       key={index}
-                      src={card.image_uris?.normal || "/default-card.jpg"}
+                      src={card.image_uris?.normal || "/images/default-card.jpg"}
                       alt={`Carta ${index + 1}: ${card.name}`}
                       className="w-16 h-24 object-cover rounded shadow-sm"
                       loading="lazy"
