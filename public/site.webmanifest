@@ -12,14 +12,14 @@
   "categories": ["games", "entertainment"],
   "icons": [
     {
-      "src": "/images/pixelpox.jpg",
+      "src": "/images/pixelpox.webp",
       "sizes": "192x192",
-      "type": "image/jpeg"
+      "type": "image/webp"
     },
     {
-      "src": "/images/pixelpox.jpg",
+      "src": "/images/pixelpox.webp",
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/webp"
     }
   ]
 } 

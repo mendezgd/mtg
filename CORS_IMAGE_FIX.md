@@ -4,11 +4,12 @@
 
 ### 1. Missing Favicon Files (404 Errors)
 - **Problem**: Layout referenced favicon files that didn't exist in the public directory
-- **Solution**: Created placeholder files for:
-  - `/favicon.ico`
-  - `/favicon-32x32.png`
-  - `/favicon-16x16.png`
-  - `/apple-touch-icon.png`
+- **Solution**: Created comprehensive favicon solution for both local and Vercel deployment:
+  - Updated `layout.tsx` to use multiple favicon formats for better compatibility
+  - Created `/api/favicon` route as fallback for Vercel deployment
+  - Added proper headers for favicon serving in Next.js config
+  - Updated `site.webmanifest` to use `/images/pixelpox.webp` for app icons
+  - Added favicon.ico placeholder for maximum browser compatibility
 
 ### 2. CORS Error with Scryfall Images
 - **Problem**: `Access to image at 'https://cards.scryfall.io/...' has been blocked by CORS policy`
@@ -85,6 +86,8 @@ To verify the fixes work:
 ### New Files:
 - `src/app/api/proxy-image/route.ts` - Proxy API for Scryfall images
 - `src/app/api/test-proxy/route.ts` - Test endpoint for proxy functionality
+- `src/app/api/favicon/route.ts` - Favicon API route for Vercel deployment
+- `src/app/api/test-favicon/route.ts` - Test endpoint for favicon functionality
 - `src/lib/image-utils.ts` - Image URL transformation utilities
 
 ### Modified Files:
@@ -94,7 +97,8 @@ To verify the fixes work:
 
 ## Notes
 
-- The favicon files are currently placeholders. Replace them with actual icon files for production
+- Favicon solution now works on both local development and Vercel deployment
+- Multiple favicon formats ensure maximum browser compatibility
 - The proxy solution completely eliminates CORS issues by serving images from our own domain
 - External images from Scryfall are now proxied through our API, ensuring they load properly
 - The proxy includes proper caching headers for better performance
