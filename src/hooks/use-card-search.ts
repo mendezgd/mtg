@@ -72,6 +72,8 @@ export const useCardSearch = (): UseCardSearchReturn => {
         await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
       }
     }
+    // This should never be reached, but TypeScript needs it for type safety
+    throw new Error("Unexpected end of retry loop");
   };
 
   const searchCards = useCallback(
@@ -83,19 +85,19 @@ export const useCardSearch = (): UseCardSearchReturn => {
       setLoading(true);
       setError("");
 
+      const query = buildSearchQuery(term, filters);
+      console.log("Search query:", query); // Debug log
+      
+      // Verificar que la consulta no esté vacía
+      if (!query || query.trim() === "") {
+        setError("Consulta de búsqueda vacía. Por favor, ingresa un término de búsqueda o selecciona un filtro.");
+        setSearchResults([]);
+        setTotalPages(1);
+        setCurrentPage(1);
+        return;
+      }
+
       try {
-        const query = buildSearchQuery(term, filters);
-        console.log("Search query:", query); // Debug log
-        
-        // Verificar que la consulta no esté vacía
-        if (!query || query.trim() === "") {
-          setError("Consulta de búsqueda vacía. Por favor, ingresa un término de búsqueda o selecciona un filtro.");
-          setSearchResults([]);
-          setTotalPages(1);
-          setCurrentPage(1);
-          return;
-        }
-        
         // Siempre usar página 1 y pedir máximo 100 resultados
         const url = `/cards/search?q=${encodeURIComponent(
           query
@@ -106,6 +108,10 @@ export const useCardSearch = (): UseCardSearchReturn => {
         const response = await retryRequest(url, {
           timeout: 15000, // 15 segundos de timeout
         });
+
+        if (!response || !response.data || !response.data.data) {
+          throw new Error("Invalid response from API");
+        }
 
         const filteredCards = response.data.data.filter(
           (card: SearchableCard) => {
