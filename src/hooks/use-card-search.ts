@@ -156,7 +156,11 @@ export const useCardSearch = (): UseCardSearchReturn => {
         
         // Calcular paginación basada en el total de resultados
         const totalCards = Math.min(response.data.total_cards || cardsWithPrices.length, MAX_TOTAL_RESULTS);
-        const calculatedTotalPages = Math.ceil(totalCards / MAX_RESULTS);
+        // Ser más conservador con el cálculo de páginas para evitar errores 422
+        const calculatedTotalPages = Math.min(
+          Math.ceil(totalCards / MAX_RESULTS),
+          Math.ceil(MAX_TOTAL_RESULTS / MAX_RESULTS)
+        );
         
         setTotalResults(totalCards);
         setTotalPages(calculatedTotalPages);
@@ -173,11 +177,21 @@ export const useCardSearch = (): UseCardSearchReturn => {
           setCurrentPage(1);
         } else if (error.response?.status === 404 || error.response?.status === 422) {
           console.log("404/422 Error details:", error.response?.data);
-          setError("No se encontraron cartas con los criterios especificados. Verifica la consulta: " + query);
-          setSearchResults([]);
-          setTotalPages(1);
-          setCurrentPage(1);
-          setTotalResults(0);
+          
+          // Si es error 422, probablemente es porque intentamos acceder a una página que no existe
+          if (error.response?.status === 422 && page > 1) {
+            // Ajustar el total de páginas al número máximo disponible
+            const maxAvailablePage = page - 1;
+            setTotalPages(maxAvailablePage);
+            setCurrentPage(maxAvailablePage);
+            setError(`No hay más páginas disponibles. Máximo ${maxAvailablePage} páginas.`);
+          } else {
+            setError("No se encontraron cartas con los criterios especificados. Verifica la consulta: " + query);
+            setSearchResults([]);
+            setTotalPages(1);
+            setCurrentPage(1);
+            setTotalResults(0);
+          }
         } else if (error.response?.status === 400) {
           setError("Consulta de búsqueda inválida. Verifica los términos de búsqueda.");
           setSearchResults([]);

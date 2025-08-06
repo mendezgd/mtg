@@ -154,6 +154,11 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
 
   const handlePageChange = useCallback(
     (newPage: number) => {
+      // Validar que la página esté dentro del rango válido
+      if (newPage < 1 || newPage > totalPages) {
+        return;
+      }
+      
       searchCards(searchTerm, {
         type: selectedType,
         color: selectedColor,
@@ -161,7 +166,7 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
         basicLands: selectedBasicLand,
       }, newPage);
     },
-    [searchTerm, selectedType, selectedColor, selectedManaCost, selectedBasicLand, searchCards]
+    [searchTerm, selectedType, selectedColor, selectedManaCost, selectedBasicLand, searchCards, totalPages]
   );
 
   return (
@@ -222,35 +227,45 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
         </div>
       </form>
 
-      {/* Error Display */}
-      {error && (
-        <div className="mb-4 p-4 bg-red-900/20 border border-red-500/30 rounded-lg flex items-center gap-2 text-red-400">
-          <AlertCircle className="w-5 h-5" />
-          <span>{error}</span>
-          <div className="ml-auto flex gap-2">
-            {error.includes("Error de conexión") && (
-              <Button
-                onClick={() => handleSearch(new Event('submit') as any)}
-                variant="outline"
-                size="sm"
-                className="text-xs border-red-500/30 hover:border-red-500/50"
-              >
-                Reintentar
-              </Button>
-            )}
-            {(error.includes("No se encontraron cartas") || error.includes("No cards found")) && (
-              <Button
-                onClick={handleClear}
-                variant="outline"
-                size="sm"
-                className="text-xs border-red-500/30 hover:border-red-500/50"
-              >
-                Limpiar
-              </Button>
-            )}
+              {/* Error Display */}
+        {error && (
+          <div className="mb-4 p-4 bg-red-900/20 border border-red-500/30 rounded-lg flex items-center gap-2 text-red-400">
+            <AlertCircle className="w-5 h-5" />
+            <span>{error}</span>
+            <div className="ml-auto flex gap-2">
+              {error.includes("Error de conexión") && (
+                <Button
+                  onClick={() => handleSearch(new Event('submit') as any)}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs border-red-500/30 hover:border-red-500/50"
+                >
+                  Reintentar
+                </Button>
+              )}
+              {(error.includes("No se encontraron cartas") || error.includes("No cards found")) && (
+                <Button
+                  onClick={handleClear}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs border-red-500/30 hover:border-red-500/50"
+                >
+                  Limpiar
+                </Button>
+              )}
+              {error.includes("No hay más páginas disponibles") && (
+                <Button
+                  onClick={handleClear}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs border-red-500/30 hover:border-red-500/50"
+                >
+                  Limpiar
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Results Section */}
       <div className="flex-1 overflow-hidden">

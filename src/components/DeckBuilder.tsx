@@ -317,27 +317,22 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                     aria-label={`Ver detalles de ${name}`}
                     onTouchStart={(e) => {
                       e.stopPropagation();
-                      e.preventDefault();
                       setTouchedCard({ card: validCard, name });
                     }}
                     onTouchEnd={(e) => {
                       e.stopPropagation();
-                      e.preventDefault();
                       setTouchedCard(null);
                     }}
                     onMouseDown={(e) => {
                       e.stopPropagation();
-                      e.preventDefault();
                       setTouchedCard({ card: validCard, name });
                     }}
                     onMouseUp={(e) => {
                       e.stopPropagation();
-                      e.preventDefault();
                       setTouchedCard(null);
                     }}
                     onMouseLeave={(e) => {
                       e.stopPropagation();
-                      e.preventDefault();
                       setTouchedCard(null);
                     }}
                   >
