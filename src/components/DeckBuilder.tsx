@@ -360,7 +360,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                 <HoverCardContent className="w-80 p-0" side="right">
                   <div className="space-y-3 p-4">
                     <SafeImage
-                      src={validCard.image_uris?.normal || "/images/default-card.jpg"}
+                      src={validCard.image_uris?.normal || "/images/default-card.svg"}
                       alt={`Imagen de ${name}`}
                       className="w-full rounded shadow-sm"
                       loading="lazy"
@@ -410,7 +410,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
             {touchedCard?.name === name && (
               <div className="mobile-card-preview fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-64 h-88 rounded-lg overflow-hidden border border-gray-300 shadow-lg">
                 <SafeImage
-                  src={validCard.image_uris?.normal || "/images/default-card.jpg"}
+                  src={validCard.image_uris?.normal || "/images/default-card.svg"}
                   alt={`Vista previa de ${name}`}
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -801,7 +801,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                   {sampleHand.map((card, index) => (
                     <SafeImage
                       key={index}
-                      src={card.image_uris?.normal || "/images/default-card.jpg"}
+                      src={card.image_uris?.normal || "/images/default-card.svg"}
                       alt={`Carta ${index + 1}: ${card.name}`}
                       className="w-16 h-24 object-cover rounded shadow-sm"
                       loading="lazy"

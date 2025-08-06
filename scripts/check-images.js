@@ -4,11 +4,11 @@ const path = require('path');
 // Verificar que las imágenes locales existan
 const publicImagesDir = path.join(__dirname, '../public/images');
 const requiredImages = [
-  'pixelpox.jpg',
   'default-card.svg',
   'chudix.webp',
   'chudixd.webp',
   'pox.webp',
+  'pixelpox.webp',
   'background.webp'
 ];
 

@@ -4,11 +4,11 @@ import { SearchableCard } from "@/types/card";
 
 // Configurar axios para evitar problemas de CORS
 const apiClient = axios.create({
-  baseURL: 'https://api.scryfall.com',
+  baseURL: "https://api.scryfall.com",
   timeout: 15000,
   headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
+    Accept: "application/json",
+    "Content-Type": "application/json",
   },
 });
 
@@ -26,7 +26,11 @@ interface UseCardSearchReturn {
   currentPage: number;
   totalPages: number;
   totalResults: number;
-  searchCards: (term: string, filters: SearchFilters, page?: number) => Promise<void>;
+  searchCards: (
+    term: string,
+    filters: SearchFilters,
+    page?: number
+  ) => Promise<void>;
   clearResults: () => void;
   adjustTotalPagesOnError: (failedPage: number) => void;
 }
@@ -42,28 +46,35 @@ export const useCardSearch = (): UseCardSearchReturn => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
 
-  const buildSearchQuery = useCallback((term: string, filters: SearchFilters) => {
-    // Si el filtro de tierras básicas está activo, usar una consulta especial
-    if (filters.basicLands && filters.basicLands.trim() !== "") {
-      return `name:"${filters.basicLands}"`;
-    }
+  const buildSearchQuery = useCallback(
+    (term: string, filters: SearchFilters) => {
+      // Si el filtro de tierras básicas está activo, usar una consulta especial
+      if (filters.basicLands && filters.basicLands.trim() !== "") {
+        return `name:"${filters.basicLands}"`;
+      }
 
-    const baseQuery = "format:premodern";
-    const typeFilter = filters.type ? ` type:${filters.type}` : "";
-    const colorFilter = filters.color ? ` color:${filters.color}` : "";
-    const manaCostFilter = filters.manaCost
-      ? filters.manaCost === "8+"
-        ? " cmc>=8"
-        : ` cmc:${filters.manaCost}`
-      : "";
+      const baseQuery = "format:premodern";
+      const typeFilter = filters.type ? ` type:${filters.type}` : "";
+      const colorFilter = filters.color ? ` color:${filters.color}` : "";
+      const manaCostFilter = filters.manaCost
+        ? filters.manaCost === "8+"
+          ? " cmc>=8"
+          : ` cmc:${filters.manaCost}`
+        : "";
 
-    return term.trim()
-      ? `${baseQuery} (name:${term}* OR oracle:${term})${typeFilter}${colorFilter}${manaCostFilter}`
-      : `${baseQuery}${typeFilter}${colorFilter}${manaCostFilter}`;
-  }, []);
+      return term.trim()
+        ? `${baseQuery} (name:${term}* OR oracle:${term})${typeFilter}${colorFilter}${manaCostFilter}`
+        : `${baseQuery}${typeFilter}${colorFilter}${manaCostFilter}`;
+    },
+    []
+  );
 
   // Función de reintento para peticiones
-  const retryRequest = async (url: string, options: any, maxRetries: number = 2) => {
+  const retryRequest = async (
+    url: string,
+    options: any,
+    maxRetries: number = 2
+  ) => {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         return await apiClient.get(url, options);
@@ -72,7 +83,9 @@ export const useCardSearch = (): UseCardSearchReturn => {
           throw error;
         }
         // Esperar antes de reintentar (backoff exponencial)
-        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+        await new Promise((resolve) =>
+          setTimeout(resolve, 1000 * Math.pow(2, attempt))
+        );
       }
     }
     // This should never be reached, but TypeScript needs it for type safety
@@ -81,7 +94,13 @@ export const useCardSearch = (): UseCardSearchReturn => {
 
   const searchCards = useCallback(
     async (term: string, filters: SearchFilters, page: number = 1) => {
-      if (!term.trim() && !filters.type && !filters.color && !filters.manaCost && !filters.basicLands) {
+      if (
+        !term.trim() &&
+        !filters.type &&
+        !filters.color &&
+        !filters.manaCost &&
+        !filters.basicLands
+      ) {
         return;
       }
 
@@ -89,10 +108,12 @@ export const useCardSearch = (): UseCardSearchReturn => {
       setError("");
 
       const query = buildSearchQuery(term, filters);
-      
+
       // Verificar que la consulta no esté vacía
       if (!query || query.trim() === "") {
-        setError("Consulta de búsqueda vacía. Por favor, ingresa un término de búsqueda o selecciona un filtro.");
+        setError(
+          "Consulta de búsqueda vacía. Por favor, ingresa un término de búsqueda o selecciona un filtro."
+        );
         setSearchResults([]);
         setTotalPages(1);
         setCurrentPage(1);
@@ -117,18 +138,26 @@ export const useCardSearch = (): UseCardSearchReturn => {
           (card: SearchableCard) => {
             // Si es búsqueda de tierras básicas, no verificar legalidad de premodern
             if (filters.basicLands && filters.basicLands.trim() !== "") {
-              return card.image_uris?.normal || card.card_faces?.[0]?.image_uris?.normal;
+              return (
+                card.image_uris?.normal ||
+                card.card_faces?.[0]?.image_uris?.normal
+              );
             }
-            
+
             // Para otras cartas, verificar legalidad de premodern
-            return card.legalities?.premodern === "legal" &&
-                   (card.image_uris?.normal || card.card_faces?.[0]?.image_uris?.normal);
+            return (
+              card.legalities?.premodern === "legal" &&
+              (card.image_uris?.normal ||
+                card.card_faces?.[0]?.image_uris?.normal)
+            );
           }
         );
 
         if (filteredCards.length === 0) {
           setSearchResults([]);
-          setError("No se encontraron cartas con los criterios especificados. Intenta con términos diferentes o ajusta los filtros.");
+          setError(
+            "No se encontraron cartas con los criterios especificados. Intenta con términos diferentes o ajusta los filtros."
+          );
           setTotalPages(1);
           setCurrentPage(1);
           setTotalResults(0);
@@ -148,58 +177,83 @@ export const useCardSearch = (): UseCardSearchReturn => {
               eur: null,
               eur_foil: null,
               tix: null,
-            }
+            },
           };
         });
 
         setSearchResults(cardsWithPrices);
-        
+
         // Calcular paginación basada en el total de resultados
-        const totalCards = Math.min(response.data.total_cards || cardsWithPrices.length, MAX_TOTAL_RESULTS);
+        const totalCards = Math.min(
+          response.data.total_cards || cardsWithPrices.length,
+          MAX_TOTAL_RESULTS
+        );
         // Ser más conservador con el cálculo de páginas para evitar errores 422
         const calculatedTotalPages = Math.min(
           Math.ceil(totalCards / MAX_RESULTS),
           Math.ceil(MAX_TOTAL_RESULTS / MAX_RESULTS)
         );
-        
+
         setTotalResults(totalCards);
         setTotalPages(calculatedTotalPages);
         setCurrentPage(page);
-        
       } catch (error: any) {
-        console.error("Search error:", error.response?.status, error.response?.data, error.message);
-        
+        console.error(
+          "Search error:",
+          error.response?.status,
+          error.response?.data,
+          error.message
+        );
+
         // Manejar diferentes tipos de errores
-        if (error.code === 'NETWORK_ERROR' || error.message?.includes('Network Error') || !error.response) {
-          setError("Error de conexión. Verifica tu conexión a internet e intenta nuevamente.");
+        if (
+          error.code === "NETWORK_ERROR" ||
+          error.message?.includes("Network Error") ||
+          !error.response
+        ) {
+          setError(
+            "Error de conexión. Verifica tu conexión a internet e intenta nuevamente."
+          );
           setSearchResults([]);
           setTotalPages(1);
           setCurrentPage(1);
-        } else if (error.response?.status === 404 || error.response?.status === 422) {
+        } else if (
+          error.response?.status === 404 ||
+          error.response?.status === 422
+        ) {
           console.log("404/422 Error details:", error.response?.data);
-          
+
           // Si es error 422, probablemente es porque intentamos acceder a una página que no existe
           if (error.response?.status === 422 && page > 1) {
             // Ajustar el total de páginas al número máximo disponible
             const maxAvailablePage = page - 1;
             setTotalPages(maxAvailablePage);
             setCurrentPage(maxAvailablePage);
-            setError(`No hay más páginas disponibles. Máximo ${maxAvailablePage} páginas.`);
+            setError(
+              `No hay más páginas disponibles. Máximo ${maxAvailablePage} páginas.`
+            );
           } else {
-            setError("No se encontraron cartas con los criterios especificados. Verifica la consulta: " + query);
+            setError(
+              "No se encontraron cartas con los criterios especificados. Verifica la consulta: " +
+                query
+            );
             setSearchResults([]);
             setTotalPages(1);
             setCurrentPage(1);
             setTotalResults(0);
           }
         } else if (error.response?.status === 400) {
-          setError("Consulta de búsqueda inválida. Verifica los términos de búsqueda.");
+          setError(
+            "Consulta de búsqueda inválida. Verifica los términos de búsqueda."
+          );
           setSearchResults([]);
           setTotalPages(1);
           setCurrentPage(1);
           setTotalResults(0);
         } else if (error.response?.status >= 500) {
-          setError("Error del servidor. Por favor, intenta nuevamente en unos momentos.");
+          setError(
+            "Error del servidor. Por favor, intenta nuevamente en unos momentos."
+          );
           setSearchResults([]);
           setTotalPages(1);
           setCurrentPage(1);
@@ -243,4 +297,4 @@ export const useCardSearch = (): UseCardSearchReturn => {
     clearResults,
     adjustTotalPagesOnError,
   };
-}; 
+};

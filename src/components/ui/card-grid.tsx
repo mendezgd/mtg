@@ -45,7 +45,7 @@ export const CardGrid: React.FC<CardGridProps> = ({
               className="w-full h-full flex items-center justify-center"
             >
               <SafeImage
-                src={card.image_uris?.normal || "/images/default-card.jpg"}
+                src={card.image_uris?.normal || "/images/default-card.svg"}
                 alt={card.name}
                 className="w-full h-full object-contain hover:scale-105 transition-transform rounded-lg max-h-full"
                 loading="lazy"

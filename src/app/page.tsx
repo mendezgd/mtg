@@ -13,11 +13,11 @@ export default function HomePage() {
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
           <div className="flex justify-center mb-8">
             <SafeImage
-              src="/images/pixelpox.jpg"
+              src="/images/pixelpox.webp"
               alt="MTG Premodern Logo"
               width={120}
               height={120}
-              className="rounded-full border-4 border-purple-500 shadow-2xl"
+              className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-purple-500 shadow-2xl"
               priority={true}
             />
           </div>

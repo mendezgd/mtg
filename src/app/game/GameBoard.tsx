@@ -450,7 +450,7 @@ const CardSelectionModal: React.FC<{
                   } ${draggedCard?.id === card.id ? "opacity-50" : ""}`}
                 >
                   <SafeImage
-                    src={card.image_uris?.normal || "/images/default-card.jpg"}
+                    src={card.image_uris?.normal || "/images/default-card.svg"}
                     alt={card.name}
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -558,7 +558,7 @@ const ViewTopCardsModal: React.FC<{
             <div key={card.id} className="relative group">
               <div className="relative w-full aspect-[2.5/3.5] bg-gray-700 rounded-lg overflow-hidden">
                 <SafeImage
-                  src={card.image_uris?.normal || "/images/default-card.jpg"}
+                  src={card.image_uris?.normal || "/images/default-card.svg"}
                   alt={card.name}
                   className="w-full h-full object-cover"
                   loading="lazy"

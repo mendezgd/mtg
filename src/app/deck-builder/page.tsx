@@ -143,10 +143,10 @@ const DeckBuilderPage: React.FC = () => {
       >
         <div className="flex items-center gap-2 mb-2 md:mb-4">
           <SafeImage
-            src="/images/pixelpox.jpg"
+            src="/images/pixelpox.webp"
             alt="Ícono de búsqueda"
-            width={24}
-            height={24}
+            width={48}
+            height={48}
             className="w-8 h-8 md:w-12 md:h-12 rounded-full"
           />
           <h2 className="text-lg md:text-xl font-bold">Buscador de Cartas</h2>
@@ -172,7 +172,7 @@ const DeckBuilderPage: React.FC = () => {
             <div className="relative group">
               <SafeImage
                 src={
-                  previewedCard.image_uris?.normal || "/images/default-card.jpg"
+                  previewedCard.image_uris?.normal || "/images/default-card.svg"
                 }
                 alt={previewedCard.name}
                 className="w-full rounded-2xl mb-2 md:mb-4 object-cover card-hover shadow-lg"
