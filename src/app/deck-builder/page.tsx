@@ -275,9 +275,11 @@ const DeckBuilderPage: React.FC = () => {
       </div>
 
       {/* Deck Builder Column */}
-      <div className={`${
-        activeMobileTab === "deck" ? "block" : "hidden"
-      } md:block w-full md:w-5/12 p-2 md:p-4 overflow-auto h-full`}>
+      <div
+        className={`${
+          activeMobileTab === "deck" ? "block" : "hidden"
+        } md:block w-full md:w-5/12 p-2 md:p-4 overflow-auto h-full`}
+      >
         <div className="flex items-center gap-2 mb-2 md:mb-4">
           <Library className="w-6 h-6 text-purple-400" />
           <h2 className="text-lg md:text-xl font-bold">Mi Mazo</h2>

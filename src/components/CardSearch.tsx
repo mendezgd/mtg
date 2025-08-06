@@ -30,6 +30,7 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
     error,
     currentPage,
     totalPages,
+    totalResults,
     searchCards,
     clearResults,
     adjustTotalPagesOnError,
@@ -151,6 +152,18 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
     [addCardToDeck]
   );
 
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      searchCards(searchTerm, {
+        type: selectedType,
+        color: selectedColor,
+        manaCost: selectedManaCost,
+        basicLands: selectedBasicLand,
+      }, newPage);
+    },
+    [searchTerm, selectedType, selectedColor, selectedManaCost, selectedBasicLand, searchCards]
+  );
+
   return (
     <div className="flex flex-col h-full">
       {/* Search Form */}
@@ -246,13 +259,44 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
             {/* Results Header */}
             <div className="flex justify-between items-center mb-4 p-2 bg-gray-900/30 rounded-lg">
               <span className="text-sm text-gray-300">
-                {searchResults.length} cartas encontradas
+                {totalResults > 0 ? `${searchResults.length} de ${totalResults} cartas` : `${searchResults.length} cartas encontradas`}
+                {totalResults > searchResults.length && (
+                  <span className="text-xs text-gray-400 ml-2">
+                    (página {currentPage} de {totalPages})
+                  </span>
+                )}
               </span>
-              {/* Removed pagination since we only use 1 page now */}
+              {totalPages > 1 && (
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage <= 1 || loading}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                  >
+                    Anterior
+                  </Button>
+                  <Button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage >= totalPages || loading}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                  >
+                    Siguiente
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Cards Grid */}
             <div className="flex-1 overflow-auto w-full">
+              {totalResults > searchResults.length && (
+                <div className="mb-3 p-2 bg-blue-900/20 border border-blue-500/30 rounded-lg text-blue-300 text-xs">
+                  <p>Se encontraron {totalResults} cartas en total. Usa los botones de navegación para ver más resultados.</p>
+                </div>
+              )}
               <CardGrid
                 cards={searchResults}
                 onCardClick={handleCardClick}

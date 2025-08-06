@@ -25,12 +25,14 @@ interface UseCardSearchReturn {
   error: string;
   currentPage: number;
   totalPages: number;
+  totalResults: number;
   searchCards: (term: string, filters: SearchFilters, page?: number) => Promise<void>;
   clearResults: () => void;
   adjustTotalPagesOnError: (failedPage: number) => void;
 }
 
-const MAX_RESULTS = 100; // Máximo 100 resultados en una sola página
+const MAX_RESULTS = 50; // Resultados por página (reducido para mejor rendimiento)
+const MAX_TOTAL_RESULTS = 1000; // Máximo total de resultados a mostrar
 
 export const useCardSearch = (): UseCardSearchReturn => {
   const [searchResults, setSearchResults] = useState<SearchableCard[]>([]);
@@ -38,6 +40,7 @@ export const useCardSearch = (): UseCardSearchReturn => {
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
 
   const buildSearchQuery = useCallback((term: string, filters: SearchFilters) => {
     // Si el filtro de tierras básicas está activo, usar una consulta especial
@@ -97,10 +100,10 @@ export const useCardSearch = (): UseCardSearchReturn => {
       }
 
       try {
-        // Siempre usar página 1 y pedir máximo 100 resultados
+        // Usar la página especificada y pedir máximo resultados por página
         const url = `/cards/search?q=${encodeURIComponent(
           query
-        )}&page=1&unique=prints&per_page=${MAX_RESULTS}`;
+        )}&page=${page}&unique=prints&per_page=${MAX_RESULTS}`;
 
         const response = await retryRequest(url, {
           timeout: 15000, // 15 segundos de timeout
@@ -128,6 +131,7 @@ export const useCardSearch = (): UseCardSearchReturn => {
           setError("No se encontraron cartas con los criterios especificados. Intenta con términos diferentes o ajusta los filtros.");
           setTotalPages(1);
           setCurrentPage(1);
+          setTotalResults(0);
           return;
         }
 
@@ -149,8 +153,14 @@ export const useCardSearch = (): UseCardSearchReturn => {
         });
 
         setSearchResults(cardsWithPrices);
-        setTotalPages(1); // Siempre 1 página
-        setCurrentPage(1);
+        
+        // Calcular paginación basada en el total de resultados
+        const totalCards = Math.min(response.data.total_cards || cardsWithPrices.length, MAX_TOTAL_RESULTS);
+        const calculatedTotalPages = Math.ceil(totalCards / MAX_RESULTS);
+        
+        setTotalResults(totalCards);
+        setTotalPages(calculatedTotalPages);
+        setCurrentPage(page);
         
       } catch (error: any) {
         console.error("Search error:", error.response?.status, error.response?.data, error.message);
@@ -167,21 +177,25 @@ export const useCardSearch = (): UseCardSearchReturn => {
           setSearchResults([]);
           setTotalPages(1);
           setCurrentPage(1);
+          setTotalResults(0);
         } else if (error.response?.status === 400) {
           setError("Consulta de búsqueda inválida. Verifica los términos de búsqueda.");
           setSearchResults([]);
           setTotalPages(1);
           setCurrentPage(1);
+          setTotalResults(0);
         } else if (error.response?.status >= 500) {
           setError("Error del servidor. Por favor, intenta nuevamente en unos momentos.");
           setSearchResults([]);
           setTotalPages(1);
           setCurrentPage(1);
+          setTotalResults(0);
         } else {
           setError("Error al buscar cartas. Por favor, intenta nuevamente.");
           setSearchResults([]);
           setTotalPages(1);
           setCurrentPage(1);
+          setTotalResults(0);
         }
       } finally {
         setLoading(false);
@@ -201,6 +215,7 @@ export const useCardSearch = (): UseCardSearchReturn => {
     setError("");
     setCurrentPage(1);
     setTotalPages(1);
+    setTotalResults(0);
   }, []);
 
   return {
@@ -209,6 +224,7 @@ export const useCardSearch = (): UseCardSearchReturn => {
     error,
     currentPage,
     totalPages,
+    totalResults,
     searchCards,
     clearResults,
     adjustTotalPagesOnError,
