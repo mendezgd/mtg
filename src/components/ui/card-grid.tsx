@@ -49,6 +49,7 @@ export const CardGrid: React.FC<CardGridProps> = ({
                 alt={card.name}
                 className="w-full h-full object-contain hover:scale-105 transition-transform rounded-lg max-h-full"
                 loading="lazy"
+                fallbackSrc="/images/default-card.svg"
               />
             </button>
           </div>

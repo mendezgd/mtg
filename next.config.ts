@@ -10,6 +10,20 @@ const nextConfig: NextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cards.scryfall.io',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.scryfall.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
   compress: true,
   poweredByHeader: false,
@@ -47,6 +61,11 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
           },
+          // Remove COEP header to fix CORS issues with external images
+          // {
+          //   key: 'Cross-Origin-Embedder-Policy',
+          //   value: 'require-corp',
+          // },
         ],
       },
              {
