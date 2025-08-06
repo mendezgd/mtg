@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { getProxiedImageUrl, getFallbackImageUrl } from "@/lib/image-utils";
+import { getProxiedImageUrl, getLocalImageUrl, getFallbackImageUrl } from "@/lib/image-utils";
 
 interface SafeImageProps {
   src: string;
@@ -24,11 +24,15 @@ const SafeImage: React.FC<SafeImageProps> = ({
   priority = false,
   loading = "lazy",
 }) => {
-  const [imgSrc, setImgSrc] = React.useState(() => getProxiedImageUrl(src || fallbackSrc));
+  const [imgSrc, setImgSrc] = React.useState(() => {
+    const processedSrc = getProxiedImageUrl(src || fallbackSrc);
+    return getLocalImageUrl(processedSrc);
+  });
   const [hasError, setHasError] = React.useState(false);
 
   React.useEffect(() => {
-    const newSrc = getProxiedImageUrl(src || fallbackSrc);
+    const processedSrc = getProxiedImageUrl(src || fallbackSrc);
+    const newSrc = getLocalImageUrl(processedSrc);
     setImgSrc(newSrc);
     setHasError(false);
   }, [src, fallbackSrc]);

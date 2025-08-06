@@ -20,6 +20,28 @@ export function getProxiedImageUrl(originalUrl: string): string {
 }
 
 /**
+ * Transforms local image URLs to use our API route for Vercel deployment
+ */
+export function getLocalImageUrl(imagePath: string): string {
+  if (!imagePath) return '/images/default-card.svg';
+  
+  // Extract image name from path
+  const imageName = imagePath.split('/').pop();
+  
+  if (!imageName) return '/images/default-card.svg';
+  
+  // List of images that need to be served via API route
+  const localImages = ['pixelpox.webp', 'chudix.webp', 'chudixd.webp', 'pox.webp'];
+  
+  if (localImages.includes(imageName)) {
+    return `/api/local-image?name=${encodeURIComponent(imageName)}`;
+  }
+  
+  // For other local images, return as is
+  return imagePath;
+}
+
+/**
  * Checks if a URL is from Scryfall
  */
 export function isScryfallUrl(url: string): boolean {
