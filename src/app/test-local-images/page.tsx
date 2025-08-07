@@ -1,6 +1,9 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 
 export default function TestLocalImagesPage() {
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const testImages = [
     { name: "pixelpox.webp", url: "/api/local-image?name=pixelpox.webp" },
     { name: "chudix.webp", url: "/api/local-image?name=chudix.webp" },
@@ -27,10 +30,14 @@ export default function TestLocalImagesPage() {
                 <img
                   src={`/images/${image.name}`}
                   alt={image.name}
-                  className="w-32 h-32 object-cover rounded border"
-                  onError={(e) => {
-                    e.currentTarget.style.border = "2px solid red";
-                    e.currentTarget.alt = "Failed to load";
+                  className={`w-32 h-32 object-cover rounded border ${
+                    imageErrors[`direct-${image.name}`] ? "border-red-500" : ""
+                  }`}
+                  onError={() => {
+                    setImageErrors((prev) => ({
+                      ...prev,
+                      [`direct-${image.name}`]: true,
+                    }));
                   }}
                 />
               </div>
@@ -42,10 +49,14 @@ export default function TestLocalImagesPage() {
                 <img
                   src={image.url}
                   alt={image.name}
-                  className="w-32 h-32 object-cover rounded border"
-                  onError={(e) => {
-                    e.currentTarget.style.border = "2px solid red";
-                    e.currentTarget.alt = "Failed to load";
+                  className={`w-32 h-32 object-cover rounded border ${
+                    imageErrors[`api-${image.name}`] ? "border-red-500" : ""
+                  }`}
+                  onError={() => {
+                    setImageErrors((prev) => ({
+                      ...prev,
+                      [`api-${image.name}`]: true,
+                    }));
                   }}
                 />
               </div>
@@ -57,6 +68,24 @@ export default function TestLocalImagesPage() {
                 <p>
                   <strong>Direct URL:</strong> /images/{image.name}
                 </p>
+                <div className="mt-2 space-y-1">
+                  <p
+                    className={`text-xs ${imageErrors[`direct-${image.name}`] ? "text-red-400" : "text-green-400"}`}
+                  >
+                    Direct:{" "}
+                    {imageErrors[`direct-${image.name}`]
+                      ? "❌ Failed"
+                      : "✅ Loading..."}
+                  </p>
+                  <p
+                    className={`text-xs ${imageErrors[`api-${image.name}`] ? "text-red-400" : "text-green-400"}`}
+                  >
+                    API:{" "}
+                    {imageErrors[`api-${image.name}`]
+                      ? "❌ Failed"
+                      : "✅ Loading..."}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
