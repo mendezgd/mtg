@@ -31,7 +31,15 @@ export function getLocalImageUrl(imagePath: string): string {
   if (!imageName) return '/images/default-card.svg';
   
   // List of images that need to be served via API route
-  const localImages = ['pixelpox.webp', 'chudix.webp', 'chudixd.webp', 'pox.webp'];
+  const localImages = [
+    'pixelpox.webp', 
+    'chudix.webp', 
+    'chudixd.webp', 
+    'chudix.jpg',
+    'chudixdamon.jpg',
+    'pox.webp',
+    'pox.png'
+  ];
   
   if (localImages.includes(imageName)) {
     return `/api/local-image?name=${encodeURIComponent(imageName)}`;

@@ -168,9 +168,9 @@ const LifeCounter: React.FC = () => {
     const isAnimating = animations[player].life;
     const colorConfig = mtgColors[playerData.color];
     const backgroundImage =
-      player === "player1" 
-        ? "/api/local-image?name=chudixd.webp" 
-        : "/api/local-image?name=chudix.webp";
+      player === "player1"
+        ? "/api/local-image?name=chudixd.jpg"
+        : "/api/local-image?name=chudix.jpg";
 
     return (
       <Card className="transition-all duration-300 relative overflow-hidden bg-gray-800 border-gray-700 h-full w-full">

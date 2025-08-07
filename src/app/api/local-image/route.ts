@@ -15,7 +15,10 @@ export async function GET(request: NextRequest) {
     'pixelpox.webp',
     'chudix.webp', 
     'chudixd.webp',
+    'chudix.jpg',
+    'chudixdamon.jpg',
     'pox.webp',
+    'pox.png',
     'og-image.jpg'
   ];
 
@@ -32,6 +35,8 @@ export async function GET(request: NextRequest) {
       ? 'image/webp' 
       : imageName.endsWith('.jpg') 
       ? 'image/jpeg'
+      : imageName.endsWith('.png')
+      ? 'image/png'
       : 'image/svg+xml';
     
     return new NextResponse(imageBuffer, {
