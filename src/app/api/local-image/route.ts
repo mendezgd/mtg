@@ -14,12 +14,7 @@ export async function GET(request: NextRequest) {
   const allowedImages = [
     'pixelpox.webp',
     'chudix.webp', 
-    'chudixd.webp',
-    'chudix.jpg',
-    'chudixdamon.jpg',
-    'pox.webp',
-    'pox.png',
-    'og-image.jpg'
+    'chudixd.webp'
   ];
 
   if (!allowedImages.includes(imageName)) {

@@ -88,17 +88,12 @@ To verify the fixes work:
 2. **CORS Errors**: Scryfall images should load without CORS errors (now proxied through our API)
 3. **Local Images**: Local images should load on both local and Vercel deployment
 4. **Fallback Images**: If an image fails to load, it should show the default card image
-5. **Proxy Test**: Visit `/api/test-proxy` to see the proxy URL transformation in action
-6. **Local Images Test**: Visit `/api/test-local-images` to see local image endpoints
 
 ## Files Added/Modified
 
 ### New Files:
 - `src/app/api/proxy-image/route.ts` - Proxy API for Scryfall images
-- `src/app/api/test-proxy/route.ts` - Test endpoint for proxy functionality
 - `src/app/api/local-image/route.ts` - API route for local images on Vercel
-- `src/app/api/test-local-images/route.ts` - Test endpoint for local images
-- `src/app/test-local-images/page.tsx` - Test page to verify local image API
 - `src/lib/image-utils.ts` - Image URL transformation utilities
 
 ### Modified Files:
@@ -113,4 +108,4 @@ To verify the fixes work:
 - Local images are served via API routes to ensure they work on Vercel
 - The proxy solution completely eliminates CORS issues by serving images from our own domain
 - External images from Scryfall are now proxied through our API, ensuring they load properly
-- All API routes include proper caching headers for better performance
+- Simplified implementation with only essential functionality

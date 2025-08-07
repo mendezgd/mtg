@@ -34,11 +34,7 @@ export function getLocalImageUrl(imagePath: string): string {
   const localImages = [
     'pixelpox.webp', 
     'chudix.webp', 
-    'chudixd.webp', 
-    'chudix.jpg',
-    'chudixdamon.jpg',
-    'pox.webp',
-    'pox.png'
+    'chudixd.webp'
   ];
   
   if (localImages.includes(imageName)) {
