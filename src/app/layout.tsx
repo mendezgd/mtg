@@ -87,32 +87,16 @@ export default function RootLayout({
         {/* Primary favicon - ICO format for maximum compatibility */}
         <link rel="icon" href="/favicon.ico" type="image/x-icon" />
         
-        {/* WebP favicon for modern browsers */}
-        <link rel="icon" href="/images/pixelpox.webp" type="image/webp" />
-        
-        {/* Fallback favicon via API route */}
-        <link rel="icon" href="/api/favicon" type="image/webp" />
+        {/* PNG favicons for different sizes */}
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         
         {/* Apple touch icon */}
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/images/pixelpox.webp"
-        />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         
-        {/* Additional favicon sizes */}
-        <link
-          rel="icon"
-          type="image/webp"
-          sizes="32x32"
-          href="/images/pixelpox.webp"
-        />
-        <link
-          rel="icon"
-          type="image/webp"
-          sizes="16x16"
-          href="/images/pixelpox.webp"
-        />
+        {/* Android Chrome icons */}
+        <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
         
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="theme-color" content="#0a0a0a" />

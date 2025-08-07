@@ -12,14 +12,14 @@
   "categories": ["games", "entertainment"],
   "icons": [
     {
-      "src": "/images/pixelpox.webp",
+      "src": "/android-chrome-192x192.png",
       "sizes": "192x192",
-      "type": "image/webp"
+      "type": "image/png"
     },
     {
-      "src": "/images/pixelpox.webp",
+      "src": "/android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/webp"
+      "type": "image/png"
     }
   ]
-} 
+}

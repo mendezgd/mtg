@@ -4,12 +4,11 @@
 
 ### 1. Missing Favicon Files (404 Errors)
 - **Problem**: Layout referenced favicon files that didn't exist in the public directory
-- **Solution**: Created comprehensive favicon solution for both local and Vercel deployment:
-  - Updated `layout.tsx` to use multiple favicon formats for better compatibility
-  - Created `/api/favicon` route as fallback for Vercel deployment
-  - Added proper headers for favicon serving in Next.js config
-  - Updated `site.webmanifest` to use `/images/pixelpox.webp` for app icons
-  - Added favicon.ico placeholder for maximum browser compatibility
+- **Solution**: Updated to use proper favicon files:
+  - Updated `layout.tsx` to use proper favicon files (ICO, PNG, Apple Touch Icon)
+  - Updated `site.webmanifest` with proper app metadata and icon references
+  - Added Android Chrome icons for better mobile experience
+  - Removed placeholder files and API routes for favicon
 
 ### 2. CORS Error with Scryfall Images
 - **Problem**: `Access to image at 'https://cards.scryfall.io/...' has been blocked by CORS policy`
@@ -27,6 +26,7 @@
   - Created `/api/local-image` route to serve local images with proper headers
   - Added `getLocalImageUrl()` utility to transform local image URLs
   - Updated SafeImage component to use API route for problematic images
+  - Fixed LifeCounter component to use API routes for background images
 
 ### 4. Image Loading Improvements
 - **Enhanced SafeImage Component**:
@@ -96,22 +96,21 @@ To verify the fixes work:
 ### New Files:
 - `src/app/api/proxy-image/route.ts` - Proxy API for Scryfall images
 - `src/app/api/test-proxy/route.ts` - Test endpoint for proxy functionality
-- `src/app/api/favicon/route.ts` - Favicon API route for Vercel deployment
-- `src/app/api/test-favicon/route.ts` - Test endpoint for favicon functionality
 - `src/app/api/local-image/route.ts` - API route for local images on Vercel
 - `src/app/api/test-local-images/route.ts` - Test endpoint for local images
+- `src/app/test-local-images/page.tsx` - Test page to verify local image API
 - `src/lib/image-utils.ts` - Image URL transformation utilities
 
 ### Modified Files:
 - `src/components/ui/safe-image.tsx` - Updated to use proxy URLs
 - `src/components/ui/card-grid.tsx` - Updated to use new fallback system
+- `src/components/LifeCounter.tsx` - Updated to use API routes for background images
 - `next.config.ts` - Removed external image domains
 
 ## Notes
 
-- Favicon solution now works on both local development and Vercel deployment
-- Multiple favicon formats ensure maximum browser compatibility
-- Local images are now served via API routes to ensure they work on Vercel
+- Favicon now uses proper favicon files (ICO, PNG, Apple Touch Icon) for maximum compatibility
+- Local images are served via API routes to ensure they work on Vercel
 - The proxy solution completely eliminates CORS issues by serving images from our own domain
 - External images from Scryfall are now proxied through our API, ensuring they load properly
 - All API routes include proper caching headers for better performance
