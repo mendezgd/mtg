@@ -8,10 +8,7 @@ export default function TestLocalImagesPage() {
     { name: "pixelpox.webp", url: "/api/local-image?name=pixelpox.webp" },
     { name: "chudix.webp", url: "/api/local-image?name=chudix.webp" },
     { name: "chudixd.webp", url: "/api/local-image?name=chudixd.webp" },
-    { name: "chudix.jpg", url: "/api/local-image?name=chudix.jpg" },
-    { name: "chudixdamon.jpg", url: "/api/local-image?name=chudixdamon.jpg" },
     { name: "pox.webp", url: "/api/local-image?name=pox.webp" },
-    { name: "pox.png", url: "/api/local-image?name=pox.png" },
   ];
 
   return (

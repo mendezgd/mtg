@@ -5,10 +5,7 @@ export async function GET() {
     "pixelpox.webp",
     "chudix.webp",
     "chudixd.webp",
-    "chudix.jpg",
-    "chudixdamon.jpg",
     "pox.webp",
-    "pox.png",
   ];
 
   const testUrls = localImages.map((imageName) => ({
