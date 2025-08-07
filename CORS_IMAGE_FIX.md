@@ -23,10 +23,10 @@
 - **Problem**: Local images (`pixelpox.webp`, `chudix.webp`, `chudixd.webp`) not loading on Vercel deployment
 - **Root Cause**: Vercel may not serve WebP files correctly from static directory
 - **Solution**:
-  - Created `/api/local-image` route to serve local images with proper headers
+  - Serve images directly from `/public/images/` folder
   - Added `getLocalImageUrl()` utility to transform local image URLs
-  - Updated SafeImage component to use API route for problematic images
-  - Fixed LifeCounter component to use API routes for background images
+  - Updated SafeImage component to use direct paths for local images
+  - Fixed LifeCounter component to use direct paths for background images
 
 ### 4. Image Loading Improvements
 - **Enhanced SafeImage Component**:
@@ -93,7 +93,6 @@ To verify the fixes work:
 
 ### New Files:
 - `src/app/api/proxy-image/route.ts` - Proxy API for Scryfall images
-- `src/app/api/local-image/route.ts` - API route for local images on Vercel
 - `src/lib/image-utils.ts` - Image URL transformation utilities
 
 ### Modified Files:
@@ -105,7 +104,7 @@ To verify the fixes work:
 ## Notes
 
 - Favicon now uses proper favicon files (ICO, PNG, Apple Touch Icon) for maximum compatibility
-- Local images are served via API routes to ensure they work on Vercel
+- Local images are served directly from the public folder for better compatibility
 - The proxy solution completely eliminates CORS issues by serving images from our own domain
 - External images from Scryfall are now proxied through our API, ensuring they load properly
 - Simplified implementation with only essential functionality

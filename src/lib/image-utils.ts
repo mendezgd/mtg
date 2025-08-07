@@ -38,7 +38,8 @@ export function getLocalImageUrl(imagePath: string): string {
   ];
   
   if (localImages.includes(imageName)) {
-    return `/api/local-image?name=${encodeURIComponent(imageName)}`;
+    // Serve directly from public folder instead of API route
+    return `/images/${imageName}`;
   }
   
   // For other local images, return as is
