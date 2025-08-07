@@ -3,6 +3,7 @@
 ## Issues Fixed
 
 ### 1. Missing Favicon Files (404 Errors)
+
 - **Problem**: Layout referenced favicon files that didn't exist in the public directory
 - **Solution**: Updated to use proper favicon files:
   - Updated `layout.tsx` to use proper favicon files (ICO, PNG, Apple Touch Icon)
@@ -11,15 +12,17 @@
   - Removed placeholder files and API routes for favicon
 
 ### 2. CORS Error with Scryfall Images
+
 - **Problem**: `Access to image at 'https://cards.scryfall.io/...' has been blocked by CORS policy`
 - **Root Cause**: Scryfall's CDN doesn't include CORS headers for cross-origin requests
-- **Solution**: 
+- **Solution**:
   - Created a proxy API route (`/api/proxy-image`) to handle Scryfall image requests
   - Added image URL transformation utility to automatically proxy Scryfall URLs
   - Removed external image domains from Next.js config since we're now proxying
   - Added proper error handling with fallback images
 
 ### 3. Local Images Not Loading on Vercel
+
 - **Problem**: Local images (`pixelpox.webp`, `chudix.webp`, `chudixd.webp`) not loading on Vercel deployment
 - **Root Cause**: Vercel may not serve WebP files correctly from static directory
 - **Solution**:
@@ -29,7 +32,9 @@
   - Fixed LifeCounter component to use direct paths for background images
 
 ### 4. Image Loading Improvements
+
 - **Enhanced SafeImage Component**:
+
   - Added error handling with fallback images
   - Added `crossOrigin="anonymous"` attribute
   - Improved state management for image loading
@@ -43,6 +48,7 @@
 ## Technical Details
 
 ### SafeImage Component Changes
+
 ```typescript
 // Added proxy URL transformation
 const [imgSrc, setImgSrc] = React.useState(() => getProxiedImageUrl(src || fallbackSrc));
@@ -55,26 +61,29 @@ const [imgSrc, setImgSrc] = React.useState(() => getProxiedImageUrl(src || fallb
 ```
 
 ### Next.js Config Changes
+
 ```typescript
 // Removed external domains since we're now proxying through our API
 // Removed remotePatterns since we're handling external images via proxy
 ```
 
 ### New Proxy API Route
+
 ```typescript
 // /api/proxy-image - Handles Scryfall image requests
 export async function GET(request: NextRequest) {
-  const imageUrl = searchParams.get('url');
+  const imageUrl = searchParams.get("url");
   // Fetches image from Scryfall and returns it with proper CORS headers
 }
 ```
 
 ### Image URL Transformation
+
 ```typescript
 // src/lib/image-utils.ts
 export function getProxiedImageUrl(originalUrl: string): string {
   // Automatically transforms Scryfall URLs to use our proxy
-  if (originalUrl.includes('cards.scryfall.io')) {
+  if (originalUrl.includes("cards.scryfall.io")) {
     return `/api/proxy-image?url=${encodeURIComponent(originalUrl)}`;
   }
 }
@@ -92,10 +101,12 @@ To verify the fixes work:
 ## Files Added/Modified
 
 ### New Files:
+
 - `src/app/api/proxy-image/route.ts` - Proxy API for Scryfall images
 - `src/lib/image-utils.ts` - Image URL transformation utilities
 
 ### Modified Files:
+
 - `src/components/ui/safe-image.tsx` - Updated to use proxy URLs
 - `src/components/ui/card-grid.tsx` - Updated to use new fallback system
 - `src/components/LifeCounter.tsx` - Updated to use API routes for background images

@@ -47,11 +47,6 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
           },
-          // Remove COEP header to fix CORS issues with external images
-          // {
-          //   key: 'Cross-Origin-Embedder-Policy',
-          //   value: 'require-corp',
-          // },
         ],
       },
              {
