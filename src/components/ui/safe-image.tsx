@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { getProxiedImageUrl, getLocalImageUrl, getFallbackImageUrl } from "@/lib/image-utils";
+import { ImageService } from "@/lib/image-utils";
 
 interface SafeImageProps {
   src: string;
@@ -20,40 +20,49 @@ const SafeImage: React.FC<SafeImageProps> = ({
   width,
   height,
   className = "",
-  fallbackSrc = getFallbackImageUrl(),
+  fallbackSrc,
   priority = false,
   loading = "lazy",
 }) => {
   const [imgSrc, setImgSrc] = React.useState(() => {
-    const processedSrc = getProxiedImageUrl(src || fallbackSrc);
-    return getLocalImageUrl(processedSrc);
+    return ImageService.processImageUrl(src || fallbackSrc || ImageService.getFallbackUrl());
   });
   const [hasError, setHasError] = React.useState(false);
+  const [isLoaded, setIsLoaded] = React.useState(false);
 
   React.useEffect(() => {
-    const processedSrc = getProxiedImageUrl(src || fallbackSrc);
-    const newSrc = getLocalImageUrl(processedSrc);
+    const newSrc = ImageService.processImageUrl(src || fallbackSrc || ImageService.getFallbackUrl());
     setImgSrc(newSrc);
     setHasError(false);
+    setIsLoaded(false);
   }, [src, fallbackSrc]);
 
   const handleError = () => {
-    if (!hasError && imgSrc !== fallbackSrc) {
+    if (!hasError && imgSrc !== ImageService.getFallbackUrl()) {
       setHasError(true);
-      setImgSrc(fallbackSrc);
+      setImgSrc(ImageService.getFallbackUrl());
     }
   };
 
+  const handleLoad = () => {
+    setIsLoaded(true);
+  };
+
   return (
-    <img
-      src={imgSrc}
-      alt={alt}
-      className={className}
-      style={{ width: width || '100%', height: height || 'auto' }}
-      onError={handleError}
-      loading={loading}
-      // Remove crossOrigin since we're now proxying through our own domain
-    />
+    <div className={`relative ${className}`}>
+      {!isLoaded && !hasError && (
+        <div className="absolute inset-0 bg-gray-800 animate-pulse rounded" />
+      )}
+      <img
+        src={imgSrc}
+        alt={alt}
+        className={`transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+        style={{ width: width || '100%', height: height || 'auto' }}
+        onLoad={handleLoad}
+        onError={handleError}
+        loading={loading}
+      />
+    </div>
   );
 };
 

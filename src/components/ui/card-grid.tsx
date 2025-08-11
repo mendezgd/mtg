@@ -1,7 +1,7 @@
 import React from "react";
 import { SearchableCard } from "@/types/card";
 import SafeImage from "./safe-image";
-import { getFallbackImageUrl } from "@/lib/image-utils";
+import { ImageService } from "@/lib/image-utils";
 
 interface CardGridProps {
   cards: SearchableCard[];
@@ -28,14 +28,24 @@ export const CardGrid: React.FC<CardGridProps> = ({
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent, card: SearchableCard) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleCardClick(card);
+    }
+  };
+
   return (
     <div
-      className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-1.5 w-full ${className}`}
+      className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-2 sm:gap-1.5 w-full ${className}`}
+      role="grid"
+      aria-label="Search results"
     >
       {cards.map((card, index) => (
         <div
           key={card.id || `${card.name}-${index}`}
-          className="rounded-lg p-0.5 flex flex-col bg-gray-800/50 border border-gray-700 hover:border-gray-600 transition-colors h-48 w-full min-w-0"
+          className="rounded-lg p-1 sm:p-0.5 flex flex-col bg-gray-800/50 border border-gray-700 hover:border-gray-600 transition-colors h-36 sm:h-48 w-full min-w-0"
+          role="gridcell"
         >
           <div className="flex-1 relative group min-h-0 flex-shrink-0">
             <button
@@ -43,29 +53,33 @@ export const CardGrid: React.FC<CardGridProps> = ({
                 e.stopPropagation(); // Prevent event bubbling
                 handleCardClick(card);
               }}
+              onKeyDown={(e) => handleKeyDown(e, card)}
               className="w-full h-full flex items-center justify-center"
+              aria-label={`${card.name}, click to view details`}
+              tabIndex={0}
             >
               <SafeImage
-                src={card.image_uris?.normal || getFallbackImageUrl()}
+                src={card.image_uris?.normal || ImageService.getFallbackUrl()}
                 alt={card.name}
                 className="w-full h-full object-contain hover:scale-105 transition-transform rounded-lg max-h-full"
                 loading="lazy"
-                fallbackSrc={getFallbackImageUrl()}
+                fallbackSrc={ImageService.getFallbackUrl()}
               />
             </button>
           </div>
 
           <div className="mt-1 space-y-1 flex-shrink-0 min-w-0">
-            <h3 className="font-medium text-xs text-gray-200 text-center truncate w-full">
+            <h3 className="font-medium text-xs text-gray-200 text-center truncate w-full px-1">
               {card.name}
             </h3>
             {onAddToDeck && (
               <button
-                className="w-full text-xs py-1 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors font-medium"
+                className="w-full text-xs py-1 px-1 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors font-medium"
                 onClick={(e) => {
                   e.stopPropagation();
                   onAddToDeck(card);
                 }}
+                aria-label={`Add ${card.name} to deck`}
               >
                 {isMobile ? "Agregar" : "Agregar al Mazo"}
               </button>

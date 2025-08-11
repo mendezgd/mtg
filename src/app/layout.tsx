@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import ErrorBoundary from "@/components/ui/error-boundary";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,21 +31,21 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://mtg-premodern.com"),
+  metadataBase: new URL("https://mtg-three.vercel.app/"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     locale: "es_ES",
-    url: "https://mtg-premodern.com",
+    url: "https://mtg-three.vercel.app/",
     title: "MTG Premodern - Constructor de Mazos y Simulador de Juego",
     description:
       "Constructor de mazos MTG Premodern, simulador de juego, torneos suizos y herramientas para jugadores de Magic: The Gathering.",
     siteName: "MTG Premodern",
     images: [
       {
-        url: "/images/og-image.jpg",
+        url: "/images/pixelpox.webp",
         width: 1200,
         height: 630,
         alt: "MTG Premodern - Constructor de Mazos",
@@ -160,7 +161,9 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <ErrorBoundary>{children}</ErrorBoundary>
+      </body>
     </html>
   );
 }

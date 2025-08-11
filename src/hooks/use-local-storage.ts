@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from "react";
 
 export function useLocalStorage<T>(
   key: string,
@@ -16,7 +16,7 @@ export function useLocalStorage<T>(
   // Initialize from localStorage after mount
   useEffect(() => {
     if (typeof window === "undefined") return;
-    
+
     try {
       const item = window.localStorage.getItem(key);
       if (item) {
@@ -25,25 +25,29 @@ export function useLocalStorage<T>(
     } catch (error) {
       console.error(`Error reading localStorage key "${key}":`, error);
     }
-    
+
     setMounted(true);
   }, [key]);
 
   // Return a wrapped version of useState's setter function that ...
   // ... persists the new value to localStorage.
-  const setValue = useCallback((value: T | ((val: T) => T)) => {
-    try {
-      // Allow value to be a function so we have the same API as useState
-      const valueToStore = value instanceof Function ? value(valueRef.current) : value;
-      setStoredValue(valueToStore);
-      // Save to local storage.
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(key, JSON.stringify(valueToStore));
+  const setValue = useCallback(
+    (value: T | ((val: T) => T)) => {
+      try {
+        // Allow value to be a function so we have the same API as useState
+        const valueToStore =
+          value instanceof Function ? value(valueRef.current) : value;
+        setStoredValue(valueToStore);
+        // Save to local storage.
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(key, JSON.stringify(valueToStore));
+        }
+      } catch (error) {
+        console.error(`Error setting localStorage key "${key}":`, error);
       }
-    } catch (error) {
-      console.error(`Error setting localStorage key "${key}":`, error);
-    }
-  }, [key]);
+    },
+    [key]
+  );
 
   // Listen for changes to this localStorage key in other tabs/windows
   useEffect(() => {
@@ -59,10 +63,10 @@ export function useLocalStorage<T>(
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [key]);
 
   // Return initial value during SSR and before mount to prevent hydration mismatch
   return [mounted ? storedValue : initialValue, setValue];
-} 
+}

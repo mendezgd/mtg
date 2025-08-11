@@ -5,6 +5,7 @@ Una aplicación web completa para Magic: The Gathering Premodern que incluye con
 ## 🚀 Características
 
 ### 🃏 Constructor de Mazos
+
 - **Búsqueda Avanzada**: Busca cartas por nombre, tipo, color y coste de maná
 - **Filtros Específicos**: Optimizado para el formato Premodern
 - **Gestión de Mazos**: Crear, editar, guardar y eliminar mazos
@@ -13,6 +14,7 @@ Una aplicación web completa para Magic: The Gathering Premodern que incluye con
 - **Mano de Ejemplo**: Genera manos de ejemplo para testing
 
 ### 🎮 Simulador de Juego
+
 - **Interfaz Intuitiva**: Drag & drop para jugar cartas
 - **Mecánicas Completas**: Todas las reglas del juego implementadas
 - **Estado Persistente**: Guarda el estado del juego automáticamente
@@ -20,6 +22,7 @@ Una aplicación web completa para Magic: The Gathering Premodern que incluye con
 - **Gestión de Maná**: Sistema completo de maná por colores
 
 ### 🏆 Torneos Suizos
+
 - **Emparejamientos Automáticos**: Algoritmo suizo estándar
 - **Gestión de Jugadores**: Agregar, remover y gestionar participantes
 - **Temporizadores**: Control de tiempo por ronda
@@ -58,6 +61,7 @@ npm start
 ## 🎯 Uso
 
 ### Constructor de Mazos
+
 1. Navega a `/deck-builder`
 2. Busca cartas usando la barra de búsqueda
 3. Filtra por tipo, color o coste de maná
@@ -66,6 +70,7 @@ npm start
 6. Guarda tu mazo automáticamente
 
 ### Simulador de Juego
+
 1. Ve a `/game`
 2. Selecciona un mazo guardado
 3. Juega cartas arrastrándolas al campo de batalla
@@ -73,6 +78,7 @@ npm start
 5. El estado se guarda automáticamente
 
 ### Torneos Suizos
+
 1. Accede a `/tournament`
 2. Agrega jugadores al torneo
 3. Inicia el torneo con emparejamientos automáticos
@@ -82,12 +88,14 @@ npm start
 ## 🔧 Configuración
 
 ### Variables de Entorno
+
 ```env
 # Para funcionalidades de IA (opcional)
 GOOGLE_GENAI_API_KEY=tu-api-key
 ```
 
 ### Optimizaciones
+
 - **Imágenes**: Optimización automática con Next.js Image
 - **Código**: Minificación y tree-shaking automático
 - **CSS**: Optimización y purging automático
@@ -153,6 +161,7 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 ## 📞 Soporte
 
 Si tienes problemas o sugerencias, por favor:
+
 - Abre un issue en GitHub
 - Contacta al equipo de desarrollo
 - Revisa la documentación de la API de Scryfall

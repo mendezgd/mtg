@@ -108,7 +108,7 @@ const CardPagination: React.FC<CardPaginationProps> = ({
   const handlePageChange = (page: number) => {
     // Validación estricta para evitar errores
     if (page >= 1 && page <= totalPages && !loading && !disabled && page !== currentPage) {
-      console.log(`Navigating to page ${page}`);
+      // Navigate to page
       onPageChange(page);
     } else {
       console.warn(`Invalid page navigation attempt: page=${page}, totalPages=${totalPages}, loading=${loading}, disabled=${disabled}`);

@@ -17,16 +17,19 @@ export default function HookExamplePage() {
     toggle,
   } = useTimer({
     duration,
-    onStart: () => console.log("Temporizador iniciado"),
-    onStop: () => console.log("Temporizador detenido"),
+    onStart: () => {
+      // Timer started
+    },
+    onStop: () => {
+      // Timer stopped
+    },
     onComplete: () => {
       alert("¡Tiempo completado!");
-      console.log("Temporizador completado");
     },
     onTick: (timeRemaining) => {
-      // Opcional: hacer algo en cada tick
-      if (timeRemaining <= 30000) { // 30 segundos o menos
-        console.log("¡Quedan 30 segundos o menos!");
+      // Optional: do something on each tick
+      if (timeRemaining <= 30000) { // 30 seconds or less
+        // Time is running out
       }
     },
   });

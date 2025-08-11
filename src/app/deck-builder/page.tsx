@@ -37,12 +37,6 @@ const DeckBuilderPage: React.FC = () => {
   }, []);
 
   const handleCardPreview = useCallback((card: SearchableCard) => {
-    console.log(
-      "Setting previewed card:",
-      card.name,
-      "with image:",
-      card.image_uris?.normal
-    );
     setPreviewedCard(card);
   }, []);
 
@@ -236,7 +230,7 @@ const DeckBuilderPage: React.FC = () => {
                   colors: ["R"],
                   legalities: { premodern: "legal" },
                 };
-                console.log("Test button clicked, setting test card");
+                // Test card functionality
                 setPreviewedCard(testCard);
               }}
               className="mt-4 bg-purple-600 hover:bg-purple-700 text-white"
@@ -261,9 +255,7 @@ const DeckBuilderPage: React.FC = () => {
                   colors: ["U"],
                   legalities: { premodern: "legal" },
                 };
-                console.log(
-                  "Test button 2 clicked, setting test card with known image"
-                );
+                // Test card with known image
                 setPreviewedCard(testCard);
               }}
               className="mt-2 bg-blue-600 hover:bg-blue-700 text-white"

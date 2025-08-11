@@ -17,8 +17,9 @@ import {
 import dynamic from "next/dynamic";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
-import { generateUUID } from "@/lib/utils";
+import { generateUUID, getCardStyle, getPrimaryType, getTypeOrder, getManaSymbols } from "@/lib/utils";
 import SafeImage from "@/components/ui/safe-image";
+import { logger } from "@/lib/logger";
 
 const ScrollArea = dynamic(
   () =>
@@ -94,127 +95,6 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
           : 0,
       [selectedDeck]
     );
-
-    // Memoize card background color function
-    const getCardBackgroundColor = useCallback(
-      (colors: string[] | undefined) => {
-        if (!colors || colors.length === 0)
-          return "bg-gray-800 border-gray-700"; // Colorless cards
-
-        if (colors.length === 1) {
-          switch (colors[0]) {
-            case "W":
-              return "bg-gray-800 border-gray-700 text-gray-200"; // White cards with dark background
-            case "U":
-              return "bg-gray-800 border-gray-700 text-gray-200";
-            case "B":
-              return "bg-gray-900 border-gray-800 text-gray-100";
-            case "R":
-              return "bg-gray-800 border-gray-700 text-gray-200";
-            case "G":
-              return "bg-gray-800 border-gray-700 text-gray-200";
-            default:
-              return "bg-gray-800 border-gray-700";
-          }
-        }
-
-        // Multicolor cards
-        return "bg-gray-800 border-gray-700 text-gray-200";
-      },
-      []
-    );
-
-    // Function to get card text color based on background
-    const getCardTextColor = useCallback((colors: string[] | undefined) => {
-      if (!colors || colors.length === 0) return "text-gray-300";
-
-      if (colors.length === 1) {
-        switch (colors[0]) {
-          case "W":
-            return "text-gray-200";
-          case "U":
-            return "text-gray-200";
-          case "B":
-            return "text-gray-100";
-          case "R":
-            return "text-gray-200";
-          case "G":
-            return "text-gray-200";
-          default:
-            return "text-gray-300";
-        }
-      }
-
-      return "text-gray-200";
-    }, []);
-
-    // Function to get card border color
-    const getCardBorderColor = useCallback((colors: string[] | undefined) => {
-      if (!colors || colors.length === 0) return "border-gray-700";
-
-      if (colors.length === 1) {
-        switch (colors[0]) {
-          case "W":
-            return "border-gray-600";
-          case "U":
-            return "border-gray-600";
-          case "B":
-            return "border-gray-800";
-          case "R":
-            return "border-gray-600";
-          case "G":
-            return "border-gray-600";
-          default:
-            return "border-gray-700";
-        }
-      }
-
-      return "border-gray-600";
-    }, []);
-
-    // Function to get primary type of a card
-    const getPrimaryType = useCallback((typeLine: string | undefined) => {
-      if (!typeLine) return "Other";
-
-      const types = [
-        "Creature",
-        "Instant",
-        "Sorcery",
-        "Enchantment",
-        "Artifact",
-        "Planeswalker",
-        "Land",
-      ];
-
-      for (const type of types) {
-        if (typeLine.includes(type)) return type;
-      }
-
-      return "Other";
-    }, []);
-
-    // Function to get type order for sorting
-    const getTypeOrder = useCallback((type: string) => {
-      const order = {
-        Land: 1,
-        Creature: 2,
-        Instant: 3,
-        Sorcery: 4,
-        Enchantment: 5,
-        Artifact: 6,
-        Planeswalker: 7,
-        Other: 8,
-      };
-      return order[type as keyof typeof order] || 8;
-    }, []);
-
-    // Function to get mana symbols
-    const getManaSymbols = useCallback((manaCost: string | undefined) => {
-      if (!manaCost) return [];
-
-      const symbols = manaCost.match(/\{[^}]+\}/g) || [];
-      return symbols.map((symbol) => symbol.slice(1, -1));
-    }, []);
 
     // Validate card function
     const validateCard = useCallback(
@@ -299,13 +179,11 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
           );
         }
 
-        const bgColor = getCardBackgroundColor(validCard.colors);
-        const textColor = getCardTextColor(validCard.colors);
-        const borderColor = getCardBorderColor(validCard.colors);
+        const cardStyle = getCardStyle(validCard.colors);
 
         return (
           <div
-            className={`text-sm flex justify-between rounded-md items-center p-2 border ${bgColor} ${borderColor} hover:shadow-sm transition-colors`}
+            className={`text-sm flex justify-between rounded-md items-center p-2 border ${cardStyle.background} ${cardStyle.border} hover:shadow-sm transition-colors`}
             role="listitem"
             aria-label={`${name} - ${count} copias`}
           >
@@ -313,7 +191,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
               <HoverCard>
                 <HoverCardTrigger asChild>
                   <button
-                    className={`text-left flex-1 min-w-0 hover:opacity-80 transition-opacity ${textColor}`}
+                    className={`text-left flex-1 min-w-0 hover:opacity-80 transition-opacity ${cardStyle.text}`}
                     aria-label={`Ver detalles de ${name}`}
                     onTouchStart={(e) => {
                       e.stopPropagation();
@@ -337,7 +215,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                     }}
                   >
                     <div className="font-medium truncate">{name}</div>
-                    <div className={`text-xs opacity-70 truncate ${textColor}`}>
+                    <div className={`text-xs opacity-70 truncate ${cardStyle.text}`}>
                       {validCard.type_line}
                     </div>
                     {validCard.mana_cost && (
@@ -383,7 +261,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
 
             <div className="flex items-center gap-2">
               <span
-                className={`text-sm font-medium min-w-[2rem] text-center ${textColor}`}
+                className={`text-sm font-medium min-w-[2rem] text-center ${cardStyle.text}`}
               >
                 {count}
               </span>
@@ -420,14 +298,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
           </div>
         );
       },
-      [
-        getCardBackgroundColor,
-        getCardTextColor,
-        getCardBorderColor,
-        getManaSymbols,
-        touchedCard,
-        validateCard,
-      ]
+      [touchedCard, validateCard]
     );
 
     // Update renderCardList to handle invalid cards with stable references
@@ -506,8 +377,6 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
         return validCards;
       },
       [
-        getPrimaryType,
-        getTypeOrder,
         validateCard,
         CardRow,
         removeCardFromDeck,
@@ -572,6 +441,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
         setDecks((prev) => [...prev, newDeck]);
         setSelectedDeckId(newDeck.id);
         setNewDeckName("");
+        logger.info("Created new deck:", newDeck.name);
       }
     }, [newDeckName, setDecks, setSelectedDeckId]);
 
@@ -590,6 +460,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
 
       const shuffled = [...cardPool].sort(() => Math.random() - 0.5);
       setSampleHand(shuffled.slice(0, 7));
+      logger.info("Generated sample hand for deck:", selectedDeck.name);
     }, [selectedDeck]);
 
     const handleChallenge = useCallback(() => {
@@ -651,6 +522,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
 
       localStorage.setItem("gameState", JSON.stringify(gameState));
       router.push("/game");
+      logger.info("Started game with decks:", selectedDeck.name, opponentDeck.name);
     }, [selectedDeck, opponentDeckId, decks, router]);
 
     if (!mounted) {

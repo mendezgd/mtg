@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import axios from "axios";
 import { SearchableCard } from "@/types/card";
 
@@ -45,6 +46,7 @@ export const useCardSearch = (): UseCardSearchReturn => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const buildSearchQuery = useCallback(
     (term: string, filters: SearchFilters) => {
@@ -92,7 +94,7 @@ export const useCardSearch = (): UseCardSearchReturn => {
     throw new Error("Unexpected end of retry loop");
   };
 
-  const searchCards = useCallback(
+  const performSearch = useCallback(
     async (term: string, filters: SearchFilters, page: number = 1) => {
       if (
         !term.trim() &&
@@ -103,6 +105,13 @@ export const useCardSearch = (): UseCardSearchReturn => {
       ) {
         return;
       }
+
+      // Cancel previous request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      abortControllerRef.current = new AbortController();
 
       setLoading(true);
       setError("");
@@ -128,6 +137,7 @@ export const useCardSearch = (): UseCardSearchReturn => {
 
         const response = await retryRequest(url, {
           timeout: 15000, // 15 segundos de timeout
+          signal: abortControllerRef.current.signal,
         });
 
         if (!response || !response.data || !response.data.data) {
@@ -198,6 +208,11 @@ export const useCardSearch = (): UseCardSearchReturn => {
         setTotalPages(calculatedTotalPages);
         setCurrentPage(page);
       } catch (error: any) {
+        // Don't log aborted requests
+        if (error.name === 'AbortError') {
+          return;
+        }
+
         console.error(
           "Search error:",
           error.response?.status,
@@ -221,8 +236,6 @@ export const useCardSearch = (): UseCardSearchReturn => {
           error.response?.status === 404 ||
           error.response?.status === 422
         ) {
-          console.log("404/422 Error details:", error.response?.data);
-
           // Si es error 422, probablemente es porque intentamos acceder a una página que no existe
           if (error.response?.status === 422 && page > 1) {
             // Ajustar el total de páginas al número máximo disponible
@@ -272,10 +285,22 @@ export const useCardSearch = (): UseCardSearchReturn => {
     [buildSearchQuery]
   );
 
+  // Debounced search function
+  const debouncedSearch = useDebouncedCallback(
+    performSearch,
+    300 // 300ms delay
+  );
+
+  const searchCards = useCallback(
+    async (term: string, filters: SearchFilters, page: number = 1) => {
+      await debouncedSearch(term, filters, page);
+    },
+    [debouncedSearch]
+  );
+
   // Función para ajustar totalPages cuando se detecta que una página no existe
   const adjustTotalPagesOnError = useCallback((failedPage: number) => {
     // No hacer nada, siempre es 1 página
-    console.log(`Page ${failedPage} failed, but we only use 1 page`);
   }, []);
 
   const clearResults = useCallback(() => {
