@@ -28,7 +28,8 @@ export default function HookExamplePage() {
     },
     onTick: (timeRemaining) => {
       // Optional: do something on each tick
-      if (timeRemaining <= 30000) { // 30 seconds or less
+      if (timeRemaining <= 30000) {
+        // 30 seconds or less
         // Time is running out
       }
     },
@@ -36,9 +37,11 @@ export default function HookExamplePage() {
 
   // Determinar el color del temporizador basado en el tiempo restante
   const getTimerColor = () => {
-    if (timeRemaining <= 300000) { // 5 minutos o menos
+    if (timeRemaining <= 300000) {
+      // 5 minutos o menos
       return "bg-red-100 text-red-800 border-red-300";
-    } else if (timeRemaining <= 600000) { // 10 minutos o menos
+    } else if (timeRemaining <= 600000) {
+      // 10 minutos o menos
       return "bg-yellow-100 text-yellow-800 border-yellow-300";
     } else {
       return "bg-green-100 text-green-800 border-green-300";
@@ -61,7 +64,7 @@ export default function HookExamplePage() {
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Configuración del Temporizador
           </h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -91,9 +94,11 @@ export default function HookExamplePage() {
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               Temporizador ({duration} minutos)
             </h2>
-            
+
             <div className="text-center mb-6">
-              <div className={`px-6 py-4 rounded-lg font-mono font-bold text-4xl border ${getTimerColor()}`}>
+              <div
+                className={`px-6 py-4 rounded-lg font-mono font-bold text-4xl border ${getTimerColor()}`}
+              >
                 {formattedTime}
               </div>
             </div>
@@ -109,7 +114,7 @@ export default function HookExamplePage() {
               >
                 {isRunning ? "⏸️ Pausar" : "▶️ Iniciar"}
               </button>
-              
+
               <button
                 onClick={reset}
                 className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
@@ -119,7 +124,9 @@ export default function HookExamplePage() {
             </div>
 
             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <h3 className="font-semibold text-gray-800 mb-2">Estado del Temporizador:</h3>
+              <h3 className="font-semibold text-gray-800 mb-2">
+                Estado del Temporizador:
+              </h3>
               <ul className="space-y-1 text-sm text-gray-600">
                 <li>• Tiempo restante: {timeRemaining}ms</li>
                 <li>• Ejecutándose: {isRunning ? "Sí" : "No"}</li>
@@ -164,4 +171,4 @@ export default function HookExamplePage() {
       </div>
     </div>
   );
-} 
+}

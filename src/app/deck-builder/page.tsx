@@ -215,56 +215,6 @@ const DeckBuilderPage: React.FC = () => {
               Selecciona una carta en la búsqueda para ver su vista previa
               detallada
             </p>
-            {/* Test button */}
-            <Button
-              onClick={() => {
-                const testCard: SearchableCard = {
-                  id: "test",
-                  name: "Lightning Bolt",
-                  image_uris: {
-                    small:
-                      "https://cards.scryfall.io/small/front/0/a/0a6eaa6a-8b3f-4c1e-8a1b-1b1b1b1b1b1b.jpg",
-                    normal:
-                      "https://cards.scryfall.io/normal/front/0/a/0a6eaa6a-8b3f-4c1e-8a1b-1b1b1b1b1b1b.jpg",
-                  },
-                  type_line: "Instant",
-                  oracle_text: "Lightning Bolt deals 3 damage to any target.",
-                  mana_cost: "{R}",
-                  colors: ["R"],
-                  legalities: { premodern: "legal" },
-                };
-                // Test card functionality
-                setPreviewedCard(testCard);
-              }}
-              className="mt-4 bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              Test: Set Lightning Bolt
-            </Button>
-            {/* Test button with known working image */}
-            <Button
-              onClick={() => {
-                const testCard: SearchableCard = {
-                  id: "test2",
-                  name: "Test Card",
-                  image_uris: {
-                    small:
-                      "https://cards.scryfall.io/small/front/0/6/06b0c53c-5b8c-4c1e-8a1b-1b1b1b1b1b1b.jpg",
-                    normal:
-                      "https://cards.scryfall.io/normal/front/0/6/06b0c53c-5b8c-4c1e-8a1b-1b1b1b1b1b1b.jpg",
-                  },
-                  type_line: "Test",
-                  oracle_text: "This is a test card.",
-                  mana_cost: "{1}",
-                  colors: ["U"],
-                  legalities: { premodern: "legal" },
-                };
-                // Test card with known image
-                setPreviewedCard(testCard);
-              }}
-              className="mt-2 bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Test: Known Image URL
-            </Button>
           </div>
         )}
       </div>
