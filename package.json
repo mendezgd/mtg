@@ -24,7 +24,9 @@
     "optimize": "npm run clean && npm run build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "echo \"No tests specified\" && exit 0",
+    "verify-images": "node scripts/verify-images.js",
+    "pre-deploy": "npm run verify-images && npm run build"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.0.4",

@@ -5,11 +5,10 @@ const nextConfig: NextConfig = {
     formats: ["image/webp", "image/avif"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    unoptimized: true, // Cambiar a true para evitar problemas con imágenes externas
+    unoptimized: false,
     dangerouslyAllowSVG: true,
     contentDispositionType: "attachment",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    // Removed external domains since we're now proxying through our API
   },
   compress: true,
   poweredByHeader: false,
@@ -30,9 +29,7 @@ const nextConfig: NextConfig = {
       },
     },
   },
-  // Performance optimizations
   swcMinify: true,
-  // Bundle analyzer
   ...(process.env.ANALYZE === "true" && {
     webpack: (config) => {
       config.plugins.push(
@@ -77,18 +74,9 @@ const nextConfig: NextConfig = {
             key: "Cache-Control",
             value: "public, max-age=31536000, immutable",
           },
-        ],
-      },
-      {
-        source: "/images/(.*).webp",
-        headers: [
           {
-            key: "Content-Type",
-            value: "image/webp",
-          },
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
+            key: "Access-Control-Allow-Origin",
+            value: "*",
           },
         ],
       },

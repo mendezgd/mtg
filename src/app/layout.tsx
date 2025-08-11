@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import ErrorBoundary from "@/components/ui/error-boundary";
 
 const inter = Inter({ subsets: ["latin"] });
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+});
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -161,7 +169,9 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={inter.className}>
+      <body
+        className={`${inter.className} ${jetbrainsMono.variable} ${spaceGrotesk.variable}`}
+      >
         <ErrorBoundary>{children}</ErrorBoundary>
       </body>
     </html>

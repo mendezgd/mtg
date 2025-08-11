@@ -1,70 +1,53 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 
 interface LocalImageProps {
   src: string;
   alt: string;
-  width?: number;
-  height?: number;
   className?: string;
+  fallbackSrc?: string;
   priority?: boolean;
-  loading?: "lazy" | "eager";
   fill?: boolean;
   sizes?: string;
-  quality?: number;
+  style?: React.CSSProperties;
 }
 
 const LocalImage: React.FC<LocalImageProps> = ({
   src,
   alt,
-  width,
-  height,
   className = "",
+  fallbackSrc = "/images/default-card.svg",
   priority = false,
-  loading = "lazy",
   fill = false,
   sizes,
-  quality = 85,
+  style,
+  ...props
 }) => {
-  const [hasError, setHasError] = React.useState(false);
-  const [imgSrc, setImgSrc] = React.useState(src);
-
-  React.useEffect(() => {
-    setImgSrc(src);
-    setHasError(false);
-  }, [src]);
+  const [imgSrc, setImgSrc] = useState(src);
+  const [hasError, setHasError] = useState(false);
 
   const handleError = () => {
-    if (!hasError) {
+    if (!hasError && imgSrc !== fallbackSrc) {
+      setImgSrc(fallbackSrc);
       setHasError(true);
-      setImgSrc('/images/default-card.svg');
     }
   };
 
-  // Preparar las props para el componente Image
-  const imageProps: any = {
-    src: imgSrc,
-    alt,
-    width,
-    height,
-    className,
-    fill,
-    sizes,
-    quality,
-    onError: handleError,
-    unoptimized: false,
-  };
-
-  // Solo pasar priority o loading, no ambos
-  if (priority) {
-    imageProps.priority = true;
-  } else {
-    imageProps.loading = loading;
-  }
-
-  return <Image {...imageProps} />;
+  return (
+    <Image
+      src={imgSrc}
+      alt={alt}
+      className={className}
+      priority={priority}
+      fill={fill}
+      sizes={sizes}
+      style={style}
+      onError={handleError}
+      {...props}
+    />
+  );
 };
 
 export default LocalImage;

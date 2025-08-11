@@ -172,15 +172,27 @@ const LifeCounter: React.FC = () => {
 
     return (
       <Card className="transition-all duration-300 relative overflow-hidden bg-gray-800 border-gray-700 h-full w-full">
-        {/* Imagen de fondo con fallback */}
+        {/* Imagen de fondo con fallback robusto */}
         <div
           className="absolute inset-0 opacity-20 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: `url(${backgroundImage})`,
+            backgroundColor:
+              player === "player1"
+                ? "rgba(59, 130, 246, 0.1)"
+                : "rgba(239, 68, 68, 0.1)",
           }}
           onError={(e) => {
-            // Si la imagen falla, ocultar el elemento
+            // Si la imagen falla, ocultar el elemento y usar solo el color de fondo
             e.currentTarget.style.display = "none";
+          }}
+        />
+        {/* Fallback de color de fondo */}
+        <div
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundColor:
+              player === "player1" ? "rgb(59, 130, 246)" : "rgb(239, 68, 68)",
           }}
         />
         <CardHeader className="pb-4 relative z-10 h-16 flex items-center justify-center">
@@ -194,7 +206,7 @@ const LifeCounter: React.FC = () => {
           {/* Contador de vida principal */}
           <div className="text-center relative w-full h-48 flex items-center justify-center">
             <div
-              className={`text-8xl md:text-9xl font-light tracking-wider text-white transition-all duration-300 ${
+              className={`text-8xl md:text-9xl font-life-counter-space text-white transition-all duration-300 ${
                 isAnimating ? "scale-110" : "scale-100"
               }`}
             >
