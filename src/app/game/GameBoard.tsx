@@ -6,7 +6,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { generateUUID } from "@/lib/utils";
 import { GameCard, DeckCardEntry, Deck } from "@/types/card";
-import SafeImage from "@/components/ui/safe-image";
+import { ImageService } from "@/lib/image-utils";
 
 // Use GameCard instead of CardData
 type CardData = GameCard;
@@ -157,11 +157,15 @@ const DraggableCard: React.FC<{
       onTouchEnd={handleTouchEnd}
       onTouchMove={handleTouchMove}
     >
-      <SafeImage
-        src={card.image_uris?.normal || "/images/default-card.jpg"}
+      <img
+        src={ImageService.processImageUrl(card.image_uris?.normal || "/images/default-card.jpg")}
         alt={card.name}
         className="w-full h-full object-cover rounded"
         loading="lazy"
+        onError={(e) => {
+          const target = e.target as HTMLImageElement;
+          target.src = "/images/default-card.jpg";
+        }}
       />
     </div>
   );
@@ -449,11 +453,15 @@ const CardSelectionModal: React.FC<{
                     selectedCards.has(card.id!) ? "ring-2 ring-blue-500" : ""
                   } ${draggedCard?.id === card.id ? "opacity-50" : ""}`}
                 >
-                  <SafeImage
-                    src={card.image_uris?.normal || "/images/default-card.svg"}
+                  <img
+                    src={ImageService.processImageUrl(card.image_uris?.normal || "/images/default-card.svg")}
                     alt={card.name}
                     className="w-full h-full object-cover"
                     loading="lazy"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "/images/default-card.svg";
+                    }}
                   />
                   {isArranging && (
                     <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-sm">
@@ -557,11 +565,15 @@ const ViewTopCardsModal: React.FC<{
           {arrangedCards.map((card, index) => (
             <div key={card.id} className="relative group">
               <div className="relative w-full aspect-[2.5/3.5] bg-gray-700 rounded-lg overflow-hidden">
-                <SafeImage
-                  src={card.image_uris?.normal || "/images/default-card.svg"}
+                <img
+                  src={ImageService.processImageUrl(card.image_uris?.normal || "/images/default-card.svg")}
                   alt={card.name}
                   className="w-full h-full object-cover"
                   loading="lazy"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "/images/default-card.svg";
+                  }}
                 />
                 <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-sm">
                   {index + 1}

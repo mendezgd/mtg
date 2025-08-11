@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import CardSearch from "@/components/CardSearch";
 import dynamic from "next/dynamic";
 import { SearchableCard, DeckCard, Deck } from "@/types/card";
-import SafeImage from "@/components/ui/safe-image";
+import { ImageService } from "@/lib/image-utils";
+
 import { Input } from "@/components/ui/input";
 import { useDeckManagement } from "@/hooks/use-deck-management";
 import { useMobileSwipe } from "@/hooks/use-mobile-swipe";
@@ -136,11 +137,9 @@ const DeckBuilderPage: React.FC = () => {
         } md:block w-full md:w-1/3 p-2 md:p-4 border-r border-gray-700 flex flex-col h-full`}
       >
         <div className="flex items-center gap-2 mb-2 md:mb-4">
-          <SafeImage
+          <img
             src="/images/pixelpox.webp"
             alt="Ícono de búsqueda"
-            width={48}
-            height={48}
             className="w-8 h-8 md:w-12 md:h-12 rounded-full"
           />
           <h2 className="text-lg md:text-xl font-bold">Buscador de Cartas</h2>
@@ -164,12 +163,16 @@ const DeckBuilderPage: React.FC = () => {
         {previewedCard ? (
           <div className="animate-fade-in">
             <div className="relative group">
-              <SafeImage
-                src={
+              <img
+                src={ImageService.processImageUrl(
                   previewedCard.image_uris?.normal || "/images/default-card.svg"
-                }
+                )}
                 alt={previewedCard.name}
                 className="w-full rounded-2xl mb-2 md:mb-4 object-cover card-hover shadow-lg"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/images/default-card.svg";
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
             </div>

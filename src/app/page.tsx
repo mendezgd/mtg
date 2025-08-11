@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import SafeImage from "@/components/ui/safe-image";
+
 import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
@@ -12,13 +12,10 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-neutral-950"></div>
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
           <div className="flex justify-center mb-8">
-            <SafeImage
+            <img
               src="/images/pixelpox.webp"
               alt="MTG Premodern Logo"
-              width={120}
-              height={120}
               className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-purple-500 shadow-2xl"
-              priority={true}
             />
           </div>
           <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent">
