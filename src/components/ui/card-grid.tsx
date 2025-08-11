@@ -1,6 +1,5 @@
 import React from "react";
 import { SearchableCard } from "@/types/card";
-import SafeImage from "./safe-image";
 import { ImageService } from "@/lib/image-utils";
 
 interface CardGridProps {
@@ -58,12 +57,17 @@ export const CardGrid: React.FC<CardGridProps> = ({
               aria-label={`${card.name}, click to view details`}
               tabIndex={0}
             >
-              <SafeImage
-                src={card.image_uris?.normal || ImageService.getFallbackUrl()}
+              <img
+                src={ImageService.processImageUrl(
+                  card.image_uris?.normal || ImageService.getFallbackUrl()
+                )}
                 alt={card.name}
-                className="w-full h-full object-contain hover:scale-105 transition-transform rounded-lg max-h-full"
+                className="w-full h-full object-contain hover:scale-105 transition-transform rounded-lg"
                 loading="lazy"
-                fallbackSrc={ImageService.getFallbackUrl()}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = ImageService.getFallbackUrl();
+                }}
               />
             </button>
           </div>
