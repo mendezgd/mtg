@@ -4,7 +4,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
-import BackgroundImage from "./ui/background-image";
+import SimpleBackground from "./ui/simple-background";
 
 import { useLocalStorage } from "../hooks/use-local-storage";
 import { useSound } from "../hooks/use-sound";
@@ -169,12 +169,12 @@ const LifeCounter: React.FC = () => {
     const isAnimating = animations[player].life;
     const colorConfig = mtgColors[playerData.color];
     const backgroundImage =
-      player === "player1" ? "/assets/images/chudixd.webp" : "/assets/images/chudix.webp";
+      player === "player1" ? "/images/chudixd.webp" : "/images/chudix.webp";
 
     return (
       <Card className="transition-all duration-300 relative overflow-hidden bg-gray-800 border-gray-700 h-full w-full">
-        {/* Imagen de fondo optimizada */}
-        <BackgroundImage
+        {/* Imagen de fondo simple */}
+        <SimpleBackground
           src={backgroundImage}
           alt={`Background for ${playerData.name}`}
           className="opacity-20"
@@ -183,7 +183,6 @@ const LifeCounter: React.FC = () => {
               ? "rgba(59, 130, 246, 0.1)"
               : "rgba(239, 68, 68, 0.1)"
           }
-          priority={true}
         />
         <CardHeader className="pb-4 relative z-10 h-16 flex items-center justify-center">
           <div className="flex items-center justify-center">
