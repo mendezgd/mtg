@@ -9,8 +9,6 @@ const criticalImages = [
   "/images/chudixd.webp",
   "/images/pixelpox.webp",
   "/images/default-card.svg",
-  "/assets/images/chudix.webp",
-  "/assets/images/chudixd.webp",
   "/favicon.ico",
   "/favicon-32x32.png",
   "/favicon-16x16.png",
