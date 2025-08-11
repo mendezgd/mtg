@@ -39,9 +39,8 @@ const BackgroundImage: React.FC<BackgroundImageProps> = ({
         priority={priority}
         onError={() => setHasError(true)}
         sizes="100vw"
-        unoptimized={true} // Forzar sin optimización para WebP locales
+        quality={85}
       />
-      {/* Fallback de color de fondo */}
       <div
         className="absolute inset-0"
         style={{ backgroundColor: fallbackColor }}

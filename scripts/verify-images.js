@@ -7,6 +7,8 @@ const path = require("path");
 const criticalImages = [
   "/images/chudix.webp",
   "/images/chudixd.webp",
+  "/assets/images/chudix.webp",
+  "/assets/images/chudixd.webp",
   "/images/pixelpox.webp",
   "/images/default-card.svg",
   "/favicon.ico",
@@ -49,7 +51,7 @@ function verifyImages() {
   } else {
     console.log("⚠️  Algunas imágenes críticas faltan");
     console.log(
-      "   Asegúrate de que todas las imágenes estén en /public/images/"
+      "   Asegúrate de que todas las imágenes estén en /public/images/ y /public/assets/images/"
     );
   }
 

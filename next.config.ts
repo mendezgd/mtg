@@ -23,7 +23,6 @@ const nextConfig: NextConfig = {
       },
     },
   },
-  swcMinify: true,
   ...(process.env.ANALYZE === "true" && {
     webpack: (config) => {
       config.plugins.push(
@@ -42,6 +41,27 @@ const nextConfig: NextConfig = {
           {
             key: "Cache-Control",
             value: "public, max-age=31536000, immutable",
+          },
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "*",
+          },
+        ],
+      },
+      {
+        source: "/assets/images/(.*).webp",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "image/webp",
+          },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "*",
           },
         ],
       },
