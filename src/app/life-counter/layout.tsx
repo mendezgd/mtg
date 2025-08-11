@@ -11,4 +11,4 @@ export default function LifeCounterLayout({
   children: React.ReactNode;
 }) {
   return <>{children}</>;
-} 
+}

@@ -177,25 +177,12 @@ const LifeCounter: React.FC = () => {
           className="absolute inset-0 opacity-20 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: `url(${backgroundImage})`,
-            backgroundColor:
-              player === "player1"
-                ? "rgba(59, 130, 246, 0.1)"
-                : "rgba(239, 68, 68, 0.1)",
           }}
           onError={(e) => {
             // Si la imagen falla, ocultar el elemento
             e.currentTarget.style.display = "none";
           }}
         />
-        {/* Fallback de color de fondo */}
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundColor:
-              player === "player1" ? "rgb(59, 130, 246)" : "rgb(239, 68, 68)",
-          }}
-        />
-
         <CardHeader className="pb-4 relative z-10 h-16 flex items-center justify-center">
           <div className="flex items-center justify-center">
             <CardTitle className="text-lg font-bold text-white truncate max-w-full">
