@@ -1,0 +1,3 @@
+src/components/ui/search-filters.tsx
+src/hooks/use-filter-handler.ts
+src/lib/logger.ts

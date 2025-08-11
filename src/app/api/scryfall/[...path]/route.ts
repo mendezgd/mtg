@@ -4,10 +4,11 @@ const SCRYFALL_BASE_URL = 'https://api.scryfall.com';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  context: { params: Promise<{ path: string[] }> }
 ) {
   try {
-    const path = params.path.join('/');
+    const resolvedParams = await context.params;
+    const path = resolvedParams.path.join('/');
     const url = new URL(request.url);
     const searchParams = url.searchParams.toString();
     
