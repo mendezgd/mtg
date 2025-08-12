@@ -1,0 +1,5 @@
+[33m271f608[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Fix image deployment: unignore public directory and add missing images
+[33mbe393a4[m Restore correct Next.js 15 API route with Promise params and full Scryfall proxy functionality
+[33m0f206d9[m chat fix
+[33m6af2a64[m Fix Next.js 15 API route params type - use Promise type
+[33m8028936[m Fix Next.js 15 API route params type for deployment
