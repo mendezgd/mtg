@@ -115,7 +115,7 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
   );
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-[calc(100vh-8rem)]">
       {/* Search Form */}
       <form onSubmit={handleSearch} className="mb-6 space-y-4">
         <div className="relative">
@@ -251,7 +251,7 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
             </div>
 
             {/* Cards Grid */}
-            <div className="flex-1 overflow-auto w-full">
+            <div className="flex-1 overflow-auto w-full pb-8 md:pb-4">
               {totalResults > searchResults.length && (
                 <div className="mb-3 p-2 bg-blue-900/20 border border-blue-500/30 rounded-lg text-blue-300 text-xs">
                   <p>Se encontraron {totalResults} cartas en total. Usa los botones de navegación para ver más resultados.</p>
@@ -264,6 +264,8 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
                 onAddToDeck={handleAddToDeck}
                 className="animate-fade-in w-full"
               />
+              {/* Espacio adicional para móvil */}
+              <div className="h-20 md:h-0"></div>
             </div>
           </div>
         )}

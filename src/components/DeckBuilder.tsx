@@ -677,7 +677,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                 <h3 className="text-lg font-semibold mb-3 text-gray-200">
                   Mano de Ejemplo
                 </h3>
-                <div className="flex gap-2 overflow-x-auto pb-2">
+                <div className="flex gap-2 overflow-x-auto pb-4">
                   {sampleHand.map((card, index) => (
                     <img
                       key={index}
@@ -723,7 +723,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
             {/* Cards List */}
             <div className="flex-1 overflow-auto">
               <ScrollArea className="h-full">
-                <div className="space-y-1" role="list">
+                <div className="space-y-1 pb-4" role="list">
                   {renderCardList(selectedDeck.cards)}
                 </div>
               </ScrollArea>
@@ -736,7 +736,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                   <h3 className="text-lg font-semibold mb-3 text-gray-200">
                     Sideboard
                   </h3>
-                  <div className="space-y-1" role="list">
+                  <div className="space-y-1 pb-4" role="list">
                     {renderCardList(selectedDeck.sideboard, true)}
                   </div>
                 </div>

@@ -435,7 +435,7 @@ const CardSelectionModal: React.FC<{
         </div>
 
         <div className="overflow-y-auto flex-1">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 pb-4">
             {(isArranging ? arrangedCards : cards).map((card) => (
               <div
                 key={card.id}
