@@ -103,7 +103,7 @@ const DeckBuilderPage: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col md:flex-row absolute top-0 z-[-2] h-[calc(100vh-4rem)] w-screen bg-neutral-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] text-white overflow-hidden">
+    <div className="flex flex-col md:flex-row h-[calc(100vh-4rem)] w-full bg-neutral-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] text-white overflow-hidden">
       {/* Mobile Navigation Tabs */}
       <div className="md:hidden flex border-b border-gray-700 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
         {tabs.map((tab) => {
@@ -137,11 +137,7 @@ const DeckBuilderPage: React.FC = () => {
         } md:block w-full md:w-1/3 p-2 md:p-4 border-r border-gray-700 flex flex-col h-full overflow-hidden`}
       >
         <div className="flex items-center gap-2 mb-2 md:mb-4">
-          <img
-            src="/images/pixelpox.webp"
-            alt="Ícono de búsqueda"
-            className="w-8 h-8 md:w-12 md:h-12 rounded-full"
-          />
+          <Search className="w-8 h-6 md:w-10 md:h-8 text-purple-400" />
           <h2 className="text-lg md:text-xl font-bold">Buscador de Cartas</h2>
         </div>
         <CardSearch

@@ -230,7 +230,7 @@ const LifeCounter: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white relative">
+    <div className="min-h-[calc(100vh-4rem)] bg-gray-900 text-white relative">
       {/* Botones en la esquina superior derecha */}
       <div className="absolute top-4 right-4 z-50 flex gap-2">
         {/* Botón de mute/unmute */}
@@ -258,7 +258,7 @@ const LifeCounter: React.FC = () => {
         </Button>
       </div>
 
-      <div className="h-screen w-full">
+      <div className="h-[calc(100vh-4rem)] w-full">
         {/* Header */}
         {/* Contadores principales */}
         <div

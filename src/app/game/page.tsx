@@ -66,7 +66,7 @@ export default function GamePage() {
 
   if (initialDeck.length === 0) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-800 text-white">
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-gray-800 text-white">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">No hay mazo seleccionado</h1>
           <p className="mb-4">

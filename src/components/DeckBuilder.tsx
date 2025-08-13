@@ -678,28 +678,41 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
               </div>
             )}
 
-            {/* Actions */}
-            <div className="flex gap-2 mb-4">
-              <Button
-                onClick={generateSampleHand}
-                disabled={totalCards < 7}
-                className="bg-gray-700 hover:bg-gray-600 text-white"
-              >
-                Generar Mano
-              </Button>
-              <Button
-                onClick={() => setSampleHand([])}
-                disabled={sampleHand.length === 0}
-                className="bg-gray-600 hover:bg-gray-500 text-white"
-              >
-                Limpiar Mano
-              </Button>
-            </div>
+                         {/* Actions */}
+             <div className="flex gap-2 mb-4">
+               <Button
+                 onClick={generateSampleHand}
+                 disabled={totalCards < 7}
+                 className="bg-gray-700 hover:bg-gray-600 text-white"
+               >
+                 Generar Mano
+               </Button>
+               <Button
+                 onClick={() => setSampleHand([])}
+                 disabled={sampleHand.length === 0}
+                 className="bg-gray-600 hover:bg-gray-500 text-white"
+               >
+                 Limpiar Mano
+               </Button>
+               <Button
+                 onClick={() => setOpponentDeckId(selectedDeck.id)}
+                 disabled={totalCards < 7}
+                 className="bg-purple-600 hover:bg-purple-700 text-white disabled:bg-gray-600 disabled:cursor-not-allowed"
+                 title={totalCards < 7 ? "Se necesitan al menos 7 cartas para jugar" : "Jugar contra otro mazo"}
+               >
+                 Jugar VS
+               </Button>
+             </div>
 
-            {/* Instructions */}
-            <div className="mb-3 p-2 bg-blue-900/20 border border-blue-500/30 rounded-lg text-blue-300 text-xs">
-              <p>💡 <strong>Consejo:</strong> Mantén presionada una carta para ver su vista previa. Toca fuera o el botón × para cerrar.</p>
-            </div>
+                         {/* Instructions */}
+             <div className="mb-3 p-2 bg-blue-900/20 border border-blue-500/30 rounded-lg text-blue-300 text-xs">
+               <p>💡 <strong>Consejo:</strong> Mantén presionada una carta para ver su vista previa. Toca fuera o el botón × para cerrar.</p>
+             </div>
+             
+             {/* VS Mode Info */}
+             <div className="mb-3 p-2 bg-purple-900/20 border border-purple-500/30 rounded-lg text-purple-300 text-xs">
+               <p>🎮 <strong>Modo VS:</strong> Usa el botón "Jugar VS" para enfrentar tu mazo contra otro de tus mazos en el juego.</p>
+             </div>
 
             {/* Cards List */}
             <div className="flex-1 overflow-auto">
@@ -728,20 +741,127 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
           </div>
         )}
 
-        {/* No Deck Selected */}
-        {!selectedDeck && selectedDeckId !== null && (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center p-6 bg-gray-900 border border-gray-700 rounded-lg">
-              <p className="text-gray-400 mb-4">Mazo no encontrado</p>
-              <Button
-                onClick={() => setSelectedDeckId(null)}
-                className="bg-gray-700 hover:bg-gray-600 text-white"
-              >
-                Crear Nuevo Mazo
-              </Button>
-            </div>
-          </div>
-        )}
+                 {/* No Deck Selected */}
+         {!selectedDeck && selectedDeckId !== null && (
+           <div className="flex-1 flex items-center justify-center">
+             <div className="text-center p-6 bg-gray-900 border border-gray-700 rounded-lg">
+               <p className="text-gray-400 mb-4">Mazo no encontrado</p>
+               <Button
+                 onClick={() => setSelectedDeckId(null)}
+                 className="bg-gray-700 hover:bg-gray-600 text-white"
+               >
+                 Crear Nuevo Mazo
+               </Button>
+             </div>
+           </div>
+         )}
+
+         {/* VS Mode Selection Modal */}
+         {opponentDeckId && selectedDeck && (
+           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+             <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 max-w-md w-full">
+               <h3 className="text-lg font-semibold mb-4 text-gray-200">
+                 Seleccionar Mazo Oponente
+               </h3>
+               <p className="text-sm text-gray-400 mb-4">
+                 Tu mazo: <span className="text-purple-400 font-medium">{selectedDeck.name}</span>
+               </p>
+               
+               <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
+                 {decks
+                   .filter(deck => deck.id !== selectedDeck.id)
+                   .map(deck => {
+                     const deckCardCount = Object.values(deck.cards).reduce(
+                       (acc, { count }) => acc + count, 0
+                     );
+                     return (
+                       <button
+                         key={deck.id}
+                         onClick={() => {
+                           const opponentDeck = deck;
+                           const playerDeckArray: DeckCard[] = [];
+                           const opponentDeckArray: DeckCard[] = [];
+
+                           Object.values(selectedDeck.cards).forEach(({ card, count }) => {
+                             for (let i = 0; i < count; i++) {
+                               playerDeckArray.push({ ...card, id: generateUUID() });
+                             }
+                           });
+
+                           Object.values(opponentDeck.cards).forEach(({ card, count }) => {
+                             for (let i = 0; i < count; i++) {
+                               opponentDeckArray.push({ ...card, id: generateUUID() });
+                             }
+                           });
+
+                           const initialPlayerHand = playerDeckArray
+                             .slice(0, 7)
+                             .map((card, index) => ({
+                               ...card,
+                               id: generateUUID(),
+                               x: index * 80,
+                             }));
+
+                           const initialOpponentHand = opponentDeckArray
+                             .slice(0, 7)
+                             .map((card, index) => ({
+                               ...card,
+                               id: generateUUID(),
+                               x: index * 80,
+                             }));
+
+                           const gameState = {
+                             players: [
+                               {
+                                 deck: playerDeckArray,
+                                 hand: initialPlayerHand,
+                                 life: 20,
+                                 mana: {},
+                               },
+                               {
+                                 deck: opponentDeckArray,
+                                 hand: initialOpponentHand,
+                                 life: 20,
+                                 mana: {},
+                               },
+                             ],
+                             currentTurn: 1,
+                             currentPhase: "untap",
+                             timestamp: Date.now(),
+                           };
+
+                           localStorage.setItem("gameState", JSON.stringify(gameState));
+                           router.push("/game");
+                           logger.info("Started VS game with decks:", selectedDeck.name, opponentDeck.name);
+                         }}
+                         className="w-full p-3 text-left bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-lg transition-colors"
+                       >
+                         <div className="font-medium text-gray-200">{deck.name}</div>
+                         <div className="text-sm text-gray-400">{deckCardCount} cartas</div>
+                       </button>
+                     );
+                   })}
+               </div>
+
+               {decks.filter(deck => deck.id !== selectedDeck.id).length === 0 && (
+                 <div className="text-center py-4 text-gray-400">
+                   <p>No hay otros mazos disponibles para jugar VS.</p>
+                   <p className="text-sm mt-2">Crea otro mazo para poder jugar.</p>
+                 </div>
+               )}
+
+               <div className="flex gap-2">
+                 <Button
+                   onClick={() => setOpponentDeckId(null)}
+                   variant="outline"
+                   className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-800"
+                 >
+                   Cancelar
+                 </Button>
+               </div>
+             </div>
+           </div>
+         )}
       </div>
     );
   }

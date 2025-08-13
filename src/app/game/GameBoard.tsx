@@ -1149,7 +1149,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
         ignoreContextMenu: true,
       }}
     >
-      <div className="flex flex-col h-screen w-screen bg-gray-800 text-white relative">
+      <div className="flex flex-col h-[calc(100vh-4rem)] w-full bg-gray-800 text-white relative">
         {!gameStarted ? (
           <PreGameModal decks={availableDecks} onStart={handleGameStart} />
         ) : (
