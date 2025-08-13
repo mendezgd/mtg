@@ -8,7 +8,6 @@ interface CardGridProps {
   onCardPreview?: (card: SearchableCard) => void;
   onAddToDeck?: (card: SearchableCard) => void;
   className?: string;
-  isMobile?: boolean;
 }
 
 export const CardGrid: React.FC<CardGridProps> = ({
@@ -17,7 +16,6 @@ export const CardGrid: React.FC<CardGridProps> = ({
   onCardPreview,
   onAddToDeck,
   className = "",
-  isMobile = false,
 }) => {
   const handleCardClick = (card: SearchableCard) => {
     if (onCardClick) {
@@ -76,21 +74,21 @@ export const CardGrid: React.FC<CardGridProps> = ({
             <h3 className="font-medium text-xs text-gray-200 text-center truncate w-full px-1">
               {card.name}
             </h3>
-            {onAddToDeck && (
-              <button
-                className="w-full text-xs py-1 px-1 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors font-medium"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAddToDeck(card);
-                }}
-                aria-label={`Add ${card.name} to deck`}
-              >
-                {isMobile ? "Agregar" : "Agregar al Mazo"}
-              </button>
-            )}
-          </div>
-        </div>
-      ))}
+                         {onAddToDeck && (
+               <button
+                 className="w-full text-xs py-1 px-1 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors font-medium"
+                 onClick={(e) => {
+                   e.stopPropagation();
+                   onAddToDeck(card);
+                 }}
+                 aria-label={`Add ${card.name} to deck`}
+               >
+                 Agregar al Mazo
+               </button>
+             )}
+           </div>
+         </div>
+       ))}
     </div>
   );
 };

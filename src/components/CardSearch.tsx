@@ -12,6 +12,7 @@ import { Search, Loader2, AlertCircle } from "lucide-react";
 import { CardPagination } from "@/components/ui/pagination";
 import { logger } from "@/lib/logger";
 
+
 interface CardSearchProps {
   addCardToDeck: (card: SearchableCard) => void;
   onCardPreview: (card: SearchableCard) => void;
@@ -212,12 +213,14 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
         </div>
       )}
 
-      {/* Results Section */}
-      <div className="flex-1 overflow-hidden">
-        {searchResults.length > 0 && (
-          <div className="h-full flex flex-col">
-            {/* Results Header */}
-            <div className="flex justify-between items-center mb-4 p-2 bg-gray-900/30 rounded-lg">
+              {/* Results Section */}
+        <div className="flex-1 overflow-hidden">
+          {searchResults.length > 0 && (
+            <div className="h-full flex flex-col">
+              
+              
+              {/* Results Header */}
+              <div className="flex justify-between items-center mb-4 p-2 bg-gray-900/30 rounded-lg">
               <span className="text-sm text-gray-300">
                 {totalResults > 0 ? `${searchResults.length} de ${totalResults} cartas` : `${searchResults.length} cartas encontradas`}
                 {totalResults > searchResults.length && (
@@ -257,13 +260,13 @@ const CardSearch: React.FC<CardSearchProps> = ({ addCardToDeck, onCardPreview })
                   <p>Se encontraron {totalResults} cartas en total. Usa los botones de navegación para ver más resultados.</p>
                 </div>
               )}
-              <CardGrid
-                cards={searchResults}
-                onCardClick={handleCardClick}
-                onCardPreview={onCardPreview}
-                onAddToDeck={handleAddToDeck}
-                className="animate-fade-in w-full"
-              />
+                             <CardGrid
+                 cards={searchResults}
+                 onCardClick={handleCardClick}
+                 onCardPreview={onCardPreview}
+                 onAddToDeck={handleAddToDeck}
+                 className="animate-fade-in w-full"
+               />
               {/* Espacio adicional para móvil */}
               <div className="h-20 md:h-0"></div>
             </div>

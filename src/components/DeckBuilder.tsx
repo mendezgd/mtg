@@ -9,17 +9,15 @@ import React, {
 } from "react";
 import { DeckCard, Deck } from "@/types/card";
 import { Button } from "@/components/ui/button";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+
 import dynamic from "next/dynamic";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { generateUUID, getCardStyle, getPrimaryType, getTypeOrder, getManaSymbols } from "@/lib/utils";
 import { ImageService } from "@/lib/image-utils";
 import { logger } from "@/lib/logger";
+import { useLongPress } from "@/hooks/use-long-press";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const ScrollArea = dynamic(
   () =>
@@ -75,6 +73,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
     const [editingDeckId, setEditingDeckId] = useState<string | null>(null);
     const [tempDeckName, setTempDeckName] = useState("");
     const [opponentDeckId, setOpponentDeckId] = useState<string | null>(null);
+    const isMobile = useIsMobile();
 
     const router = useRouter();
 
@@ -181,6 +180,14 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
 
         const cardStyle = getCardStyle(validCard.colors);
 
+        // Configurar long press para preview (móvil y desktop)
+        const longPressHandlers = useLongPress({
+          onLongPress: () => setTouchedCard({ card: validCard, name }),
+          onPress: () => {}, // No hacer nada en press corto
+          ms: 600, // 600ms para long press
+          preventDefault: false,
+        });
+
         return (
           <div
             className={`text-sm flex justify-between rounded-md items-center p-2 border ${cardStyle.background} ${cardStyle.border} hover:shadow-sm transition-colors`}
@@ -188,32 +195,14 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
             aria-label={`${name} - ${count} copias`}
           >
             <div className="flex items-center gap-2 flex-1 min-w-0">
-              <HoverCard>
-                <HoverCardTrigger asChild>
-                  <button
-                    className={`text-left flex-1 min-w-0 hover:opacity-80 transition-opacity ${cardStyle.text}`}
-                    aria-label={`Ver detalles de ${name}`}
-                    onTouchStart={(e) => {
-                      e.stopPropagation();
-                      setTouchedCard({ card: validCard, name });
-                    }}
-                    onTouchEnd={(e) => {
-                      e.stopPropagation();
-                      setTouchedCard(null);
-                    }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                      setTouchedCard({ card: validCard, name });
-                    }}
-                    onMouseUp={(e) => {
-                      e.stopPropagation();
-                      setTouchedCard(null);
-                    }}
-                    onMouseLeave={(e) => {
-                      e.stopPropagation();
-                      setTouchedCard(null);
-                    }}
-                  >
+              <div className="text-xs text-gray-400 opacity-60 mr-1">
+                👁️
+              </div>
+              <button
+                className={`text-left flex-1 min-w-0 hover:opacity-80 transition-opacity ${cardStyle.text}`}
+                aria-label={`Ver detalles de ${name} - mantén presionado para vista previa`}
+                {...longPressHandlers}
+              >
                     <div className="font-medium truncate">{name}</div>
                     <div className={`text-xs opacity-70 truncate ${cardStyle.text}`}>
                       {validCard.type_line}
@@ -232,35 +221,8 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                           )
                         )}
                       </div>
-                    )}
-                  </button>
-                </HoverCardTrigger>
-                <HoverCardContent className="w-80 p-0" side="right">
-                  <div className="space-y-3 p-4">
-                    <img
-                      src={ImageService.processImageUrl(validCard.image_uris?.normal || "/images/default-card.svg")}
-                      alt={`Imagen de ${name}`}
-                      className="w-full rounded shadow-sm"
-                      loading="lazy"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = "/images/default-card.svg";
-                      }}
-                    />
-                    <div>
-                      <h4 className="font-semibold text-lg">{name}</h4>
-                      <p className="text-sm text-gray-600 mb-2">
-                        {validCard.type_line}
-                      </p>
-                      {validCard.oracle_text && (
-                        <p className="text-sm leading-relaxed">
-                          {validCard.oracle_text}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </HoverCardContent>
-              </HoverCard>
+                                         )}
+                   </button>
             </div>
 
             <div className="flex items-center gap-2">
@@ -300,6 +262,20 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                     const target = e.target as HTMLImageElement;
                     target.src = "/images/default-card.svg";
                   }}
+                />
+                {/* Botón de cierre visible */}
+                <button
+                  className="absolute top-2 right-2 w-8 h-8 bg-black/70 hover:bg-black/90 text-white rounded-full flex items-center justify-center text-lg font-bold transition-colors z-10"
+                  onClick={() => setTouchedCard(null)}
+                  aria-label="Cerrar vista previa"
+                >
+                  ×
+                </button>
+                {/* Overlay para cerrar al tocar fuera */}
+                <div 
+                  className="absolute inset-0 bg-transparent cursor-pointer"
+                  onClick={() => setTouchedCard(null)}
+                  aria-label="Cerrar vista previa"
                 />
               </div>
             )}
@@ -720,6 +696,11 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
               </Button>
             </div>
 
+            {/* Instructions */}
+            <div className="mb-3 p-2 bg-blue-900/20 border border-blue-500/30 rounded-lg text-blue-300 text-xs">
+              <p>💡 <strong>Consejo:</strong> Mantén presionada una carta para ver su vista previa. Toca fuera o el botón × para cerrar.</p>
+            </div>
+
             {/* Cards List */}
             <div className="flex-1 overflow-auto">
               <ScrollArea className="h-full">
@@ -736,6 +717,9 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
                   <h3 className="text-lg font-semibold mb-3 text-gray-200">
                     Sideboard
                   </h3>
+                  <div className="mb-3 p-2 bg-blue-900/20 border border-blue-500/30 rounded-lg text-blue-300 text-xs">
+                    <p>💡 <strong>Consejo:</strong> Mantén presionada una carta para ver su vista previa. Toca fuera o el botón × para cerrar.</p>
+                  </div>
                   <div className="space-y-1 pb-4" role="list">
                     {renderCardList(selectedDeck.sideboard, true)}
                   </div>
