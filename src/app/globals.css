@@ -254,3 +254,77 @@
     color: black !important;
   }
 }
+
+/* Donation Button Styles */
+@keyframes donation-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 20px rgba(41, 171, 226, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 25px rgba(41, 171, 226, 0.5);
+  }
+}
+
+@keyframes donation-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.donation-pulse {
+  animation: donation-pulse 1s ease-in-out;
+}
+
+.donation-fade-in {
+  animation: donation-fade-in 0.3s ease-out;
+}
+
+/* Donation button responsive adjustments */
+@media (max-width: 768px) {
+  .donation-button-mobile {
+    width: 45px !important;
+    height: 45px !important;
+    bottom: 15px !important;
+    right: 15px !important;
+  }
+}
+
+/* Donation menu responsive */
+@media (max-width: 480px) {
+  .donation-menu-mobile {
+    min-width: 260px !important;
+    max-width: calc(100vw - 30px) !important;
+    right: 15px !important;
+    bottom: 70px !important;
+  }
+}
+
+/* High contrast mode for donation button */
+@media (prefers-contrast: high) {
+  .donation-button {
+    border: 2px solid #ffffff;
+  }
+  
+  .donation-menu {
+    border: 2px solid #000000;
+  }
+}
+
+/* Reduced motion for donation animations */
+@media (prefers-reduced-motion: reduce) {
+  .donation-pulse,
+  .donation-fade-in {
+    animation: none;
+  }
+  
+  .donation-button {
+    transition: none;
+  }
+}

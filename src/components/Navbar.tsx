@@ -14,6 +14,7 @@ import {
   X
 } from "lucide-react";
 import { useState } from "react";
+import DonationButton from "./DonationButton";
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -70,6 +71,12 @@ const Navbar = () => {
                 </Link>
               );
             })}
+            
+            {/* Separador visual */}
+            <div className="w-px h-6 bg-gray-700 mx-2" />
+            
+            {/* Botón de donaciones */}
+            <DonationButton variant="navbar" />
           </div>
 
           {/* Mobile menu button */}
@@ -112,6 +119,14 @@ const Navbar = () => {
                   </Link>
                 );
               })}
+              
+              {/* Separador visual */}
+              <div className="w-full h-px bg-gray-700 my-2" />
+              
+              {/* Botón de donaciones en móvil */}
+              <div className="px-2">
+                <DonationButton variant="navbar" />
+              </div>
             </div>
           </div>
         )}
