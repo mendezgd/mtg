@@ -191,7 +191,7 @@ const LifeCounter: React.FC = () => {
             </CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="relative z-10 flex-1 flex items-center justify-center mt-32">
+        <CardContent className="relative z-10 flex-1 flex items-center justify-center mt-20">
           {/* Contador de vida principal */}
           <div className="text-center relative w-full h-48 flex items-center justify-center">
             <div
