@@ -40,14 +40,14 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://mtg-three.vercel.app/"),
+  metadataBase: new URL("https://www.mtgpox.com/"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     locale: "es_ES",
-    url: "https://mtg-three.vercel.app/",
+    url: "https://www.mtgpox.com/",
     title: "MTG Premodern - Constructor de Mazos y Simulador de Juego",
     description:
       "Constructor de mazos MTG Premodern, simulador de juego, torneos suizos y herramientas para jugadores de Magic: The Gathering.",
@@ -154,7 +154,7 @@ export default function RootLayout({
               name: "MTG Premodern",
               description:
                 "Constructor de mazos MTG Premodern, simulador de juego, torneos suizos y herramientas para jugadores de Magic: The Gathering.",
-              url: "https://mtg-premodern.com",
+              url: "https://www.mtgpox.com",
               applicationCategory: "Game",
               operatingSystem: "Web Browser",
               offers: {

@@ -8,7 +8,8 @@ export class ImageService {
   static processUrl(url: string): string {
     if (!url) return this.getFallbackUrl();
     if (this.isLocalUrl(url)) return url;
-    if (this.isScryfallUrl(url)) return this.proxyUrl(url);
+    // For static export, we'll use external URLs directly
+    // CORS will need to be handled by the external service
     return url;
   }
 
@@ -57,15 +58,16 @@ export class ImageService {
    * Checks if a URL is local
    */
   private static isLocalUrl(url: string): boolean {
-    return url.startsWith('/') || url.includes('/api/proxy-image');
+    return url.startsWith('/');
   }
 
   /**
    * Creates a proxy URL for external images
+   * Note: This is disabled for static export
    */
   private static proxyUrl(url: string): string {
-    const encodedUrl = encodeURIComponent(url);
-    return `/api/proxy-image?url=${encodedUrl}`;
+    // For static export, return the original URL
+    return url;
   }
 
   /**

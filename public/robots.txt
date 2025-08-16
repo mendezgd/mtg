@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://mtg-premodern.com/sitemap.xml
+Sitemap: https://www.mtgpox.com/sitemap.xml
 
 # Crawl-delay
 Crawl-delay: 1

@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: 'export',
+  trailingSlash: true,
   images: {
     unoptimized: true, // Deshabilitar optimización completamente
   },
@@ -33,36 +35,8 @@ const nextConfig: NextConfig = {
       return config;
     },
   }),
-  headers: async () => {
-    return [
-      {
-        source: "/images/(.*)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-    ];
-  },
-  async redirects() {
-    return [
-      {
-        source: "/home",
-        destination: "/",
-        permanent: true,
-      },
-    ];
-  },
-  async rewrites() {
-    return [
-      {
-        source: "/api/scryfall/:path*",
-        destination: "https://api.scryfall.com/:path*",
-      },
-    ];
-  },
+  // Note: headers, redirects, and rewrites don't work with static export
+  // These will need to be handled differently for static hosting
 };
 
 export default nextConfig;
