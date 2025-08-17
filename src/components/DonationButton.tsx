@@ -1,29 +1,29 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Heart, Coffee, CreditCard, ExternalLink } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import { Heart, Coffee, CreditCard, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 
 interface DonationButtonProps {
-  variant?: 'floating' | 'navbar';
+  variant?: "floating" | "navbar";
   className?: string;
 }
 
-export default function DonationButton({ 
-  variant = 'floating', 
-  className = '' 
+export default function DonationButton({
+  variant = "floating",
+  className = "",
 }: DonationButtonProps) {
   const [isPulsing, setIsPulsing] = useState(false);
 
   // Efecto de pulso discreto cada 15 segundos (solo para floating)
   useEffect(() => {
-    if (variant === 'floating') {
+    if (variant === "floating") {
       const pulseInterval = setInterval(() => {
         setIsPulsing(true);
         setTimeout(() => setIsPulsing(false), 1000);
@@ -34,11 +34,11 @@ export default function DonationButton({
   }, [variant]);
 
   const handleDonationClick = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   // Versión para navbar - más compacta
-  if (variant === 'navbar') {
+  if (variant === "navbar") {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -48,7 +48,7 @@ export default function DonationButton({
             className="text-gray-300 hover:text-white hover:bg-gray-800 flex items-center space-x-2"
             aria-label="Opciones de donación"
           >
-            <Heart className="w-4 h-4" />
+            <Heart className="w-4 h-4" color="violet" />
             <span className="hidden lg:inline">Apoyar</span>
           </Button>
         </DropdownMenuTrigger>
@@ -56,12 +56,12 @@ export default function DonationButton({
           <div className="px-2 py-1.5 text-sm font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700">
             Apoya mi trabajo
           </div>
-          
+
           <DropdownMenuItem
-            onClick={() => handleDonationClick('https://ko-fi.com/fattiepox')}
+            onClick={() => handleDonationClick("https://ko-fi.com/fattiepox")}
             className="flex items-center gap-3 px-3 py-2.5 cursor-pointer"
           >
-            <div className="flex-shrink-0 w-8 h-8 bg-[#29abe2] rounded-full flex items-center justify-center">
+            <div className="flex-shrink-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
               <Coffee className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1 min-w-0">
@@ -76,10 +76,12 @@ export default function DonationButton({
           </DropdownMenuItem>
 
           <DropdownMenuItem
-            onClick={() => handleDonationClick('https://www.mercadopago.com.ar/fattiepox')}
+            onClick={() =>
+              handleDonationClick("https://www.mercadopago.com.ar/fattiepox")
+            }
             className="flex items-center gap-3 px-3 py-2.5 cursor-pointer"
           >
-            <div className="flex-shrink-0 w-8 h-8 bg-[#009ee3] rounded-full flex items-center justify-center">
+            <div className="flex-shrink-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
               <CreditCard className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1 min-w-0">
@@ -113,7 +115,7 @@ export default function DonationButton({
           flex items-center justify-center
           focus:outline-none focus:ring-2 focus:ring-[#29abe2] focus:ring-opacity-50
           donation-button donation-button-mobile
-          ${isPulsing ? 'donation-pulse' : ''}
+          ${isPulsing ? "donation-pulse" : ""}
           ${className}
         `}
         aria-label="Abrir opciones de donación"
