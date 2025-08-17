@@ -22,6 +22,8 @@ export interface Translations {
     deckBuilderDescription: string;
     gameSimulator: string;
     gameSimulatorDescription: string;
+    gameSimulatorInDevelopment: string;
+    gameSimulatorComingSoon: string;
     aboutPremodern: string;
     aboutPremodernDescription: string;
     formatPremodern: string;
@@ -208,6 +210,17 @@ export interface Translations {
     saveConfiguration: string;
   };
 
+  // Game
+  game: {
+    title: string;
+    subtitle: string;
+    inDevelopment: string;
+    comingSoon: string;
+    noDeckSelected: string;
+    pleaseSelectDeck: string;
+    goToDeckBuilder: string;
+  };
+
   // Common
   common: {
     loading: string;
@@ -281,9 +294,11 @@ export const translations: Record<Language, Translations> = {
       deckBuilder: "Constructor de Mazos",
       deckBuilderDescription:
         "Construye y optimiza tus mazos con herramientas avanzadas. Soporte para sideboards y validación automática.",
-      gameSimulator: "Simulador de Juego",
-      gameSimulatorDescription:
-        "Juega partidas completas con tus mazos. Interfaz intuitiva y todas las mecánicas del juego.",
+          gameSimulator: "Simulador de Juego",
+    gameSimulatorDescription:
+      "Juega partidas completas con tus mazos. Interfaz intuitiva y todas las mecánicas del juego.",
+    gameSimulatorInDevelopment: "🚧 En Desarrollo",
+    gameSimulatorComingSoon: "Próximamente - Funcionalidad completa en desarrollo",
       aboutPremodern: "Sobre MTG Premodern",
       aboutPremodernDescription:
         "Premodern es un formato de Magic: The Gathering que incluye cartas desde la 4ª edición hasta Scourge (1995-2003). Nuestra plataforma te ofrece todas las herramientas necesarias para explorar este formato histórico y competitivo.",
@@ -414,9 +429,18 @@ export const translations: Record<Language, Translations> = {
       totalCardsFound: "Se encontraron {count} cartas en total.",
       useNavigationButtons:
         "Usa los botones de navegación para ver más resultados.",
-      basicLands: "Tierras Básicas",
-    },
-    tournament: {
+             basicLands: "Tierras Básicas",
+     },
+     game: {
+       title: "Simulador de Juego MTG Premodern",
+       subtitle: "Juega partidas completas con tus mazos",
+       inDevelopment: "🚧 En Desarrollo",
+       comingSoon: "Próximamente - Funcionalidad completa en desarrollo",
+       noDeckSelected: "No hay mazo seleccionado",
+       pleaseSelectDeck: "Por favor, selecciona un mazo en el constructor de mazos.",
+       goToDeckBuilder: "Ir al Constructor de Mazos",
+     },
+     tournament: {
       title: "🏆 Posada MTG Torneo",
       subtitle: "Torneo Suizo MTG Premodern",
       autoSave: "Guardado automático",
@@ -558,9 +582,11 @@ export const translations: Record<Language, Translations> = {
       deckBuilder: "Deck Builder",
       deckBuilderDescription:
         "Build and optimize your decks with advanced tools. Sideboard support and automatic validation.",
-      gameSimulator: "Game Simulator",
-      gameSimulatorDescription:
-        "Play complete games with your decks. Intuitive interface and all game mechanics.",
+          gameSimulator: "Game Simulator",
+    gameSimulatorDescription:
+      "Play complete games with your decks. Intuitive interface and all game mechanics.",
+    gameSimulatorInDevelopment: "🚧 In Development",
+    gameSimulatorComingSoon: "Coming Soon - Full functionality in development",
       aboutPremodern: "About MTG Premodern",
       aboutPremodernDescription:
         "Premodern is a Magic: The Gathering format that includes cards from 4th Edition to Scourge (1995-2003). Our platform offers you all the tools needed to explore this historical and competitive format.",
@@ -689,9 +715,18 @@ export const translations: Record<Language, Translations> = {
       cardsFound: "cards found",
       totalCardsFound: "Found {count} cards in total.",
       useNavigationButtons: "Use the navigation buttons to see more results.",
-      basicLands: "Basic Lands",
-    },
-    tournament: {
+             basicLands: "Basic Lands",
+     },
+     game: {
+       title: "MTG Premodern Game Simulator",
+       subtitle: "Play complete games with your decks",
+       inDevelopment: "🚧 In Development",
+       comingSoon: "Coming Soon - Full functionality in development",
+       noDeckSelected: "No deck selected",
+       pleaseSelectDeck: "Please select a deck in the deck builder.",
+       goToDeckBuilder: "Go to Deck Builder",
+     },
+     tournament: {
       title: "🏆 Posada MTG Tournament",
       subtitle: "MTG Premodern Swiss Tournament",
       autoSave: "Auto Save",

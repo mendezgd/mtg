@@ -8,7 +8,7 @@ import {
   Search, 
   Library, 
   Gamepad2, 
-  Trophy, 
+  Trophy,
   Heart,
   Menu,
   X,

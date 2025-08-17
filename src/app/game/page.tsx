@@ -5,8 +5,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { GameBoard } from "./GameBoard";
 import { GameCard, DeckCardEntry, Deck } from "@/types/card";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function GamePage() {
+  const { t } = useLanguage();
   const [initialDeck, setInitialDeck] = useState<GameCard[]>([]);
   const [availableDecks, setAvailableDecks] = useState<Deck[]>([]);
 
@@ -68,15 +70,23 @@ export default function GamePage() {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-gray-800 text-white">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">No hay mazo seleccionado</h1>
-          <p className="mb-4">
-            Por favor, selecciona un mazo en el constructor de mazos.
+          <div className="mb-6">
+            <span className="bg-yellow-600 text-yellow-100 text-sm px-3 py-1 rounded-full font-medium">
+              {t("game.inDevelopment")}
+            </span>
+          </div>
+          <h1 className="text-2xl font-bold mb-4">{t("game.noDeckSelected")}</h1>
+          <p className="mb-4 text-gray-300">
+            {t("game.pleaseSelectDeck")}
+          </p>
+          <p className="mb-6 text-yellow-400 text-sm font-medium">
+            {t("game.comingSoon")}
           </p>
           <button
             onClick={() => (window.location.href = "/deck-builder")}
             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
           >
-            Ir al Constructor de Mazos
+            {t("game.goToDeckBuilder")}
           </button>
         </div>
       </div>

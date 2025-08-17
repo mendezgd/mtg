@@ -51,7 +51,7 @@ export default function HomePage() {
             </Link>
             <Link href="/game">
               <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#1e40af] to-[#60a5fa] active:scale-95">
-                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-[#3B82F6] text-white rounded-[10px] bg-gradient-to-t from-[#2563eb] to-[#3b82f6] text-base font-medium">
+                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-[#3B82F6] text-white rounded-[10px] bg-gradient-to-t from-[#2563eb] to-[#3b82f6] text-base font-medium relative">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -70,6 +70,9 @@ export default function HomePage() {
                     <line x1="16" y1="12" x2="16" y2="12" />
                   </svg>
                   {t("navbar.game")}
+                  <span className="absolute -top-2 -right-2 bg-yellow-600 text-yellow-100 text-xs px-1.5 py-0.5 rounded-full font-medium">
+                    🚧
+                  </span>
                 </span>
               </button>
             </Link>
@@ -78,26 +81,22 @@ export default function HomePage() {
                 <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-[#10B981] text-white rounded-[10px] bg-gradient-to-t from-[#059669] to-[#10b981] text-base font-medium">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
+                    width="32"
+                    height="32"
                     viewBox="0 0 24 24"
                     className="w-4 h-4"
                     fill="none"
                     stroke="currentColor"
+                    strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth="2"
                   >
-                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-                    <path d="M14 6h2a2 2 0 0 1 2 2v6.5a2.5 2.5 0 0 1-2.5 2.5H14" />
-                    <path d="M6 2v3" />
-                    <path d="M14 2v3" />
-                    <path d="M10 4h4" />
-                    <path d="M10 20h4" />
-                    <path d="M6 20h8" />
-                    <path d="M6 20v-3" />
-                    <path d="M14 20v-3" />
-                    <path d="M12 12v-3" />
-                    <path d="M9 9h6" />
-                    <path d="M9 12h6" />
+                    <path d="M8 21l8 0" />
+                    <path d="M12 17l0 4" />
+                    <path d="M7 4l10 0" />
+                    <path d="M17 4v8a5 5 0 0 1 -10 0v-8" />
+                    <path d="M5 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                    <path d="M19 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
                   </svg>
                   {t("navbar.tournament")}
                 </span>
@@ -151,13 +150,21 @@ export default function HomePage() {
                 {t("home.deckBuilderDescription")}
               </p>
             </div>
-            <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800 hover:border-green-500 transition-all duration-300">
+            <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800 hover:border-green-500 transition-all duration-300 relative">
+              <div className="absolute top-4 right-4">
+                <span className="bg-yellow-600 text-yellow-100 text-xs px-2 py-1 rounded-full font-medium">
+                  {t("home.gameSimulatorInDevelopment")}
+                </span>
+              </div>
               <div className="text-4xl mb-4">🎮</div>
               <h3 className="text-xl font-bold mb-3">
                 {t("home.gameSimulator")}
               </h3>
-              <p className="text-gray-300">
+              <p className="text-gray-300 mb-3">
                 {t("home.gameSimulatorDescription")}
+              </p>
+              <p className="text-yellow-400 text-sm font-medium">
+                {t("home.gameSimulatorComingSoon")}
               </p>
             </div>
           </div>
