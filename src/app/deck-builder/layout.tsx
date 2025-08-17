@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Constructor de Mazos MTG Premodern",
     description: "Construye mazos MTG Premodern con nuestro constructor avanzado. Busca cartas, crea sideboards y optimiza tus estrategias.",
-    url: "https://mtg-premodern.com/deck-builder",
+    url: "https://mtgpox.com/deck-builder",
   },
   twitter: {
     title: "Constructor de Mazos MTG Premodern",

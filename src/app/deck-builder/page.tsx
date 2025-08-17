@@ -13,15 +13,20 @@ import { useMobileSwipe } from "@/hooks/use-mobile-swipe";
 import { generateUUID } from "@/lib/utils";
 import { Search, Eye, Library } from "lucide-react";
 import { CardPrice } from "@/components/ui/card-price";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const DeckBuilder = dynamic(() => import("@/components/DeckBuilder"), {
   ssr: false,
-  loading: () => (
-    <div className="text-gray-400">Cargando constructor de mazos...</div>
-  ),
+  loading: () => {
+    const { t } = useLanguage();
+    return (
+      <div className="text-gray-400">{t('deckBuilder.loading')}</div>
+    );
+  },
 });
 
 const DeckBuilderPage: React.FC = () => {
+  const { t } = useLanguage();
   const [previewedCard, setPreviewedCard] = useState<SearchableCard | null>(
     null
   );
@@ -97,9 +102,9 @@ const DeckBuilderPage: React.FC = () => {
   if (!isMounted) return null;
 
   const tabs = [
-    { id: "search" as const, label: "Búsqueda", icon: Search },
-    { id: "preview" as const, label: "Vista Previa", icon: Eye },
-    { id: "deck" as const, label: "Mi Mazo", icon: Library },
+    { id: "search" as const, label: t('deckBuilder.search'), icon: Search },
+    { id: "preview" as const, label: t('deckBuilder.preview'), icon: Eye },
+    { id: "deck" as const, label: t('deckBuilder.myDeck'), icon: Library },
   ];
 
   return (
@@ -126,7 +131,7 @@ const DeckBuilderPage: React.FC = () => {
         })}
         {/* Swipe indicator */}
         <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 text-xs text-gray-500 opacity-60">
-          ← Desliza →
+          {t('deckBuilder.swipeIndicator')}
         </div>
       </div>
 
@@ -138,7 +143,7 @@ const DeckBuilderPage: React.FC = () => {
       >
         <div className="flex items-center gap-2 mb-2 md:mb-4">
           <Search className="w-8 h-6 md:w-10 md:h-8 text-purple-400" />
-          <h2 className="text-lg md:text-xl font-bold">Buscador de Cartas</h2>
+          <h2 className="text-lg md:text-xl font-bold">{t('deckBuilder.search')}</h2>
         </div>
         <CardSearch
           addCardToDeck={addCardToDeck}
@@ -154,7 +159,7 @@ const DeckBuilderPage: React.FC = () => {
       >
         <h2 className="text-lg md:text-xl font-bold mb-2 md:mb-4 flex items-center gap-2">
           <Eye className="w-5 h-5" />
-          Vista Previa
+          {t('deckBuilder.preview')}
         </h2>
         {previewedCard ? (
           <div className="animate-fade-in">
@@ -182,7 +187,7 @@ const DeckBuilderPage: React.FC = () => {
             {/* Precios de la carta */}
             <div className="bg-gray-900/50 rounded-lg p-3 mb-3">
               <h4 className="text-sm font-semibold text-gray-300 mb-2">
-                Precios
+                {t('deckBuilder.price')}
               </h4>
               <CardPrice card={previewedCard} />
             </div>
@@ -198,18 +203,17 @@ const DeckBuilderPage: React.FC = () => {
               onClick={() => addCardToDeck(previewedCard)}
               className="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white"
             >
-              Agregar al Mazo
+              {t('deckBuilder.addToDeck')}
             </Button>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
             <div className="text-6xl mb-4">👁️</div>
             <h3 className="text-xl font-semibold mb-2 text-gray-300">
-              Vista Previa
+              {t('deckBuilder.preview')}
             </h3>
             <p className="text-gray-400 max-w-md">
-              Selecciona una carta en la búsqueda para ver su vista previa
-              detallada
+              {t('deckBuilder.previewDescription')}
             </p>
           </div>
         )}
@@ -223,7 +227,7 @@ const DeckBuilderPage: React.FC = () => {
       >
         <div className="flex items-center gap-2 mb-2 md:mb-4">
           <Library className="w-6 h-6 text-purple-400" />
-          <h2 className="text-lg md:text-xl font-bold">Mi Mazo</h2>
+          <h2 className="text-lg md:text-xl font-bold">{t('deckBuilder.myDeck')}</h2>
         </div>
         <DeckBuilder
           decks={deckManagement.decks}

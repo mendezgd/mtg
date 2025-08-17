@@ -128,7 +128,7 @@ const PlayoffMatchCard = ({
   const winner = player1Wins === 2 ? player1.id : player2Wins === 2 ? player2.id : null;
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 border-2 border-indigo-200">
+            <div className="bg-card rounded-lg shadow-md p-4 border-2 border-indigo-500/30">
       <div className="flex justify-between items-center mb-3">
         <h4 className="font-bold text-indigo-800">
           Match #{match.matchNumber} - Ronda {match.round}
@@ -1713,23 +1713,23 @@ const SwissTournamentManager = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Header mejorado */}
         <div className="text-center mb-8">
-          <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <div className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-4">
               🏆 Posada MTG Torneo
             </h1>
           </div>
-          <div className="flex items-center justify-center gap-4 text-sm text-gray-600">
-            <div className="flex items-center gap-2 bg-green-100 px-3 py-1 rounded-full">
-              <span className="text-green-600">💾</span>
-              <span className="font-medium text-green-700">Guardado automático</span>
+          <div className="flex items-center justify-center gap-4 text-sm">
+            <div className="flex items-center gap-2 bg-green-900/40 px-3 py-1 rounded-full border border-green-400/50 shadow-sm">
+              <span className="text-green-300">💾</span>
+              <span className="font-medium text-green-200">Guardado automático</span>
             </div>
-            <div className="flex items-center gap-2 bg-blue-100 px-3 py-1 rounded-full">
-              <span className="text-blue-600">⚡</span>
-              <span className="font-medium text-blue-700">Swiss System</span>
+            <div className="flex items-center gap-2 bg-blue-900/40 px-3 py-1 rounded-full border border-blue-400/50 shadow-sm">
+              <span className="text-blue-300">⚡</span>
+              <span className="font-medium text-blue-200">Swiss System</span>
             </div>
           </div>
         </div>
@@ -1737,7 +1737,7 @@ const SwissTournamentManager = () => {
 
       {/* Estado del torneo */}
       {tournamentState.currentRound > 0 && (
-        <div className="mb-8 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="mb-8 bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
           <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-3">
               📊 Estado del Torneo
@@ -1745,50 +1745,50 @@ const SwissTournamentManager = () => {
           </div>
           <div className="p-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-              <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-                <div className="text-2xl font-bold text-blue-600 mb-1">
+              <div className="text-center p-4 bg-blue-900/40 rounded-xl border border-blue-400/50 shadow-sm">
+                <div className="text-2xl font-bold text-blue-200 mb-1">
                   {tournamentState.players.length}
                 </div>
-                <div className="text-sm text-blue-700 font-medium">👥 Jugadores</div>
+                <div className="text-sm text-blue-100 font-medium">👥 Jugadores</div>
               </div>
-              <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200">
-                <div className="text-2xl font-bold text-green-600 mb-1">
+              <div className="text-center p-4 bg-green-900/40 rounded-xl border border-green-400/50 shadow-sm">
+                <div className="text-2xl font-bold text-green-200 mb-1">
                   {tournamentState.currentRound} / {getCurrentTotalRounds()}
                 </div>
-                <div className="text-sm text-green-700 font-medium">🔄 Ronda Actual</div>
+                <div className="text-sm text-green-100 font-medium">🔄 Ronda Actual</div>
               </div>
-              <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200">
-                <div className="text-2xl font-bold text-purple-600 mb-1">
+              <div className="text-center p-4 bg-purple-900/40 rounded-xl border border-purple-400/50 shadow-sm">
+                <div className="text-2xl font-bold text-purple-200 mb-1">
                   {tournamentState.rounds.flatMap((r) => r.matches).filter((m) => m.completed).length}
                 </div>
-                <div className="text-sm text-purple-700 font-medium">✅ Partidos Jugados</div>
+                <div className="text-sm text-purple-100 font-medium">✅ Partidos Jugados</div>
               </div>
-              <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-red-50 rounded-xl border border-orange-200">
-                <div className="text-2xl font-bold text-orange-600 mb-1">
+              <div className="text-center p-4 bg-orange-900/40 rounded-xl border border-orange-400/50 shadow-sm">
+                <div className="text-2xl font-bold text-orange-200 mb-1">
                   {tournamentState.rounds.flatMap((r) => r.matches).length}
                 </div>
-                <div className="text-sm text-orange-700 font-medium">🎯 Total Partidos</div>
+                <div className="text-sm text-orange-100 font-medium">🎯 Total Partidos</div>
               </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-blue-50 border-l-4 border-blue-400 rounded-lg">
-                <div className="font-semibold text-blue-800 mb-1">📋 Formato</div>
-                <div className="text-sm text-blue-700">Best of 3 (BO3) - Primer jugador en ganar 2 games gana el match</div>
+              <div className="p-4 bg-blue-900/40 border-l-4 border-blue-400 rounded-lg shadow-sm">
+                <div className="font-semibold text-blue-100 mb-1">📋 Formato</div>
+                <div className="text-sm text-blue-50">Best of 3 (BO3) - Primer jugador en ganar 2 games gana el match</div>
               </div>
-              <div className="p-4 bg-green-50 border-l-4 border-green-400 rounded-lg">
-                <div className="font-semibold text-green-800 mb-1">🏆 Criterios de Desempate</div>
-                <div className="text-sm text-green-700">1. Puntos | 2. Victorias Reales | 3. Opp% | 4. GW% | 5. Seed</div>
+              <div className="p-4 bg-green-900/40 border-l-4 border-green-400 rounded-lg shadow-sm">
+                <div className="font-semibold text-green-100 mb-1">🏆 Criterios de Desempate</div>
+                <div className="text-sm text-green-50">1. Puntos | 2. Victorias Reales | 3. Opp% | 4. GW% | 5. Seed</div>
               </div>
               {tournamentState.players.length % 2 !== 0 && (
-                <div className="p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
-                  <div className="font-semibold text-yellow-800 mb-1">🆓 Sistema Bye</div>
-                  <div className="text-sm text-yellow-700">Jugador con menos puntos recibe bye automático (3 pts, no Opp)</div>
+                <div className="p-4 bg-yellow-900/40 border-l-4 border-yellow-400 rounded-lg shadow-sm">
+                  <div className="font-semibold text-yellow-100 mb-1">🆓 Sistema Bye</div>
+                  <div className="text-sm text-yellow-50">Jugador con menos puntos recibe bye automático (3 pts, no Opp)</div>
                 </div>
               )}
-              <div className="p-4 bg-indigo-50 border-l-4 border-indigo-400 rounded-lg">
-                <div className="font-semibold text-indigo-800 mb-1">💾 Guardado Local</div>
-                <div className="text-sm text-indigo-700">El progreso del torneo se guarda automáticamente. Solo el botón "🔄 Resetear" elimina todos los datos.</div>
+              <div className="p-4 bg-indigo-900/40 border-l-4 border-indigo-400 rounded-lg shadow-sm">
+                <div className="font-semibold text-indigo-100 mb-1">💾 Guardado Local</div>
+                <div className="text-sm text-indigo-50">El progreso del torneo se guarda automáticamente. Solo el botón "🔄 Resetear" elimina todos los datos.</div>
               </div>
             </div>
           </div>
@@ -1796,7 +1796,7 @@ const SwissTournamentManager = () => {
       )}
 
       {/* Entrada de jugadores */}
-      <div className="mb-8 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+      <div className="mb-8 bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
         <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
           <h2 className="text-xl font-bold text-white flex items-center gap-3">
             👥 Gestión de Jugadores
@@ -1814,7 +1814,7 @@ const SwissTournamentManager = () => {
                 })
               }
               placeholder="Ingresa el nombre del jugador..."
-              className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-800 text-base focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200"
+              className="flex-1 px-4 py-3 border-2 border-border rounded-xl text-foreground bg-card text-base focus:border-green-400 focus:ring-2 focus:ring-green-400/20 transition-all duration-200 placeholder:text-muted-foreground"
               onKeyPress={(e) => e.key === "Enter" && addPlayer()}
             />
             <button
@@ -1830,10 +1830,10 @@ const SwissTournamentManager = () => {
           {tournamentState.players.map((player) => (
             <div
               key={player.id}
-              className="p-3 bg-gray-50 border border-gray-200 rounded shadow-sm flex justify-between items-center"
+              className="p-3 bg-muted border border-border rounded shadow-sm flex justify-between items-center"
             >
-              <span className="text-gray-800 text-sm sm:text-base truncate">
-                <span className="font-medium text-gray-900">
+                              <span className="text-foreground text-sm sm:text-base truncate">
+                                  <span className="font-medium text-foreground">
                   #{player.seed}
                 </span>{" "}
                 {player.name}
@@ -1850,8 +1850,8 @@ const SwissTournamentManager = () => {
       </div>
 
         {/* Configuración de rondas */}
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-          <h3 className="font-medium text-gray-800 mb-3">
+                    <div className="mt-4 p-4 bg-muted rounded-lg">
+          <h3 className="font-medium text-foreground mb-3">
             ⚙️ Configuración de Rondas
           </h3>
           <div className="flex items-center gap-4">
@@ -1873,7 +1873,7 @@ const SwissTournamentManager = () => {
               />
               <label
                 htmlFor="manualRounds"
-                className="text-sm font-medium text-gray-700"
+                className="text-sm font-medium text-foreground"
               >
                 Número de rondas manual
               </label>
@@ -1881,7 +1881,7 @@ const SwissTournamentManager = () => {
 
             {tournamentState.isManualRoundsEnabled && (
               <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-sm font-medium text-foreground">
                   Rondas:
                 </label>
                 <input
@@ -1895,12 +1895,12 @@ const SwissTournamentManager = () => {
                       manualRounds: Math.max(1, parseInt(e.target.value) || 1),
                     })
                   }
-                  className="w-16 p-1 border border-gray-300 rounded text-gray-800 text-center"
+                  className="w-16 p-1 border border-border rounded text-foreground bg-card text-center"
                 />
               </div>
             )}
 
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               {tournamentState.isManualRoundsEnabled
                 ? `Manual: ${tournamentState.manualRounds} rondas`
                 : `Automático: ${calculateTotalRounds(tournamentState.players.length)} rondas (${tournamentState.players.length} jugadores)`}
@@ -1914,7 +1914,7 @@ const SwissTournamentManager = () => {
             disabled={tournamentState.players.length < 4}
             className={`px-4 py-2 rounded transition-colors text-sm sm:text-base ${
               tournamentState.players.length < 4
-                ? "bg-gray-400 cursor-not-allowed text-gray-600"
+                ? "bg-muted cursor-not-allowed text-muted-foreground"
                 : "bg-blue-600 hover:bg-blue-700 text-white"
             }`}
           >
@@ -1944,8 +1944,8 @@ const SwissTournamentManager = () => {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 lg:gap-6">
           {/* Standings parciales */}
           <div className="xl:col-span-1">
-            <div className="bg-white border border-gray-300 rounded-lg shadow-sm p-4 sticky top-4">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            <div className="bg-card border border-border rounded-lg shadow-sm p-4 sticky top-4">
+                              <h2 className="text-xl font-semibold mb-4 text-foreground">
                 📈 Standings Parciales
               </h2>
               <div className="space-y-2">
@@ -2031,7 +2031,7 @@ const SwissTournamentManager = () => {
           {/* Rondas */}
           <div className="xl:col-span-2">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-800">
+              <h2 className="text-xl font-semibold text-foreground">
                 🎮 Ronda {tournamentState.currentRound}
               </h2>
 
@@ -2063,7 +2063,7 @@ const SwissTournamentManager = () => {
 
             {tournamentState.rounds.map((round) => (
               <div key={round.number} className="mb-6">
-                <h3 className="font-medium mb-3 text-lg text-gray-700">
+                <h3 className="font-medium mb-3 text-lg text-foreground">
                   Ronda {round.number}
                 </h3>
                 <div className="grid grid-cols-1 gap-3">
@@ -2080,16 +2080,16 @@ const SwissTournamentManager = () => {
                         key={match.id}
                         className={`p-4 rounded-lg border shadow-sm ${
                           match.completed
-                            ? "bg-emerald-50 border-emerald-200"
-                            : "bg-amber-50 border-amber-200"
+                            ? "bg-emerald-900/40 border-emerald-400/50"
+                            : "bg-amber-900/40 border-amber-400/50"
                         }`}
                       >
                         <div className="flex justify-between items-center mb-3">
-                          <span className="font-medium text-gray-800">
+                          <span className="font-medium text-foreground">
                             ⚔️ Partido {match.id.split("-")[2]}
                           </span>
                           {match.completed && (
-                            <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-sm rounded-full font-medium">
+                            <span className="px-3 py-1 bg-emerald-900/50 text-emerald-100 text-sm rounded-full font-medium border border-emerald-400/50 shadow-sm">
                               ✅ Finalizado
                             </span>
                           )}
@@ -2097,12 +2097,12 @@ const SwissTournamentManager = () => {
 
                         <div className="space-y-3">
                           {/* Score del match */}
-                          <div className="text-center p-2 bg-gray-100 rounded border">
-                            <span className="text-sm font-medium text-gray-700">
+                          <div className="text-center p-2 bg-muted rounded border border-border">
+                            <span className="text-sm font-medium text-foreground">
                               {match.player1Wins} - {match.player2Wins}
                             </span>
                             {match.completed && (
-                              <div className="text-xs text-gray-500 mt-1">
+                              <div className="text-xs text-muted-foreground mt-1">
                                 {match.winner === match.player1
                                   ? player1?.name
                                   : player2?.name}{" "}
@@ -2113,15 +2113,15 @@ const SwissTournamentManager = () => {
 
                           {/* Contadores de games */}
                           <div className="space-y-3">
-                            <div className="text-center text-sm font-medium text-gray-700 mb-3">
+                            <div className="text-center text-sm font-medium text-foreground mb-3">
                               Contadores de Games
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                               {/* Player 1 Counter */}
-                              <div className="p-3 bg-white rounded border">
+                              <div className="p-3 bg-card rounded border border-border">
                                 <div className="text-center mb-2">
-                                  <span className="text-gray-800 font-medium">
+                                  <span className="text-foreground font-medium">
                                     #{player1?.seed} {player1?.name}
                                   </span>
                                 </div>
@@ -2153,11 +2153,11 @@ const SwissTournamentManager = () => {
                                     disabled={
                                       match.completed || match.player1Wins === 0
                                     }
-                                    className="w-6 h-6 sm:w-8 sm:h-8 bg-red-500 text-white rounded hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-bold text-sm sm:text-base"
+                                    className="w-6 h-6 sm:w-8 sm:h-8 bg-red-500 text-white rounded hover:bg-red-600 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed font-bold text-sm sm:text-base"
                                   >
                                     -
                                   </button>
-                                  <span className="text-lg sm:text-2xl font-bold text-gray-800 min-w-[1.5rem] sm:min-w-[2rem] text-center">
+                                  <span className="text-lg sm:text-2xl font-bold text-foreground min-w-[1.5rem] sm:min-w-[2rem] text-center">
                                     {match.player1Wins}
                                   </span>
                                   <button
@@ -2190,7 +2190,7 @@ const SwissTournamentManager = () => {
                                     disabled={
                                       match.completed || match.player1Wins >= 2
                                     }
-                                    className="w-6 h-6 sm:w-8 sm:h-8 bg-emerald-500 text-white rounded hover:bg-emerald-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-bold text-sm sm:text-base"
+                                    className="w-6 h-6 sm:w-8 sm:h-8 bg-emerald-500 text-white rounded hover:bg-emerald-600 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed font-bold text-sm sm:text-base"
                                   >
                                     +
                                   </button>
@@ -2198,9 +2198,9 @@ const SwissTournamentManager = () => {
                               </div>
 
                               {/* Player 2 Counter */}
-                              <div className="p-3 bg-white rounded border">
+                              <div className="p-3 bg-card rounded border border-border">
                                 <div className="text-center mb-2">
-                                  <span className="text-gray-800 font-medium">
+                                  <span className="text-foreground font-medium">
                                     #{player2?.seed} {player2?.name}
                                   </span>
                                 </div>
@@ -2232,11 +2232,11 @@ const SwissTournamentManager = () => {
                                     disabled={
                                       match.completed || match.player2Wins === 0
                                     }
-                                    className="w-6 h-6 sm:w-8 sm:h-8 bg-red-500 text-white rounded hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-bold text-sm sm:text-base"
+                                    className="w-6 h-6 sm:w-8 sm:h-8 bg-red-500 text-white rounded hover:bg-red-600 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed font-bold text-sm sm:text-base"
                                   >
                                     -
                                   </button>
-                                  <span className="text-lg sm:text-2xl font-bold text-gray-800 min-w-[1.5rem] sm:min-w-[2rem] text-center">
+                                  <span className="text-lg sm:text-2xl font-bold text-foreground min-w-[1.5rem] sm:min-w-[2rem] text-center">
                                     {match.player2Wins}
                                   </span>
                                   <button
@@ -2269,7 +2269,7 @@ const SwissTournamentManager = () => {
                                     disabled={
                                       match.completed || match.player2Wins >= 2
                                     }
-                                    className="w-6 h-6 sm:w-8 sm:h-8 bg-emerald-500 text-white rounded hover:bg-emerald-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-bold text-sm sm:text-base"
+                                    className="w-6 h-6 sm:w-8 sm:h-8 bg-emerald-500 text-white rounded hover:bg-emerald-600 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed font-bold text-sm sm:text-base"
                                   >
                                     +
                                   </button>
@@ -2538,9 +2538,9 @@ const SwissTournamentManager = () => {
 
       {/* Interfaz de emparejamientos manuales */}
       {tournamentState.isManualPairing && (
-        <div className="mt-8 p-6 bg-white border border-gray-300 rounded-lg shadow-sm">
+        <div className="mt-8 p-6 bg-card border border-border rounded-lg shadow-sm">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-800">
+            <h2 className="text-xl font-semibold text-foreground">
               ✋ Emparejamiento Manual - Ronda{" "}
               {tournamentState.currentRound === 0
                 ? 1
@@ -2555,13 +2555,13 @@ const SwissTournamentManager = () => {
           </div>
 
           {tournamentState.currentRound === 0 && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
+            <div className="mb-4 p-3 bg-blue-900/40 border border-blue-400/50 rounded text-sm text-blue-100">
               💡 <strong>Primera Ronda:</strong> Puedes crear emparejamientos
               personalizados o seguir las reglas suizas tradicionales
             </div>
           )}
 
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-800">
+          <div className="mb-4 p-3 bg-green-900/40 border border-green-400/50 rounded text-sm text-green-100">
             📊 <strong>Configuración de Rondas:</strong>{" "}
             {tournamentState.isManualRoundsEnabled
               ? `Manual: ${tournamentState.manualRounds} rondas totales`
@@ -2575,13 +2575,13 @@ const SwissTournamentManager = () => {
           </div>
 
           {/* Selector de jugadores */}
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-            <h3 className="font-medium text-gray-800 mb-3">
+          <div className="mb-6 p-4 bg-muted rounded-lg">
+            <h3 className="font-medium text-foreground mb-3">
               Crear Emparejamiento
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Jugador 1
                 </label>
                 <select
@@ -2592,7 +2592,7 @@ const SwissTournamentManager = () => {
                       selectedPlayer1: e.target.value,
                     })
                   }
-                  className="w-full p-2 border border-gray-300 rounded text-gray-800 text-sm sm:text-base"
+                  className="w-full p-2 border border-border rounded text-foreground bg-card text-sm sm:text-base"
                 >
                   <option value="">Seleccionar jugador</option>
                   {tournamentState.players
@@ -2612,13 +2612,13 @@ const SwissTournamentManager = () => {
               </div>
 
               <div className="flex items-end justify-center">
-                <span className="text-xl sm:text-2xl font-bold text-gray-600">
+                <span className="text-xl sm:text-2xl font-bold text-muted-foreground">
                   VS
                 </span>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Jugador 2
                 </label>
                 <select
@@ -2629,7 +2629,7 @@ const SwissTournamentManager = () => {
                       selectedPlayer2: e.target.value,
                     })
                   }
-                  className="w-full p-2 border border-gray-300 rounded text-gray-800 text-sm sm:text-base"
+                  className="w-full p-2 border border-border rounded text-foreground bg-card text-sm sm:text-base"
                 >
                   <option value="">Seleccionar jugador</option>
                   {tournamentState.players
@@ -2663,7 +2663,7 @@ const SwissTournamentManager = () => {
                   !tournamentState.selectedPlayer2 ||
                   tournamentState.selectedPlayer1 ===
                     tournamentState.selectedPlayer2
-                    ? "bg-gray-400 cursor-not-allowed text-gray-600"
+                    ? "bg-muted cursor-not-allowed text-muted-foreground"
                     : "bg-emerald-600 hover:bg-emerald-700 text-white"
                 }`}
               >
@@ -2675,7 +2675,7 @@ const SwissTournamentManager = () => {
           {/* Lista de emparejamientos creados */}
           {tournamentState.manualMatches.length > 0 && (
             <div className="mb-6">
-              <h3 className="font-medium text-gray-800 mb-3">
+              <h3 className="font-medium text-foreground mb-3">
                 Emparejamientos Creados ({tournamentState.manualMatches.length})
               </h3>
               <div className="space-y-2">
@@ -2690,19 +2690,19 @@ const SwissTournamentManager = () => {
                   return (
                     <div
                       key={match.id}
-                      className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 bg-blue-50 border border-blue-200 rounded gap-2"
+                      className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 bg-blue-900/40 border border-blue-400/50 rounded gap-2"
                     >
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full">
-                        <span className="text-sm font-medium text-blue-800">
+                        <span className="text-sm font-medium text-blue-200">
                           #{index + 1}
                         </span>
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2 text-sm sm:text-base">
-                          <span className="font-medium text-gray-800 truncate">
+                          <span className="font-medium text-foreground truncate">
                             #{player1?.seed} {player1?.name} (
                             {calculatePlayerPoints(player1?.id || "")} pts)
                           </span>
-                          <span className="text-gray-500">VS</span>
-                          <span className="font-medium text-gray-800 truncate">
+                          <span className="text-muted-foreground">VS</span>
+                          <span className="font-medium text-foreground truncate">
                             #{player2?.seed} {player2?.name} (
                             {calculatePlayerPoints(player2?.id || "")} pts)
                           </span>
@@ -2735,26 +2735,26 @@ const SwissTournamentManager = () => {
             return (
               unpairedPlayers.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="font-medium text-gray-800 mb-3">
+                  <h3 className="font-medium text-foreground mb-3">
                     Jugadores Sin Emparejar ({unpairedPlayers.length})
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                     {unpairedPlayers.map((player) => (
                       <div
                         key={player.id}
-                        className="p-2 bg-yellow-50 border border-yellow-200 rounded text-sm"
+                        className="p-2 bg-yellow-900/40 border border-yellow-400/50 rounded text-sm"
                       >
-                        <span className="font-medium text-gray-800 truncate block">
+                        <span className="font-medium text-foreground truncate block">
                           #{player.seed} {player.name}
                         </span>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           {calculatePlayerPoints(player.id)} pts
                         </div>
                       </div>
                     ))}
                   </div>
                   {unpairedPlayers.length === 1 && (
-                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
+                    <div className="mt-2 p-2 bg-blue-900/40 border border-blue-400/50 rounded text-sm text-blue-100">
                       💡 El jugador sin emparejar recibirá bye automáticamente
                     </div>
                   )}
@@ -2895,9 +2895,9 @@ const SwissTournamentManager = () => {
               📄 Exportar Resultados
             </button>
           </div>
-          <div className="overflow-x-auto bg-white border border-gray-300 rounded-lg shadow-sm">
+                      <div className="overflow-x-auto bg-card border border-border rounded-lg shadow-sm">
             <table className="min-w-full">
-              <thead className="bg-gray-800 text-white">
+              <thead className="bg-muted/80 text-foreground font-semibold">
                 <tr>
                   <th className="py-3 px-2 sm:px-4 text-left font-medium text-xs sm:text-sm">
                     #
@@ -2962,17 +2962,17 @@ const SwissTournamentManager = () => {
                         key={player.id}
                         className={`${
                           index === 0
-                            ? "bg-yellow-50"
+                            ? "bg-yellow-900/20"
                             : index === 1
-                              ? "bg-gray-50"
+                              ? "bg-gray-900/20"
                               : index === 2
-                                ? "bg-orange-50"
+                                ? "bg-orange-900/20"
                                 : index % 2 === 0
-                                  ? "bg-gray-50"
-                                  : "bg-white"
-                        } hover:bg-gray-100 transition-colors`}
+                                  ? "bg-muted/30"
+                                  : "bg-card"
+                        } hover:bg-muted/50 transition-colors`}
                       >
-                        <td className="py-3 px-2 sm:px-4 font-bold text-gray-800 text-xs sm:text-sm">
+                        <td className="py-3 px-2 sm:px-4 font-bold text-foreground text-xs sm:text-sm">
                           {index === 0
                             ? "🥇"
                             : index === 1
@@ -2981,27 +2981,27 @@ const SwissTournamentManager = () => {
                                 ? "🥉"
                                 : `#${index + 1}`}
                         </td>
-                        <td className="py-3 px-2 sm:px-4 font-medium text-gray-800 text-xs sm:text-sm truncate">
+                        <td className="py-3 px-2 sm:px-4 font-medium text-foreground text-xs sm:text-sm truncate">
                           #{player.seed} {player.name}
                         </td>
-                        <td className="py-3 px-2 sm:px-4 text-center text-emerald-600 font-bold text-xs sm:text-sm">
+                        <td className="py-3 px-2 sm:px-4 text-center text-emerald-300 font-bold text-xs sm:text-sm">
                           {player.wins % 1 === 0
                             ? player.wins
                             : player.wins.toFixed(1)}
                         </td>
-                        <td className="py-3 px-2 sm:px-4 text-center text-red-600 font-medium text-xs sm:text-sm">
+                        <td className="py-3 px-2 sm:px-4 text-center text-red-300 font-medium text-xs sm:text-sm">
                           {player.losses}
                         </td>
-                        <td className="py-3 px-2 sm:px-4 text-center text-purple-600 font-bold text-xs sm:text-sm">
+                        <td className="py-3 px-2 sm:px-4 text-center text-purple-300 font-bold text-xs sm:text-sm">
                           {calculatePlayerPoints(player.id)}
                         </td>
-                        <td className="py-3 px-2 sm:px-4 text-center text-blue-600 font-medium text-xs sm:text-sm">
+                        <td className="py-3 px-2 sm:px-4 text-center text-blue-300 font-medium text-xs sm:text-sm">
                           {calculateOpp(player.id)}
                         </td>
-                        <td className="py-3 px-2 sm:px-4 text-center text-indigo-600 font-medium text-xs sm:text-sm">
+                        <td className="py-3 px-2 sm:px-4 text-center text-indigo-300 font-medium text-xs sm:text-sm">
                           {gameWinPercentage.toFixed(1)}%
                         </td>
-                        <td className="py-3 px-2 sm:px-4 text-center text-gray-600 font-medium text-xs sm:text-sm">
+                        <td className="py-3 px-2 sm:px-4 text-center text-muted-foreground font-medium text-xs sm:text-sm">
                           {player.hasBye ? "🆓 Bye" : "-"}
                         </td>
                       </tr>

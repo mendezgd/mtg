@@ -4,8 +4,11 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import SocialPills from "@/components/SocialPills";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function HomePage() {
+  const { t } = useLanguage();
+
   return (
     <div className="min-h-screen bg-neutral-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] text-white">
       {/* Hero Section */}
@@ -23,8 +26,7 @@ export default function HomePage() {
             MTG Premodern
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-gray-300 max-w-2xl mx-auto">
-            Constructor de mazos, simulador de juego y torneos suizos para
-            Magic: The Gathering Premodern
+            {t("home.description")}
           </p>
           <div className="flex flex-col md:flex-row gap-3 justify-center">
             <Link href="/deck-builder">
@@ -43,7 +45,7 @@ export default function HomePage() {
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                   </svg>
-                  Constructor de Mazos
+                  {t("navbar.deckBuilder")}
                 </span>
               </button>
             </Link>
@@ -67,7 +69,7 @@ export default function HomePage() {
                     <line x1="14" y1="14" x2="18" y2="14" />
                     <line x1="16" y1="12" x2="16" y2="12" />
                   </svg>
-                  Simulador de Juego
+                  {t("navbar.game")}
                 </span>
               </button>
             </Link>
@@ -97,7 +99,7 @@ export default function HomePage() {
                     <path d="M9 9h6" />
                     <path d="M9 12h6" />
                   </svg>
-                  Torneos Suizos
+                  {t("navbar.tournament")}
                 </span>
               </button>
             </Link>
@@ -116,7 +118,7 @@ export default function HomePage() {
                   >
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                   </svg>
-                  Contador de Vidas
+                  {t("navbar.lifeCounter")}
                 </span>
               </button>
             </Link>
@@ -128,31 +130,34 @@ export default function HomePage() {
       <section className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
-            Características Principales
+            {t("home.subtitle")}
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800 hover:border-purple-500 transition-all duration-300">
               <div className="text-4xl mb-4">🔍</div>
-              <h3 className="text-xl font-bold mb-3">Búsqueda Avanzada</h3>
+              <h3 className="text-xl font-bold mb-3">
+                {t("home.advancedSearch")}
+              </h3>
               <p className="text-gray-300">
-                Busca cartas por nombre, tipo, color y coste de maná. Filtros
-                específicos para el formato Premodern.
+                {t("home.advancedSearchDescription")}
               </p>
             </div>
             <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800 hover:border-blue-500 transition-all duration-300">
               <div className="text-4xl mb-4">🃏</div>
-              <h3 className="text-xl font-bold mb-3">Constructor de Mazos</h3>
+              <h3 className="text-xl font-bold mb-3">
+                {t("home.deckBuilder")}
+              </h3>
               <p className="text-gray-300">
-                Construye y optimiza tus mazos con herramientas avanzadas.
-                Soporte para sideboards y validación automática.
+                {t("home.deckBuilderDescription")}
               </p>
             </div>
             <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800 hover:border-green-500 transition-all duration-300">
               <div className="text-4xl mb-4">🎮</div>
-              <h3 className="text-xl font-bold mb-3">Simulador de Juego</h3>
+              <h3 className="text-xl font-bold mb-3">
+                {t("home.gameSimulator")}
+              </h3>
               <p className="text-gray-300">
-                Juega partidas completas con tus mazos. Interfaz intuitiva y
-                todas las mecánicas del juego.
+                {t("home.gameSimulatorDescription")}
               </p>
             </div>
           </div>
@@ -163,36 +168,27 @@ export default function HomePage() {
       <section className="py-20 px-4 bg-gray-900/30">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-8">
-            Sobre MTG Premodern
+            {t("home.aboutPremodern")}
           </h2>
           <p className="text-lg text-gray-300 mb-8 leading-relaxed">
-            Premodern es un formato de Magic: The Gathering que incluye cartas
-            desde la 4ª edición hasta Scourge (1995-2003). Nuestra plataforma te
-            ofrece todas las herramientas necesarias para explorar este formato
-            histórico y competitivo.
+            {t("home.aboutPremodernDescription")}
           </p>
           <div className="grid md:grid-cols-2 gap-8 mt-12">
             <div className="text-left">
               <h3 className="text-xl font-bold mb-4 text-purple-400">
-                🎯 Formato Premodern
+                {t("home.formatPremodern")}
               </h3>
-              <ul className="text-gray-300 space-y-2">
-                <li>• Cartas de 4ª edición a Scourge</li>
-                <li>• Lista de cartas prohibidas específica</li>
-                <li>• Comunidad activa y competitiva</li>
-                <li>• Eventos y torneos regulares</li>
-              </ul>
+              <div className="text-gray-300 space-y-2 whitespace-pre-line">
+                {t("home.formatPremodernDescription")}
+              </div>
             </div>
             <div className="text-left">
               <h3 className="text-xl font-bold mb-4 text-blue-400">
-                🛠️ Herramientas
+                {t("home.tools")}
               </h3>
-              <ul className="text-gray-300 space-y-2">
-                <li>• Búsqueda de cartas en tiempo real</li>
-                <li>• Constructor de mazos avanzado</li>
-                <li>• Simulador de partidas</li>
-                <li>• Gestión de torneos suizos</li>
-              </ul>
+              <div className="text-gray-300 space-y-2 whitespace-pre-line">
+                {t("home.toolsDescription")}
+              </div>
             </div>
           </div>
         </div>
@@ -202,11 +198,10 @@ export default function HomePage() {
       <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            ¿Listo para empezar?
+            {t("home.readyToStart")}
           </h2>
           <p className="text-xl text-gray-300 mb-8">
-            Únete a la comunidad de MTG Premodern y descubre un nuevo mundo de
-            estrategias
+            {t("home.joinCommunity")}
           </p>
           <div className="flex flex-col md:flex-row gap-3 justify-center">
             <Link href="/deck-builder">
@@ -224,37 +219,7 @@ export default function HomePage() {
                   >
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                   </svg>
-                  Comenzar Ahora
-                </span>
-              </button>
-            </Link>
-            <Link href="/tournament">
-              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#7c3aed] to-[#a855f7] active:scale-95">
-                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-transparent border-2 border-purple-500 text-purple-400 hover:text-white rounded-[10px] text-base font-medium transition-colors duration-300">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                  >
-                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-                    <path d="M14 6h2a2 2 0 0 1 2 2v6.5a2.5 2.5 0 0 1-2.5 2.5H14" />
-                    <path d="M6 2v3" />
-                    <path d="M14 2v3" />
-                    <path d="M10 4h4" />
-                    <path d="M10 20h4" />
-                    <path d="M6 20h8" />
-                    <path d="M6 20v-3" />
-                    <path d="M14 20v-3" />
-                    <path d="M12 12v-3" />
-                    <path d="M9 9h6" />
-                    <path d="M9 12h6" />
-                  </svg>
-                  Ver Torneos
+                  {t("common.start")}
                 </span>
               </button>
             </Link>
@@ -265,16 +230,11 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="py-12 px-4 border-t border-gray-800">
         <div className="max-w-6xl mx-auto text-center">
-          <p className="text-gray-400 mb-6">
-            © 2024 MTG Premodern. Desarrollado para la comunidad de Magic: The
-            Gathering.
-          </p>
+          <p className="text-gray-400 mb-6">{t("common.copyright")}</p>
 
           {/* Social Pills */}
           <div className="mb-6">
-            <p className="text-sm text-gray-500 mb-4">
-              Sígueme en redes sociales
-            </p>
+            <p className="text-sm text-gray-500 mb-4">{t("common.followMe")}</p>
             <SocialPills />
           </div>
 
@@ -283,19 +243,19 @@ export default function HomePage() {
               href="/deck-builder"
               className="hover:text-purple-400 transition-colors"
             >
-              Constructor
+              {t("common.constructor")}
             </Link>
             <Link
               href="/game"
               className="hover:text-blue-400 transition-colors"
             >
-              Juego
+              {t("common.game")}
             </Link>
             <Link
               href="/tournament"
               className="hover:text-green-400 transition-colors"
             >
-              Torneos
+              {t("common.tournaments")}
             </Link>
           </div>
         </div>

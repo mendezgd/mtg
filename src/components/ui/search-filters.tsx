@@ -7,15 +7,9 @@ import {
   DropdownMenuContent,
 } from "@/components/ui/dropdown-menu";
 import { CARD_TYPES, COLORS, MANA_COSTS } from "@/lib/constants";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-const BASIC_LANDS = [
-  { value: "", label: "Tierras Básicas" },
-  { value: "Mountain", label: "Mountain" },
-  { value: "Forest", label: "Forest" },
-  { value: "Island", label: "Island" },
-  { value: "Plains", label: "Plains" },
-  { value: "Swamp", label: "Swamp" },
-];
+// BASIC_LANDS will be created dynamically with translations
 
 interface SearchFiltersProps {
   selectedType: string;
@@ -38,6 +32,17 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
   onManaCostChange,
   onBasicLandChange,
 }) => {
+  const { t } = useLanguage();
+  
+  const BASIC_LANDS = [
+    { value: "", label: t('deckBuilder.basicLands') },
+    { value: "Mountain", label: "Mountain" },
+    { value: "Forest", label: "Forest" },
+    { value: "Island", label: "Island" },
+    { value: "Plains", label: "Plains" },
+    { value: "Swamp", label: "Swamp" },
+  ];
+
   const getSelectedLabel = (value: string, options: Array<{ value: string; label: string }>) => {
     const option = options.find(opt => opt.value === value);
     return option ? option.label : options[0].label;

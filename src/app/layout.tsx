@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import Navbar from "@/components/Navbar";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
 const inter = Inter({ subsets: ["latin"] });
 const jetbrainsMono = JetBrains_Mono({
@@ -174,8 +175,10 @@ export default function RootLayout({
         className={`${inter.className} ${jetbrainsMono.variable} ${spaceGrotesk.variable}`}
       >
         <ErrorBoundary>
-          <Navbar />
-          {children}
+          <LanguageProvider>
+            <Navbar />
+            {children}
+          </LanguageProvider>
         </ErrorBoundary>
       </body>
     </html>

@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DonationButtonProps {
   variant?: "floating" | "navbar";
@@ -20,6 +21,7 @@ export default function DonationButton({
   className = "",
 }: DonationButtonProps) {
   const [isPulsing, setIsPulsing] = useState(false);
+  const { t } = useLanguage();
 
   // Efecto de pulso discreto cada 15 segundos (solo para floating)
   useEffect(() => {
@@ -49,7 +51,7 @@ export default function DonationButton({
             aria-label="Opciones de donación"
           >
             <Heart className="w-4 h-4 text-violet-400" />
-            <span className="hidden lg:inline">Apoyar</span>
+            <span>{t('common.support')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">

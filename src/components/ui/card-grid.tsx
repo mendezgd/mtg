@@ -1,6 +1,7 @@
 import React from "react";
 import { SearchableCard } from "@/types/card";
 import { ImageService } from "@/lib/image-utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CardGridProps {
   cards: SearchableCard[];
@@ -17,6 +18,7 @@ export const CardGrid: React.FC<CardGridProps> = ({
   onAddToDeck,
   className = "",
 }) => {
+  const { t } = useLanguage();
   const handleCardClick = (card: SearchableCard) => {
     if (onCardClick) {
       onCardClick(card);
@@ -83,7 +85,7 @@ export const CardGrid: React.FC<CardGridProps> = ({
                  }}
                  aria-label={`Add ${card.name} to deck`}
                >
-                 Agregar al Mazo
+                 {t('deckBuilder.addToDeck')}
                </button>
              )}
            </div>

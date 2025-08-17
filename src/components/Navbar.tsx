@@ -11,21 +11,25 @@ import {
   Trophy, 
   Heart,
   Menu,
-  X
+  X,
+  Globe
 } from "lucide-react";
 import { useState } from "react";
 import DonationButton from "./DonationButton";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "./LanguageSelector";
 
 const Navbar = () => {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { t } = useLanguage();
 
   const navItems = [
-    { href: "/", label: "Inicio", icon: Home },
-    { href: "/deck-builder", label: "Constructor", icon: Library },
-    { href: "/game", label: "Juego", icon: Gamepad2 },
-    { href: "/tournament", label: "Torneos", icon: Trophy },
-    { href: "/life-counter", label: "Vidas", icon: Heart },
+    { href: "/", label: t('navbar.home'), icon: Home },
+    { href: "/deck-builder", label: t('navbar.deckBuilder'), icon: Library },
+    { href: "/game", label: t('navbar.game'), icon: Gamepad2 },
+    { href: "/tournament", label: t('navbar.tournament'), icon: Trophy },
+    { href: "/life-counter", label: t('navbar.lifeCounter'), icon: Heart },
   ];
 
   const isActive = (href: string) => {
@@ -71,6 +75,12 @@ const Navbar = () => {
                 </Link>
               );
             })}
+            
+            {/* Separador visual */}
+            <div className="w-px h-6 bg-gray-700 mx-2" />
+            
+            {/* Selector de idioma */}
+            <LanguageSelector />
             
             {/* Separador visual */}
             <div className="w-px h-6 bg-gray-700 mx-2" />
@@ -123,8 +133,16 @@ const Navbar = () => {
               {/* Separador visual */}
               <div className="w-full h-px bg-gray-700 my-2" />
               
+              {/* Selector de idioma en móvil */}
+              <div className="px-2" onClick={() => setIsMobileMenuOpen(false)}>
+                <LanguageSelector />
+              </div>
+              
+              {/* Separador visual */}
+              <div className="w-full h-px bg-gray-700 my-2" />
+              
               {/* Botón de donaciones en móvil */}
-              <div className="px-2">
+              <div className="px-2" onClick={() => setIsMobileMenuOpen(false)}>
                 <DonationButton variant="navbar" />
               </div>
             </div>
