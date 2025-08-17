@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import SocialPills from "@/components/SocialPills";
 
 export default function HomePage() {
   return (
@@ -25,26 +26,99 @@ export default function HomePage() {
             Constructor de mazos, simulador de juego y torneos suizos para
             Magic: The Gathering Premodern
           </p>
-          <div className="flex flex-col md:flex-row gap-4 justify-center">
+          <div className="flex flex-col md:flex-row gap-3 justify-center">
             <Link href="/deck-builder">
-              <Button className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-lg transition-all duration-300 transform hover:scale-105">
-                🃏 Constructor de Mazos
-              </Button>
+              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#8122b0] to-[#dc98fd] active:scale-95">
+                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-[#B931FC] text-white rounded-[10px] bg-gradient-to-t from-[#a62ce2] to-[#c045fc] text-base font-medium">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  >
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                  Constructor de Mazos
+                </span>
+              </button>
             </Link>
             <Link href="/game">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg rounded-lg transition-all duration-300 transform hover:scale-105">
-                🎮 Simulador de Juego
-              </Button>
+              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#1e40af] to-[#60a5fa] active:scale-95">
+                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-[#3B82F6] text-white rounded-[10px] bg-gradient-to-t from-[#2563eb] to-[#3b82f6] text-base font-medium">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  >
+                    <rect x="2" y="6" width="20" height="12" rx="2" ry="2" />
+                    <line x1="6" y1="12" x2="10" y2="12" />
+                    <line x1="8" y1="10" x2="8" y2="14" />
+                    <line x1="14" y1="10" x2="18" y2="10" />
+                    <line x1="14" y1="14" x2="18" y2="14" />
+                    <line x1="16" y1="12" x2="16" y2="12" />
+                  </svg>
+                  Simulador de Juego
+                </span>
+              </button>
             </Link>
             <Link href="/tournament">
-              <Button className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg rounded-lg transition-all duration-300 transform hover:scale-105">
-                🏆 Torneos Suizos
-              </Button>
+              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#059669] to-[#34d399] active:scale-95">
+                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-[#10B981] text-white rounded-[10px] bg-gradient-to-t from-[#059669] to-[#10b981] text-base font-medium">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  >
+                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                    <path d="M14 6h2a2 2 0 0 1 2 2v6.5a2.5 2.5 0 0 1-2.5 2.5H14" />
+                    <path d="M6 2v3" />
+                    <path d="M14 2v3" />
+                    <path d="M10 4h4" />
+                    <path d="M10 20h4" />
+                    <path d="M6 20h8" />
+                    <path d="M6 20v-3" />
+                    <path d="M14 20v-3" />
+                    <path d="M12 12v-3" />
+                    <path d="M9 9h6" />
+                    <path d="M9 12h6" />
+                  </svg>
+                  Torneos Suizos
+                </span>
+              </button>
             </Link>
             <Link href="/life-counter">
-              <Button className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 text-lg rounded-lg transition-all duration-300 transform hover:scale-105">
-                ❤️ Contador de Vidas
-              </Button>
+              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#dc2626] to-[#fca5a5] active:scale-95">
+                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-[#EF4444] text-white rounded-[10px] bg-gradient-to-t from-[#dc2626] to-[#ef4444] text-base font-medium">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    className="w-4 h-4"
+                    fill="currentColor"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="0"
+                  >
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  </svg>
+                  Contador de Vidas
+                </span>
+              </button>
             </Link>
           </div>
         </div>
@@ -134,19 +208,55 @@ export default function HomePage() {
             Únete a la comunidad de MTG Premodern y descubre un nuevo mundo de
             estrategias
           </p>
-          <div className="flex flex-col md:flex-row gap-4 justify-center">
+          <div className="flex flex-col md:flex-row gap-3 justify-center">
             <Link href="/deck-builder">
-              <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 text-lg rounded-lg transition-all duration-300 transform hover:scale-105">
-                Comenzar Ahora
-              </Button>
+              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#7c3aed] to-[#ec4899] active:scale-95">
+                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#8b5cf6] to-[#ec4899] text-white rounded-[10px] text-base font-medium">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  >
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                  Comenzar Ahora
+                </span>
+              </button>
             </Link>
             <Link href="/tournament">
-              <Button
-                variant="outline"
-                className="border-purple-500 text-purple-400 hover:bg-purple-500 hover:text-white px-8 py-4 text-lg rounded-lg transition-all duration-300"
-              >
-                Ver Torneos
-              </Button>
+              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#7c3aed] to-[#a855f7] active:scale-95">
+                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-transparent border-2 border-purple-500 text-purple-400 hover:text-white rounded-[10px] text-base font-medium transition-colors duration-300">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  >
+                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                    <path d="M14 6h2a2 2 0 0 1 2 2v6.5a2.5 2.5 0 0 1-2.5 2.5H14" />
+                    <path d="M6 2v3" />
+                    <path d="M14 2v3" />
+                    <path d="M10 4h4" />
+                    <path d="M10 20h4" />
+                    <path d="M6 20h8" />
+                    <path d="M6 20v-3" />
+                    <path d="M14 20v-3" />
+                    <path d="M12 12v-3" />
+                    <path d="M9 9h6" />
+                    <path d="M9 12h6" />
+                  </svg>
+                  Ver Torneos
+                </span>
+              </button>
             </Link>
           </div>
         </div>
@@ -155,10 +265,19 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="py-12 px-4 border-t border-gray-800">
         <div className="max-w-6xl mx-auto text-center">
-          <p className="text-gray-400 mb-4">
+          <p className="text-gray-400 mb-6">
             © 2024 MTG Premodern. Desarrollado para la comunidad de Magic: The
             Gathering.
           </p>
+
+          {/* Social Pills */}
+          <div className="mb-6">
+            <p className="text-sm text-gray-500 mb-4">
+              Sígueme en redes sociales
+            </p>
+            <SocialPills />
+          </div>
+
           <div className="flex justify-center space-x-6 text-sm text-gray-500">
             <Link
               href="/deck-builder"

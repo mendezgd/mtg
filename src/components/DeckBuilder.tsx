@@ -73,6 +73,11 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
     const [editingDeckId, setEditingDeckId] = useState<string | null>(null);
     const [tempDeckName, setTempDeckName] = useState("");
     const [opponentDeckId, setOpponentDeckId] = useState<string | null>(null);
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [importText, setImportText] = useState("");
+    const [importDeckName, setImportDeckName] = useState("");
+    const [importing, setImporting] = useState(false);
+    const [importMessage, setImportMessage] = useState("");
     const isMobile = useIsMobile();
 
     const router = useRouter();
@@ -429,6 +434,138 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
       }
     }, [newDeckName, setDecks, setSelectedDeckId]);
 
+        // Import deck from various sources
+    const importDeck = useCallback(async (deckText: string, deckName: string) => {
+      try {
+        const lines = deckText.split('\n');
+        const importedCards: { [key: string]: { card: DeckCard; count: number } } = {};
+        const importedSideboard: { [key: string]: { card: DeckCard; count: number } } = {};
+        
+        let isSideboard = false;
+        let mainDeckCount = 0;
+        let sideboardCount = 0;
+        
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          
+          // Skip empty lines
+          if (!trimmedLine) {
+            // If we encounter an empty line and we have main deck cards, switch to sideboard
+            if (Object.keys(importedCards).length > 0) {
+              isSideboard = true;
+            }
+            continue;
+          }
+          
+          // Parse common deck formats
+          const match = trimmedLine.match(/^(\d+)\s+(.+)$/);
+          if (match) {
+            const count = parseInt(match[1]);
+            const cardName = match[2].trim();
+            
+            if (count > 0 && cardName) {
+              try {
+                // Search for the card using Scryfall API directly
+                const response = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(cardName)}`);
+                if (response.ok) {
+                  const cardData = await response.json();
+                 
+                  if (cardData.legalities?.premodern === "legal" || cardData.legalities?.premodern === "restricted") {
+                    const deckCard: DeckCard = {
+                      id: cardData.id,
+                      name: cardData.name,
+                      image_uris: cardData.image_uris,
+                      type_line: cardData.type_line,
+                      oracle_text: cardData.oracle_text,
+                      mana_cost: cardData.mana_cost,
+                      colors: cardData.colors || [],
+                      legalities: cardData.legalities || { premodern: "legal" },
+                    };
+                    
+                    if (isSideboard) {
+                      // Add to sideboard
+                      if (importedSideboard[cardName]) {
+                        importedSideboard[cardName].count += count;
+                      } else {
+                        importedSideboard[cardName] = { card: deckCard, count };
+                      }
+                      sideboardCount += count;
+                    } else {
+                      // Add to main deck
+                      if (importedCards[cardName]) {
+                        importedCards[cardName].count += count;
+                      } else {
+                        importedCards[cardName] = { card: deckCard, count };
+                      }
+                      mainDeckCount += count;
+                    }
+                  } else {
+                    logger.warn(`Card ${cardName} is not legal in Premodern`);
+                  }
+                } else {
+                  logger.warn(`Could not find card: ${cardName}`);
+                }
+              } catch (error) {
+                logger.error(`Error importing card ${cardName}:`, error);
+              }
+            }
+          }
+        }
+        
+        if (Object.keys(importedCards).length > 0) {
+          const newDeck: Deck = {
+            id: generateUUID(),
+            name: deckName || `Imported Deck ${Date.now()}`,
+            cards: importedCards,
+            sideboard: Object.keys(importedSideboard).length > 0 ? importedSideboard : undefined,
+          };
+          
+          setDecks((prev) => [...prev, newDeck]);
+          setSelectedDeckId(newDeck.id);
+          
+          const mainDeckUnique = Object.keys(importedCards).length;
+          const sideboardUnique = Object.keys(importedSideboard).length;
+          
+          let message = `Mazo importado exitosamente con ${mainDeckUnique} cartas únicas (${mainDeckCount} total)`;
+          if (sideboardUnique > 0) {
+            message += ` y ${sideboardUnique} cartas únicas en sideboard (${sideboardCount} total)`;
+          }
+          
+          logger.info("Imported deck:", newDeck.name, "with", mainDeckUnique, "main deck cards and", sideboardUnique, "sideboard cards");
+          
+          return { success: true, message };
+        } else {
+          return { success: false, message: "No se pudieron importar cartas válidas" };
+        }
+      } catch (error) {
+        logger.error("Error importing deck:", error);
+        return { success: false, message: "Error al importar el mazo" };
+      }
+    }, [setDecks, setSelectedDeckId]);
+
+    // Handle import submission
+    const handleImportSubmit = useCallback(async () => {
+      if (!importText.trim() || !importDeckName.trim()) {
+        setImportMessage("Por favor ingresa el texto del mazo y un nombre");
+        return;
+      }
+
+      setImporting(true);
+      setImportMessage("");
+
+      const result = await importDeck(importText, importDeckName);
+      
+      setImporting(false);
+      setImportMessage(result.message);
+      
+      if (result.success) {
+        setShowImportModal(false);
+        setImportText("");
+        setImportDeckName("");
+        setImportMessage("");
+      }
+    }, [importText, importDeckName, importDeck]);
+
     const generateSampleHand = useCallback(() => {
       if (!selectedDeck) return;
 
@@ -564,7 +701,7 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
             <h3 className="text-lg font-semibold mb-3 text-gray-200">
               Crear Nuevo Mazo
             </h3>
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-3">
               <Input
                 type="text"
                 placeholder="Nombre del mazo"
@@ -580,6 +717,35 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
               >
                 Crear
               </Button>
+            </div>
+            
+            {/* Import Deck Section */}
+            <div className="border-t border-gray-700 pt-3">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-md font-medium text-gray-300">
+                  Importar Mazo
+                </h4>
+                <Button
+                  onClick={() => setShowImportModal(true)}
+                  className="bg-purple-600 hover:bg-purple-700 text-white text-sm"
+                >
+                  📥 Importar desde mtgdecks.net
+                </Button>
+              </div>
+              <p className="text-sm text-gray-400 mb-2">
+                Copia y pega el texto de tu mazo desde mtgdecks.net, TappedOut, o cualquier formato similar
+              </p>
+                             <div className="text-xs text-gray-500 bg-gray-800 p-2 rounded border border-gray-600">
+                 <strong>Formato esperado:</strong><br />
+                 4 Lightning Bolt<br />
+                 2 Counterspell<br />
+                 1 Black Lotus<br />
+                 <br />
+                 <em>// Sideboard</em><br />
+                 2 Disenchant<br />
+                 1 Circle of Protection: Red<br />
+                 ...
+               </div>
             </div>
           </div>
         )}
@@ -862,6 +1028,115 @@ const DeckBuilder: React.FC<DeckBuilderProps> = React.memo(
              </div>
            </div>
          )}
+
+        {/* Import Modal */}
+        {showImportModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-200">
+                  Importar Mazo
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowImportModal(false);
+                    setImportText("");
+                    setImportDeckName("");
+                    setImportMessage("");
+                  }}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Nombre del Mazo
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="Ej: Mono Red Burn"
+                    value={importDeckName}
+                    onChange={(e) => setImportDeckName(e.target.value)}
+                    className="w-full bg-gray-800 border-gray-600 focus:border-gray-500 text-gray-200 placeholder-gray-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Texto del Mazo
+                  </label>
+                  <textarea
+                    value={importText}
+                    onChange={(e) => setImportText(e.target.value)}
+                                         placeholder="Pega aquí el texto de tu mazo desde mtgdecks.net, TappedOut, etc.
+
+ Ejemplo:
+ 4 Lightning Bolt
+ 2 Counterspell
+ 1 Black Lotus
+
+ // Sideboard
+ 2 Disenchant
+ 1 Circle of Protection: Red
+ ..."
+                    className="w-full h-48 p-3 bg-gray-800 border border-gray-600 rounded-md text-gray-200 placeholder-gray-400 resize-none focus:border-gray-500 focus:outline-none"
+                  />
+                </div>
+
+                {importMessage && (
+                  <div className={`p-3 rounded-md text-sm ${
+                    importMessage.includes("exitosamente") 
+                      ? "bg-green-900/20 border border-green-600 text-green-300"
+                      : "bg-red-900/20 border border-red-600 text-red-300"
+                  }`}>
+                    {importMessage}
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <Button
+                    onClick={handleImportSubmit}
+                    disabled={importing || !importText.trim() || !importDeckName.trim()}
+                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    {importing ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Importando...
+                      </>
+                    ) : (
+                      "Importar Mazo"
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setShowImportModal(false);
+                      setImportText("");
+                      setImportDeckName("");
+                      setImportMessage("");
+                    }}
+                    variant="outline"
+                    className="border-gray-600 text-gray-300 hover:bg-gray-800"
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+
+                                 <div className="text-xs text-gray-400 bg-gray-800 p-3 rounded border border-gray-600">
+                   <strong>Información:</strong><br />
+                   • Solo se importarán cartas legales en Premodern<br />
+                   • El formato debe ser: cantidad + nombre de la carta<br />
+                   • <strong>Sideboard:</strong> Las cartas después de una línea en blanco se importan como sideboard<br />
+                   • Se ignorarán las cartas no encontradas o ilegales<br />
+                   • Compatible con mtgdecks.net, TappedOut, y formatos similares
+                 </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
