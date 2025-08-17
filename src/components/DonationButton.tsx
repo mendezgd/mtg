@@ -48,7 +48,7 @@ export default function DonationButton({
             className="text-gray-300 hover:text-white hover:bg-gray-800 flex items-center space-x-2"
             aria-label="Opciones de donación"
           >
-            <Heart className="w-4 h-4" color="violet" />
+            <Heart className="w-4 h-4 text-violet-400" />
             <span className="hidden lg:inline">Apoyar</span>
           </Button>
         </DropdownMenuTrigger>
@@ -61,7 +61,7 @@ export default function DonationButton({
             onClick={() => handleDonationClick("https://ko-fi.com/fattiepox")}
             className="flex items-center gap-3 px-3 py-2.5 cursor-pointer"
           >
-            <div className="flex-shrink-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+            <div className="flex-shrink-0 w-8 h-8 bg-[#29abe2] rounded-full flex items-center justify-center">
               <Coffee className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1 min-w-0">
@@ -77,11 +77,11 @@ export default function DonationButton({
 
           <DropdownMenuItem
             onClick={() =>
-              handleDonationClick("https://www.mercadopago.com.ar/fattiepox")
+              handleDonationClick("https://link.mercadopago.com.ar/fattiepox")
             }
             className="flex items-center gap-3 px-3 py-2.5 cursor-pointer"
           >
-            <div className="flex-shrink-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+            <div className="flex-shrink-0 w-8 h-8 bg-[#009ee3] rounded-full flex items-center justify-center">
               <CreditCard className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1 min-w-0">
