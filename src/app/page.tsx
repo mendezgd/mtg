@@ -22,7 +22,7 @@ export default function HomePage() {
               className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-purple-500 shadow-2xl"
             />
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-purple-400">
             MTG Premodern
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-gray-300 max-w-2xl mx-auto">
@@ -30,8 +30,8 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col md:flex-row gap-3 justify-center">
             <Link href="/deck-builder">
-              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#8122b0] to-[#dc98fd] active:scale-95">
-                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-[#B931FC] text-white rounded-[10px] bg-gradient-to-t from-[#a62ce2] to-[#c045fc] text-base font-medium">
+              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-purple-500 rounded-[12px] active:scale-95">
+                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-purple-500 text-white rounded-[10px] text-base font-medium">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -50,8 +50,8 @@ export default function HomePage() {
               </button>
             </Link>
             <Link href="/game">
-              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#1e40af] to-[#60a5fa] active:scale-95">
-                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-[#3B82F6] text-white rounded-[10px] bg-gradient-to-t from-[#2563eb] to-[#3b82f6] text-base font-medium relative">
+              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-blue-500 rounded-[12px] active:scale-95">
+                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-[10px] text-base font-medium relative">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -77,8 +77,8 @@ export default function HomePage() {
               </button>
             </Link>
             <Link href="/tournament">
-              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#059669] to-[#34d399] active:scale-95">
-                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-[#10B981] text-white rounded-[10px] bg-gradient-to-t from-[#059669] to-[#10b981] text-base font-medium">
+              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-green-500 rounded-[12px] active:scale-95">
+                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-green-500 text-white rounded-[10px] text-base font-medium">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="32"
@@ -103,8 +103,8 @@ export default function HomePage() {
               </button>
             </Link>
             <Link href="/life-counter">
-              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#dc2626] to-[#fca5a5] active:scale-95">
-                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-[#EF4444] text-white rounded-[10px] bg-gradient-to-t from-[#dc2626] to-[#ef4444] text-base font-medium">
+              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-red-500 rounded-[12px] active:scale-95">
+                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-red-500 text-white rounded-[10px] text-base font-medium">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -212,8 +212,8 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col md:flex-row gap-3 justify-center">
             <Link href="/deck-builder">
-              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[12px] bg-gradient-to-t from-[#7c3aed] to-[#ec4899] active:scale-95">
-                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#8b5cf6] to-[#ec4899] text-white rounded-[10px] text-base font-medium">
+              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-purple-500 rounded-[12px] active:scale-95">
+                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-purple-500 text-white rounded-[10px] text-base font-medium">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"

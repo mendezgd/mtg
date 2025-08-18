@@ -34,7 +34,7 @@ export default function SocialPills({ className = "" }: SocialPillsProps) {
         onClick={() =>
           handleSocialClick("https://www.instagram.com/bondiagalera/")
         }
-        className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+        className="group flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
         aria-label="Sígueme en Instagram"
       >
         <Instagram className="w-4 h-4" />

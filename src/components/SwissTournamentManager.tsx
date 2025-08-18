@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocalStorage } from "../hooks/use-local-storage";
+import { TournamentTimer } from "./TournamentTimer";
 
 type Player = {
   id: string;
@@ -68,7 +69,6 @@ type TournamentState = {
   rounds: Round[];
   currentRound: number;
   newPlayerName: string;
-  timeRemaining: number;
   isManualPairing: boolean;
   manualMatches: Match[];
   selectedPlayer1: string;
@@ -87,48 +87,62 @@ const PlayoffMatchCard = ({
 }: {
   match: PlayoffMatch;
   players: Player[];
-  onComplete: (matchId: string, winner: string, player1Wins: number, player2Wins: number) => void;
+  onComplete: (
+    matchId: string,
+    winner: string,
+    player1Wins: number,
+    player2Wins: number
+  ) => void;
 }) => {
   const player1 = players.find((p) => p.id === match.player1);
   const player2 = players.find((p) => p.id === match.player2);
   const [gameResults, setGameResults] = useState({
-    game1: match.games.game1 || '',
-    game2: match.games.game2 || '',
-    game3: match.games.game3 || ''
+    game1: match.games.game1 || "",
+    game2: match.games.game2 || "",
+    game3: match.games.game3 || "",
   });
 
   if (!player1 || !player2) return null;
 
-  const handleGameResult = (game: 'game1' | 'game2' | 'game3', winner: string) => {
-    setGameResults(prev => ({
+  const handleGameResult = (
+    game: "game1" | "game2" | "game3",
+    winner: string
+  ) => {
+    setGameResults((prev) => ({
       ...prev,
-      [game]: winner
+      [game]: winner,
     }));
   };
 
   const calculateWins = () => {
     let player1Wins = 0;
     let player2Wins = 0;
-    
+
     if (gameResults.game1 === player1.id) player1Wins++;
     else if (gameResults.game1 === player2.id) player2Wins++;
-    
+
     if (gameResults.game2 === player1.id) player1Wins++;
     else if (gameResults.game2 === player2.id) player2Wins++;
-    
+
     if (gameResults.game3 === player1.id) player1Wins++;
     else if (gameResults.game3 === player2.id) player2Wins++;
-    
+
     return { player1Wins, player2Wins };
   };
 
   const { player1Wins, player2Wins } = calculateWins();
-  const totalGames = [gameResults.game1, gameResults.game2, gameResults.game3].filter(g => g).length;
-  const canComplete = totalGames >= 2 && (player1Wins === 2 || player2Wins === 2);
-  const winner = player1Wins === 2 ? player1.id : player2Wins === 2 ? player2.id : null;
+  const totalGames = [
+    gameResults.game1,
+    gameResults.game2,
+    gameResults.game3,
+  ].filter((g) => g).length;
+  const canComplete =
+    totalGames >= 2 && (player1Wins === 2 || player2Wins === 2);
+  const winner =
+    player1Wins === 2 ? player1.id : player2Wins === 2 ? player2.id : null;
 
   return (
-            <div className="bg-card rounded-lg shadow-md p-4 border-2 border-indigo-500/30">
+    <div className="bg-card rounded-lg shadow-md p-4 border-2 border-indigo-500/30">
       <div className="flex justify-between items-center mb-3">
         <h4 className="font-bold text-indigo-800">
           Match #{match.matchNumber} - Ronda {match.round}
@@ -177,24 +191,26 @@ const PlayoffMatchCard = ({
           {/* Game Results */}
           <div className="grid grid-cols-3 gap-2">
             <div className="text-center">
-              <div className="text-sm font-medium text-gray-700 mb-2">Game 1</div>
+              <div className="text-sm font-medium text-gray-700 mb-2">
+                Game 1
+              </div>
               <div className="flex flex-col gap-1">
                 <button
-                  onClick={() => handleGameResult('game1', player1.id)}
+                  onClick={() => handleGameResult("game1", player1.id)}
                   className={`px-3 py-1 text-xs rounded transition-colors ${
                     gameResults.game1 === player1.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                   }`}
                 >
                   {player1.name}
                 </button>
                 <button
-                  onClick={() => handleGameResult('game1', player2.id)}
+                  onClick={() => handleGameResult("game1", player2.id)}
                   className={`px-3 py-1 text-xs rounded transition-colors ${
                     gameResults.game1 === player2.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                   }`}
                 >
                   {player2.name}
@@ -203,24 +219,26 @@ const PlayoffMatchCard = ({
             </div>
 
             <div className="text-center">
-              <div className="text-sm font-medium text-gray-700 mb-2">Game 2</div>
+              <div className="text-sm font-medium text-gray-700 mb-2">
+                Game 2
+              </div>
               <div className="flex flex-col gap-1">
                 <button
-                  onClick={() => handleGameResult('game2', player1.id)}
+                  onClick={() => handleGameResult("game2", player1.id)}
                   className={`px-3 py-1 text-xs rounded transition-colors ${
                     gameResults.game2 === player1.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                   }`}
                 >
                   {player1.name}
                 </button>
                 <button
-                  onClick={() => handleGameResult('game2', player2.id)}
+                  onClick={() => handleGameResult("game2", player2.id)}
                   className={`px-3 py-1 text-xs rounded transition-colors ${
                     gameResults.game2 === player2.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                   }`}
                 >
                   {player2.name}
@@ -229,24 +247,26 @@ const PlayoffMatchCard = ({
             </div>
 
             <div className="text-center">
-              <div className="text-sm font-medium text-gray-700 mb-2">Game 3</div>
+              <div className="text-sm font-medium text-gray-700 mb-2">
+                Game 3
+              </div>
               <div className="flex flex-col gap-1">
                 <button
-                  onClick={() => handleGameResult('game3', player1.id)}
+                  onClick={() => handleGameResult("game3", player1.id)}
                   className={`px-3 py-1 text-xs rounded transition-colors ${
                     gameResults.game3 === player1.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                   }`}
                 >
                   {player1.name}
                 </button>
                 <button
-                  onClick={() => handleGameResult('game3', player2.id)}
+                  onClick={() => handleGameResult("game3", player2.id)}
                   className={`px-3 py-1 text-xs rounded transition-colors ${
                     gameResults.game3 === player2.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                   }`}
                 >
                   {player2.name}
@@ -268,10 +288,14 @@ const PlayoffMatchCard = ({
           {/* Complete Match Button */}
           {canComplete && winner && (
             <button
-              onClick={() => onComplete(match.id, winner, player1Wins, player2Wins)}
+              onClick={() =>
+                onComplete(match.id, winner, player1Wins, player2Wins)
+              }
               className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors shadow-lg"
             >
-              ✅ Confirmar Resultado: {players.find(p => p.id === winner)?.name} gana {player1Wins}-{player2Wins}
+              ✅ Confirmar Resultado:{" "}
+              {players.find((p) => p.id === winner)?.name} gana {player1Wins}-
+              {player2Wins}
             </button>
           )}
         </div>
@@ -298,7 +322,6 @@ const SwissTournamentManager = () => {
       rounds: [],
       currentRound: 0,
       newPlayerName: "",
-      timeRemaining: 0,
       isManualPairing: false,
       manualMatches: [],
       selectedPlayer1: "",
@@ -308,7 +331,6 @@ const SwissTournamentManager = () => {
       playoff: null,
       showPlayoffOptions: false,
     });
-  const [roundTimer, setRoundTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Agregar nuevo jugador
   const addPlayer = () => {
@@ -353,7 +375,6 @@ const SwissTournamentManager = () => {
       rounds: [],
       currentRound: 0,
       newPlayerName: "",
-      timeRemaining: 0,
       isManualPairing: false,
       manualMatches: [],
       selectedPlayer1: "",
@@ -363,63 +384,6 @@ const SwissTournamentManager = () => {
       playoff: null,
       showPlayoffOptions: false,
     });
-    if (roundTimer) {
-      clearInterval(roundTimer);
-      setRoundTimer(null);
-    }
-  };
-
-  // Iniciar temporizador de ronda
-  const startRoundTimer = (roundNumber: number) => {
-    const round = tournamentState.rounds.find((r) => r.number === roundNumber);
-    if (!round) return;
-
-    const startTime = Date.now();
-    const timeLimitMs = round.timeLimit * 60 * 1000; // Convertir a milisegundos
-
-    // Actualizar la ronda como activa
-    setTournamentState({
-      ...tournamentState,
-      rounds: tournamentState.rounds.map((r) =>
-        r.number === roundNumber ? { ...r, isActive: true, startTime } : r
-      ),
-    });
-
-    // Iniciar temporizador
-    const timer = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, timeLimitMs - elapsed);
-      setTournamentState({
-        ...tournamentState,
-        timeRemaining: remaining,
-      });
-
-      if (remaining <= 0) {
-        // Tiempo agotado - solo avisar, no realizar acciones automáticas
-        handleTimeUp(roundNumber);
-        clearInterval(timer);
-        setRoundTimer(null);
-      }
-    }, 1000);
-
-    setRoundTimer(timer);
-  };
-
-  // Manejar tiempo agotado - solo avisar
-  const handleTimeUp = (roundNumber: number) => {
-    const round = tournamentState.rounds.find((r) => r.number === roundNumber);
-    if (!round) return;
-
-    // Solo marcar la ronda como inactiva y avisar
-    setTournamentState({
-      ...tournamentState,
-      rounds: tournamentState.rounds.map((r) =>
-        r.number === roundNumber ? { ...r, isActive: false } : r
-      ),
-    });
-
-    // Mostrar notificación de tiempo agotado
-    alert(`¡Tiempo agotado en la Ronda ${roundNumber}!`);
   };
 
   // Calcular puntos totales de un jugador
@@ -674,9 +638,6 @@ const SwissTournamentManager = () => {
       currentRound: 1,
     });
 
-    // Iniciar temporizador para la primera ronda
-    setTimeout(() => startRoundTimer(1), 1000);
-
     alert(
       `Torneo iniciado con ${tournamentState.players.length} jugadores.\nTotal de rondas: ${totalRounds}\nFormato: Best of 3 (BO3)\nTiempo por ronda: 50 minutos`
     );
@@ -876,9 +837,6 @@ const SwissTournamentManager = () => {
       rounds: [...tournamentState.rounds, newRound],
       currentRound: nextRoundNumber,
     });
-
-    // Iniciar temporizador para la nueva ronda
-    setTimeout(() => startRoundTimer(nextRoundNumber), 1000);
   };
 
   // Funciones para emparejamientos manuales
@@ -1052,9 +1010,6 @@ const SwissTournamentManager = () => {
       selectedPlayer1: "",
       selectedPlayer2: "",
     });
-
-    // Iniciar temporizador para la nueva ronda
-    setTimeout(() => startRoundTimer(nextRoundNumber), 1000);
 
     alert(
       `Ronda ${nextRoundNumber} creada manualmente con ${tournamentState.manualMatches.length} emparejamientos`
@@ -1256,17 +1211,24 @@ const SwissTournamentManager = () => {
     alert(`Avanzando a la ronda ${nextRound} del playoff`);
   };
 
-  const completePlayoffMatch = (matchId: string, winner: string, player1Wins: number, player2Wins: number) => {
+  const completePlayoffMatch = (
+    matchId: string,
+    winner: string,
+    player1Wins: number,
+    player2Wins: number
+  ) => {
     if (!tournamentState.playoff) return;
 
     const updatedMatches = tournamentState.playoff.matches.map((match) =>
-      match.id === matchId ? { 
-        ...match, 
-        completed: true, 
-        winner,
-        player1Wins,
-        player2Wins
-      } : match
+      match.id === matchId
+        ? {
+            ...match,
+            completed: true,
+            winner,
+            player1Wins,
+            player2Wins,
+          }
+        : match
     );
 
     setTournamentState({
@@ -1448,8 +1410,12 @@ const SwissTournamentManager = () => {
                 <div class="stat-label">Rondas Jugadas</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value">${tournamentState.rounds.reduce((total, round) => 
-                  total + round.matches.filter(match => match.completed).length, 0)}</div>
+                <div class="stat-value">${tournamentState.rounds.reduce(
+                  (total, round) =>
+                    total +
+                    round.matches.filter((match) => match.completed).length,
+                  0
+                )}</div>
                 <div class="stat-label">Partidas Completadas</div>
             </div>
         </div>
@@ -1516,9 +1482,16 @@ const SwissTournamentManager = () => {
       const opp = calculateOpp(player.id);
       const gw = calculateGameWinPercentage(player.id).toFixed(1);
       const bye = player.hasBye ? "Sí" : "No";
-      
-      const rowClass = index === 0 ? "position-1" : index === 1 ? "position-2" : index === 2 ? "position-3" : "";
-      
+
+      const rowClass =
+        index === 0
+          ? "position-1"
+          : index === 1
+            ? "position-2"
+            : index === 2
+              ? "position-3"
+              : "";
+
       htmlContent += `
                 <tr class="${rowClass}">
                     <td><span class="medal">${position}</span></td>
@@ -1534,9 +1507,15 @@ const SwissTournamentManager = () => {
     });
 
     // Mostrar resultados del playoff si existe y se ha disputado
-    if (tournamentState.playoff && tournamentState.playoff.isActive && tournamentState.playoff.matches.length > 0) {
-      const completedMatches = tournamentState.playoff.matches.filter(match => match.completed);
-      
+    if (
+      tournamentState.playoff &&
+      tournamentState.playoff.isActive &&
+      tournamentState.playoff.matches.length > 0
+    ) {
+      const completedMatches = tournamentState.playoff.matches.filter(
+        (match) => match.completed
+      );
+
       if (completedMatches.length > 0) {
         htmlContent += `
             </tbody>
@@ -1547,7 +1526,7 @@ const SwissTournamentManager = () => {
         <h2>🏅 RESULTADOS DEL PLAYOFF</h2>
         <div class="stats-grid">
             <div class="stat-item">
-                <div class="stat-value">${tournamentState.playoff.format === 'top4' ? 'Top 4' : tournamentState.playoff.format === 'top8' ? 'Top 8' : 'Top 16'}</div>
+                <div class="stat-value">${tournamentState.playoff.format === "top4" ? "Top 4" : tournamentState.playoff.format === "top8" ? "Top 8" : "Top 16"}</div>
                 <div class="stat-label">Formato del Playoff</div>
             </div>
             <div class="stat-item">
@@ -1573,28 +1552,43 @@ const SwissTournamentManager = () => {
             <tbody>`;
 
         // Agrupar matches por ronda
-        const matchesByRound = tournamentState.playoff.matches.reduce((acc, match) => {
-          if (!acc[match.round]) acc[match.round] = [];
-          acc[match.round].push(match);
-          return acc;
-        }, {} as Record<number, typeof tournamentState.playoff.matches>);
+        const matchesByRound = tournamentState.playoff.matches.reduce(
+          (acc, match) => {
+            if (!acc[match.round]) acc[match.round] = [];
+            acc[match.round].push(match);
+            return acc;
+          },
+          {} as Record<number, typeof tournamentState.playoff.matches>
+        );
 
         // Mostrar matches por ronda
         Object.entries(matchesByRound).forEach(([roundNum, matches]) => {
-          const roundName = roundNum === '1' ? 'Semifinales' : 
-                           roundNum === '2' ? 'Finales' : 
-                           roundNum === '3' ? 'Tercer Lugar' : `Ronda ${roundNum}`;
-          
+          const roundName =
+            roundNum === "1"
+              ? "Semifinales"
+              : roundNum === "2"
+                ? "Finales"
+                : roundNum === "3"
+                  ? "Tercer Lugar"
+                  : `Ronda ${roundNum}`;
+
           matches.forEach((match, index) => {
-            const player1 = tournamentState.players.find(p => p.id === match.player1);
-            const player2 = tournamentState.players.find(p => p.id === match.player2);
-            const winner = tournamentState.players.find(p => p.id === match.winner);
-            
+            const player1 = tournamentState.players.find(
+              (p) => p.id === match.player1
+            );
+            const player2 = tournamentState.players.find(
+              (p) => p.id === match.player2
+            );
+            const winner = tournamentState.players.find(
+              (p) => p.id === match.winner
+            );
+
             if (player1 && player2) {
-              const result = match.completed ? 
-                `${match.player1Wins}-${match.player2Wins}` : 'Pendiente';
-              const winnerName = winner ? winner.name : 'Pendiente';
-              
+              const result = match.completed
+                ? `${match.player1Wins}-${match.player2Wins}`
+                : "Pendiente";
+              const winnerName = winner ? winner.name : "Pendiente";
+
               htmlContent += `
                 <tr>
                     <td><strong>${roundName}</strong></td>
@@ -1628,7 +1622,8 @@ const SwissTournamentManager = () => {
             ),
           0
         );
-        const avgGames = totalMatches > 0 ? (totalGames / totalMatches).toFixed(1) : "0";
+        const avgGames =
+          totalMatches > 0 ? (totalGames / totalMatches).toFixed(1) : "0";
 
         htmlContent += `
             </tbody>
@@ -1670,7 +1665,8 @@ const SwissTournamentManager = () => {
           ),
         0
       );
-      const avgGames = totalMatches > 0 ? (totalGames / totalMatches).toFixed(1) : "0";
+      const avgGames =
+        totalMatches > 0 ? (totalGames / totalMatches).toFixed(1) : "0";
 
       htmlContent += `
             </tbody>
@@ -1701,11 +1697,11 @@ const SwissTournamentManager = () => {
 </html>`;
 
     // Crear y descargar el archivo HTML
-    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = `torneo_resultados_${new Date().toISOString().split('T')[0]}.html`;
+    link.download = `torneo_resultados_${new Date().toISOString().split("T")[0]}.html`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1717,7 +1713,7 @@ const SwissTournamentManager = () => {
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Header mejorado */}
         <div className="text-center mb-8">
-          <div className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <div className="text-indigo-400">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-4">
               🏆 Posada MTG Torneo
             </h1>
@@ -1725,7 +1721,9 @@ const SwissTournamentManager = () => {
           <div className="flex items-center justify-center gap-4 text-sm">
             <div className="flex items-center gap-2 bg-green-900/40 px-3 py-1 rounded-full border border-green-400/50 shadow-sm">
               <span className="text-green-300">💾</span>
-              <span className="font-medium text-green-200">Guardado automático</span>
+              <span className="font-medium text-green-200">
+                Guardado automático
+              </span>
             </div>
             <div className="flex items-center gap-2 bg-blue-900/40 px-3 py-1 rounded-full border border-blue-400/50 shadow-sm">
               <span className="text-blue-300">⚡</span>
@@ -1738,7 +1736,7 @@ const SwissTournamentManager = () => {
       {/* Estado del torneo */}
       {tournamentState.currentRound > 0 && (
         <div className="mb-8 bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
+          <div className="bg-indigo-600 px-6 py-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-3">
               📊 Estado del Torneo
             </h2>
@@ -1749,46 +1747,90 @@ const SwissTournamentManager = () => {
                 <div className="text-2xl font-bold text-blue-200 mb-1">
                   {tournamentState.players.length}
                 </div>
-                <div className="text-sm text-blue-100 font-medium">👥 Jugadores</div>
+                <div className="text-sm text-blue-100 font-medium">
+                  👥 Jugadores
+                </div>
               </div>
               <div className="text-center p-4 bg-green-900/40 rounded-xl border border-green-400/50 shadow-sm">
                 <div className="text-2xl font-bold text-green-200 mb-1">
                   {tournamentState.currentRound} / {getCurrentTotalRounds()}
                 </div>
-                <div className="text-sm text-green-100 font-medium">🔄 Ronda Actual</div>
+                <div className="text-sm text-green-100 font-medium">
+                  🔄 Ronda Actual
+                </div>
               </div>
               <div className="text-center p-4 bg-purple-900/40 rounded-xl border border-purple-400/50 shadow-sm">
                 <div className="text-2xl font-bold text-purple-200 mb-1">
-                  {tournamentState.rounds.flatMap((r) => r.matches).filter((m) => m.completed).length}
+                  {
+                    tournamentState.rounds
+                      .flatMap((r) => r.matches)
+                      .filter((m) => m.completed).length
+                  }
                 </div>
-                <div className="text-sm text-purple-100 font-medium">✅ Partidos Jugados</div>
+                <div className="text-sm text-purple-100 font-medium">
+                  ✅ Partidos Jugados
+                </div>
               </div>
               <div className="text-center p-4 bg-orange-900/40 rounded-xl border border-orange-400/50 shadow-sm">
                 <div className="text-2xl font-bold text-orange-200 mb-1">
                   {tournamentState.rounds.flatMap((r) => r.matches).length}
                 </div>
-                <div className="text-sm text-orange-100 font-medium">🎯 Total Partidos</div>
+                <div className="text-sm text-orange-100 font-medium">
+                  🎯 Total Partidos
+                </div>
               </div>
+              {tournamentState.currentRound > 0 && (
+                <div className="md:col-span-4">
+                  <TournamentTimer
+                    roundNumber={tournamentState.currentRound}
+                    variant="button"
+                    onTimeUp={() => {
+                      alert(
+                        `¡Tiempo agotado en la Ronda ${tournamentState.currentRound}!`
+                      );
+                    }}
+                  />
+                </div>
+              )}
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 bg-blue-900/40 border-l-4 border-blue-400 rounded-lg shadow-sm">
-                <div className="font-semibold text-blue-100 mb-1">📋 Formato</div>
-                <div className="text-sm text-blue-50">Best of 3 (BO3) - Primer jugador en ganar 2 games gana el match</div>
+                <div className="font-semibold text-blue-100 mb-1">
+                  📋 Formato
+                </div>
+                <div className="text-sm text-blue-50">
+                  Best of 3 (BO3) - Primer jugador en ganar 2 games gana el
+                  match
+                </div>
               </div>
               <div className="p-4 bg-green-900/40 border-l-4 border-green-400 rounded-lg shadow-sm">
-                <div className="font-semibold text-green-100 mb-1">🏆 Criterios de Desempate</div>
-                <div className="text-sm text-green-50">1. Puntos | 2. Victorias Reales | 3. Opp% | 4. GW% | 5. Seed</div>
+                <div className="font-semibold text-green-100 mb-1">
+                  🏆 Criterios de Desempate
+                </div>
+                <div className="text-sm text-green-50">
+                  1. Puntos | 2. Victorias Reales | 3. Opp% | 4. GW% | 5. Seed
+                </div>
               </div>
               {tournamentState.players.length % 2 !== 0 && (
                 <div className="p-4 bg-yellow-900/40 border-l-4 border-yellow-400 rounded-lg shadow-sm">
-                  <div className="font-semibold text-yellow-100 mb-1">🆓 Sistema Bye</div>
-                  <div className="text-sm text-yellow-50">Jugador con menos puntos recibe bye automático (3 pts, no Opp)</div>
+                  <div className="font-semibold text-yellow-100 mb-1">
+                    🆓 Sistema Bye
+                  </div>
+                  <div className="text-sm text-yellow-50">
+                    Jugador con menos puntos recibe bye automático (3 pts, no
+                    Opp)
+                  </div>
                 </div>
               )}
               <div className="p-4 bg-indigo-900/40 border-l-4 border-indigo-400 rounded-lg shadow-sm">
-                <div className="font-semibold text-indigo-100 mb-1">💾 Guardado Local</div>
-                <div className="text-sm text-indigo-50">El progreso del torneo se guarda automáticamente. Solo el botón "🔄 Resetear" elimina todos los datos.</div>
+                <div className="font-semibold text-indigo-100 mb-1">
+                  💾 Guardado Local
+                </div>
+                <div className="text-sm text-indigo-50">
+                  El progreso del torneo se guarda automáticamente. Solo el
+                  botón "🔄 Resetear" elimina todos los datos.
+                </div>
               </div>
             </div>
           </div>
@@ -1797,7 +1839,7 @@ const SwissTournamentManager = () => {
 
       {/* Entrada de jugadores */}
       <div className="mb-8 bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
-        <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
+        <div className="bg-green-600 px-6 py-4">
           <h2 className="text-xl font-bold text-white flex items-center gap-3">
             👥 Gestión de Jugadores
           </h2>
@@ -1820,37 +1862,37 @@ const SwissTournamentManager = () => {
             <button
               onClick={addPlayer}
               disabled={!tournamentState.newPlayerName.trim()}
-              className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="px-6 py-3 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               ➕ Agregar Jugador
             </button>
           </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-          {tournamentState.players.map((player) => (
-            <div
-              key={player.id}
-              className="p-3 bg-muted border border-border rounded shadow-sm flex justify-between items-center"
-            >
-                              <span className="text-foreground text-sm sm:text-base truncate">
-                                  <span className="font-medium text-foreground">
-                  #{player.seed}
-                </span>{" "}
-                {player.name}
-              </span>
-              <button
-                onClick={() => removePlayer(player.id)}
-                className="text-red-500 hover:text-red-700 text-sm font-bold ml-2 flex-shrink-0"
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            {tournamentState.players.map((player) => (
+              <div
+                key={player.id}
+                className="p-3 bg-muted border border-border rounded shadow-sm flex justify-between items-center"
               >
-                ✕
-              </button>
-            </div>
-          ))}
+                <span className="text-foreground text-sm sm:text-base truncate">
+                  <span className="font-medium text-foreground">
+                    #{player.seed}
+                  </span>{" "}
+                  {player.name}
+                </span>
+                <button
+                  onClick={() => removePlayer(player.id)}
+                  className="text-red-500 hover:text-red-700 text-sm font-bold ml-2 flex-shrink-0"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
         {/* Configuración de rondas */}
-                    <div className="mt-4 p-4 bg-muted rounded-lg">
+        <div className="mt-4 p-4 bg-muted rounded-lg">
           <h3 className="font-medium text-foreground mb-3">
             ⚙️ Configuración de Rondas
           </h3>
@@ -1934,7 +1976,7 @@ const SwissTournamentManager = () => {
             onClick={resetTournament}
             className="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white transition-colors text-sm sm:text-base"
           >
-            🔄 Resetear
+            🔄 Resetear (todo el torneo)
           </button>
         </div>
       </div>
@@ -1945,7 +1987,7 @@ const SwissTournamentManager = () => {
           {/* Standings parciales */}
           <div className="xl:col-span-1">
             <div className="bg-card border border-border rounded-lg shadow-sm p-4 sticky top-4">
-                              <h2 className="text-xl font-semibold mb-4 text-foreground">
+              <h2 className="text-xl font-semibold mb-4 text-foreground">
                 📈 Standings Parciales
               </h2>
               <div className="space-y-2">
@@ -2034,31 +2076,6 @@ const SwissTournamentManager = () => {
               <h2 className="text-xl font-semibold text-foreground">
                 🎮 Ronda {tournamentState.currentRound}
               </h2>
-
-              {/* Temporizador de ronda */}
-              {tournamentState.rounds.find(
-                (r) => r.number === tournamentState.currentRound
-              )?.isActive && (
-                <div className="flex items-center gap-2">
-                  <div className="text-sm text-gray-600">
-                    ⏱️ Tiempo restante:
-                  </div>
-                  <div
-                    className={`px-3 py-1 rounded-lg font-mono font-bold text-lg ${
-                      tournamentState.timeRemaining <= 300000
-                        ? "bg-red-100 text-red-800" // 5 minutos o menos
-                        : tournamentState.timeRemaining <= 600000
-                          ? "bg-yellow-100 text-yellow-800" // 10 minutos o menos
-                          : "bg-green-100 text-green-800"
-                    }`}
-                  >
-                    {Math.floor(tournamentState.timeRemaining / 60000)}:
-                    {(Math.floor(tournamentState.timeRemaining / 1000) % 60)
-                      .toString()
-                      .padStart(2, "0")}
-                  </div>
-                </div>
-              )}
             </div>
 
             {tournamentState.rounds.map((round) => (
@@ -2517,20 +2534,6 @@ const SwissTournamentManager = () => {
                   ✋ Emparejamiento Manual
                 </button>
               )}
-
-              {tournamentState.currentRound > 0 &&
-                !tournamentState.rounds.find(
-                  (r) => r.number === tournamentState.currentRound
-                )?.isActive && (
-                  <button
-                    onClick={() =>
-                      startRoundTimer(tournamentState.currentRound)
-                    }
-                    className="bg-orange-600 text-white px-4 py-3 rounded-lg hover:bg-orange-700 transition-colors font-medium text-sm sm:text-base"
-                  >
-                    ⏱️ Iniciar Temporizador
-                  </button>
-                )}
             </div>
           </div>
         </div>
@@ -2778,7 +2781,6 @@ const SwissTournamentManager = () => {
                     currentRound: 1,
                     isManualPairing: false,
                   });
-                  setTimeout(() => startRoundTimer(1), 1000);
                   alert(
                     `Ronda 1 creada automáticamente con emparejamientos acelerados`
                   );
@@ -2806,36 +2808,37 @@ const SwissTournamentManager = () => {
 
       {/* Mostrar opciones de playoff cuando el torneo suizo termine */}
       {tournamentState.currentRound > 0 &&
+        tournamentState.currentRound >= getCurrentTotalRounds() &&
         !tournamentState.rounds.find(
           (r) => r.number === tournamentState.currentRound
         )?.isActive &&
         !tournamentState.playoff && (
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 rounded-lg shadow-lg mb-6">
+          <div className="bg-purple-600 p-6 rounded-lg shadow-lg mb-6">
             <h3 className="text-xl font-bold text-white mb-4">
               🏆 Torneo Suizo Completado - ¿Jugar Playoff?
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <button
                 onClick={() => generatePlayoff("top4")}
-                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm sm:text-base"
+                className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm sm:text-base"
               >
                 🥇 Top 4
               </button>
               <button
                 onClick={() => generatePlayoff("top8")}
-                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm sm:text-base"
+                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm sm:text-base"
               >
                 🏅 Top 8
               </button>
               <button
                 onClick={() => generatePlayoff("top16")}
-                className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm sm:text-base"
+                className="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm sm:text-base"
               >
                 🎯 Top 16
               </button>
               <button
                 onClick={() => generatePlayoff("none")}
-                className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm sm:text-base"
+                className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm sm:text-base"
               >
                 ❌ Sin Playoff
               </button>
@@ -2845,7 +2848,7 @@ const SwissTournamentManager = () => {
 
       {/* Mostrar playoff activo */}
       {tournamentState.playoff && tournamentState.playoff.isActive && (
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 rounded-lg shadow-lg mb-6">
+        <div className="bg-indigo-600 p-6 rounded-lg shadow-lg mb-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-2xl font-bold text-white">
               🏆 Playoff {tournamentState.playoff.format.toUpperCase()} - Ronda{" "}
@@ -2856,7 +2859,7 @@ const SwissTournamentManager = () => {
               tournamentState.playoff.totalRounds && (
               <button
                 onClick={advancePlayoffRound}
-                className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200"
+                className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200"
               >
                 Avanzar Ronda
               </button>
@@ -2895,7 +2898,7 @@ const SwissTournamentManager = () => {
               📄 Exportar Resultados
             </button>
           </div>
-                      <div className="overflow-x-auto bg-card border border-border rounded-lg shadow-sm">
+          <div className="overflow-x-auto bg-card border border-border rounded-lg shadow-sm">
             <table className="min-w-full">
               <thead className="bg-muted/80 text-foreground font-semibold">
                 <tr>
