@@ -75,10 +75,10 @@ export default function GamePage() {
               {t("game.inDevelopment")}
             </span>
           </div>
-          <h1 className="text-2xl font-bold mb-4">{t("game.noDeckSelected")}</h1>
-          <p className="mb-4 text-gray-300">
-            {t("game.pleaseSelectDeck")}
-          </p>
+          <h1 className="text-2xl font-bold mb-4">
+            {t("game.noDeckSelected")}
+          </h1>
+          <p className="mb-4 text-gray-300">{t("game.pleaseSelectDeck")}</p>
           <p className="mb-6 text-yellow-400 text-sm font-medium">
             {t("game.comingSoon")}
           </p>
