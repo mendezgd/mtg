@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Badge } from "./ui/badge";
 import SimpleBackground from "./ui/simple-background";
 
 import { useLocalStorage } from "../hooks/use-local-storage";
 import { useSound } from "../hooks/use-sound";
-import { RotateCcw, Crown, Volume2, VolumeX } from "lucide-react";
+import { RotateCcw, Volume2, VolumeX } from "lucide-react";
 
 interface PlayerState {
   life: number;
@@ -23,6 +22,12 @@ interface GameState {
     player2: PlayerState;
   };
   landscapeMode: boolean;
+}
+
+interface HistoryItem {
+  id: number;
+  change: number;
+  timestamp: number;
 }
 
 const LifeCounter: React.FC = () => {
@@ -56,6 +61,24 @@ const LifeCounter: React.FC = () => {
   const [animations, setAnimations] = useState({
     player1: { life: false },
     player2: { life: false },
+  });
+
+  // Estado para el historial de cambios de vida
+  const [lifeHistory, setLifeHistory] = useState<{
+    player1: HistoryItem[];
+    player2: HistoryItem[];
+  }>({
+    player1: [],
+    player2: [],
+  });
+
+  // Referencias para el seguimiento de cambios secuenciales
+  const sequentialData = useRef<{
+    player1: { value: number; timer: NodeJS.Timeout | null };
+    player2: { value: number; timer: NodeJS.Timeout | null };
+  }>({
+    player1: { value: 0, timer: null },
+    player2: { value: 0, timer: null },
   });
 
   // Colores MTG oficiales
@@ -96,6 +119,16 @@ const LifeCounter: React.FC = () => {
         },
       },
     }));
+    // Clear history on reset
+    setLifeHistory({
+      player1: [],
+      player2: [],
+    });
+    // Clear sequential data
+    sequentialData.current = {
+      player1: { value: 0, timer: null },
+      player2: { value: 0, timer: null },
+    };
   }, [setGameState, playReset]);
 
   // Detectar orientación de pantalla
@@ -117,6 +150,19 @@ const LifeCounter: React.FC = () => {
     };
   }, [setGameState]);
 
+  // Limpiar historial antiguo automáticamente
+  useEffect(() => {
+    const cleanupInterval = setInterval(() => {
+      const now = Date.now();
+      setLifeHistory((prev) => ({
+        player1: prev.player1.filter((item) => now - item.timestamp < 2000),
+        player2: prev.player2.filter((item) => now - item.timestamp < 2000),
+      }));
+    }, 500);
+
+    return () => clearInterval(cleanupInterval);
+  }, []);
+
   // Función para animar cambios
   const animateChange = useCallback((player: "player1" | "player2") => {
     setAnimations((prev) => ({
@@ -132,7 +178,7 @@ const LifeCounter: React.FC = () => {
     }, 300);
   }, []);
 
-  // Función para cambiar vida
+  // Función para cambiar vida (estilo Magic Companion)
   const changeLife = useCallback(
     (player: "player1" | "player2", amount: number) => {
       // Reproducir sonido según el tipo de cambio
@@ -142,21 +188,99 @@ const LifeCounter: React.FC = () => {
         playLifeLoss();
       }
 
+      // Actualizar el estado del juego inmediatamente
       setGameState((prev) => ({
         ...prev,
         players: {
           ...prev.players,
           [player]: {
             ...prev.players[player],
-            life: Math.max(0, prev.players[player].life + amount),
+            life: prev.players[player].life + amount,
           },
         },
       }));
+
+      // Manejar cambios secuenciales
+      const playerData = sequentialData.current[player];
+
+      // Si ya hay un timer activo, limpiarlo
+      if (playerData.timer) {
+        clearTimeout(playerData.timer);
+        playerData.timer = null;
+      }
+
+      // Si es el mismo tipo de cambio, acumular
+      if (
+        (playerData.value > 0 && amount > 0) ||
+        (playerData.value < 0 && amount < 0)
+      ) {
+        playerData.value += amount;
+
+        // Limitar a ±10
+        if (playerData.value > 10) playerData.value = 10;
+        if (playerData.value < -10) playerData.value = -10;
+      } else {
+        // Si es un tipo de cambio diferente, reiniciar
+        playerData.value = amount;
+      }
+
+      // Actualizar el historial con el valor acumulado
+      setLifeHistory((prev) => {
+        // Filtrar items antiguos del mismo jugador
+        const filteredHistory = prev[player].filter(
+          (item) =>
+            !(
+              (item.change > 0 && amount > 0) ||
+              (item.change < 0 && amount < 0)
+            )
+        );
+
+        return {
+          ...prev,
+          [player]: [
+            {
+              id: Date.now(),
+              change: playerData.value,
+              timestamp: Date.now(),
+            },
+            ...filteredHistory,
+          ].slice(0, 3), // Mantener solo los últimos 3 items
+        };
+      });
+
+      // Configurar timer para resetear el acumulador después de 1 segundo
+      playerData.timer = setTimeout(() => {
+        playerData.value = 0;
+      }, 1000);
 
       animateChange(player);
     },
     [setGameState, animateChange, playLifeGain, playLifeLoss]
   );
+
+  // Componente para mostrar historial de cambios de vida
+  const LifeChangeHistory = ({ player }: { player: "player1" | "player2" }) => {
+    return (
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full pointer-events-none flex items-center justify-center">
+        <div className="relative w-32 h-32">
+          {lifeHistory[player].map((item, index) => (
+            <div
+              key={item.id}
+              className={`absolute left-1/2 transform -translate-x-1/2 transition-all duration-1000 opacity-0 ${
+                item.change > 0 ? "text-green-400" : "text-red-400"
+              } font-bold text-xl`}
+              style={{
+                top: `${20 + index * 8}%`,
+                animation: `fadeMoveUp 1.5s ease-out ${index * 0.1}s forwards`,
+              }}
+            >
+              {item.change > 0 ? `+${item.change}` : item.change}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   // Componente para mostrar jugador
   const PlayerCard = ({
@@ -167,7 +291,6 @@ const LifeCounter: React.FC = () => {
     playerData: PlayerState;
   }) => {
     const isAnimating = animations[player].life;
-    const colorConfig = mtgColors[playerData.color];
     const backgroundImage =
       player === "player1" ? "/images/chudixd.webp" : "/images/chudix.webp";
 
@@ -195,12 +318,21 @@ const LifeCounter: React.FC = () => {
           {/* Contador de vida principal */}
           <div className="text-center relative w-full h-48 flex items-center justify-center">
             <div
-              className={`text-8xl md:text-9xl font-life-counter-space text-white transition-all duration-300 ${
+              className={`text-8xl md:text-9xl font-life-counter-space transition-all duration-300 ${
                 isAnimating ? "scale-110" : "scale-100"
+              } ${
+                playerData.life < 0
+                  ? "text-red-500"
+                  : playerData.life > 0
+                    ? "text-white"
+                    : "text-yellow-400"
               }`}
             >
               {playerData.life}
             </div>
+
+            {/* Historial de cambios de vida */}
+            <LifeChangeHistory player={player} />
           </div>
 
           {/* Botones invisibles que cubren toda la tarjeta */}
@@ -231,6 +363,20 @@ const LifeCounter: React.FC = () => {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-gray-900 text-white relative">
+      {/* Estilos CSS para la animación de fade y movimiento */}
+      <style jsx>{`
+        @keyframes fadeMoveUp {
+          0% {
+            opacity: 1;
+            transform: translate(-50%, 0);
+          }
+          100% {
+            opacity: 0;
+            transform: translate(-50%, -30px);
+          }
+        }
+      `}</style>
+
       {/* Botones en la esquina superior derecha */}
       <div className="absolute top-4 right-4 z-50 flex gap-2">
         {/* Botón de mute/unmute */}
@@ -259,7 +405,6 @@ const LifeCounter: React.FC = () => {
       </div>
 
       <div className="h-[calc(100vh-4rem)] w-full">
-        {/* Header */}
         {/* Contadores principales */}
         <div
           className={`h-full w-full grid ${
