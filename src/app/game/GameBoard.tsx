@@ -23,9 +23,13 @@ const isMobile = () => {
   );
 };
 
+const CARD_WIDTH = isMobile() ? 64 : 100;
+const CARD_HEIGHT = isMobile() ? 90 : 140;
+const HAND_STEP = isMobile() ? 68 : 80; // horizontal step between cards in hand
+
 const cardStyle = {
-  width: isMobile() ? "60px" : "100px",
-  height: isMobile() ? "84px" : "140px",
+  width: `${CARD_WIDTH}px`,
+  height: `${CARD_HEIGHT}px`,
   border: "1px solid #ddd",
   borderRadius: "6px",
   backgroundColor: "#fff",
@@ -133,8 +137,8 @@ const DraggableCard: React.FC<{
           ? "none"
           : "transform 0.2s ease, opacity 0.2s ease",
         zIndex: enlarged ? 400 : isHovered ? 200 : isDragging ? 300 : "auto",
-        width: isMobile() ? "80px" : "100px",
-        height: isMobile() ? "112px" : "140px",
+        width: `${CARD_WIDTH}px`,
+        height: `${CARD_HEIGHT}px`,
         touchAction: "none",
         cursor: "move",
         willChange: "transform, left, top",
@@ -158,7 +162,9 @@ const DraggableCard: React.FC<{
       onTouchMove={handleTouchMove}
     >
       <img
-        src={ImageService.processImageUrl(card.image_uris?.normal || "/images/default-card.jpg")}
+        src={ImageService.processImageUrl(
+          card.image_uris?.normal || "/images/default-card.jpg"
+        )}
         alt={card.name}
         className="w-full h-full object-cover rounded"
         loading="lazy"
@@ -171,17 +177,22 @@ const DraggableCard: React.FC<{
   );
 };
 
+type TargetZone = "play" | "hand" | "graveyard";
+
 const DropZone: React.FC<{
   onDrop: (
     card: CardData,
     position: { x: number; y: number },
-    targetZone: "play" | "hand"
+    targetZone: TargetZone,
+    targetOwner?: "player" | "opponent"
   ) => void;
   children?: React.ReactNode;
   className?: string;
   isHand?: boolean;
   isOpponent?: boolean;
-}> = ({ onDrop, children, className, isHand, isOpponent }) => {
+  zoneType?: TargetZone;
+  owner?: "player" | "opponent";
+}> = ({ onDrop, children, className, isHand, isOpponent, zoneType, owner }) => {
   const dropZoneRef = React.useRef<HTMLDivElement | null>(null);
 
   const [, drop] = useDrop(() => ({
@@ -192,7 +203,29 @@ const DropZone: React.FC<{
         const rect = dropZoneRef.current.getBoundingClientRect();
         const x = sourceOffset.x - rect.left;
         const y = sourceOffset.y - rect.top;
-        onDrop(item, { x, y }, isHand ? "hand" : "play");
+        const adjustedX = isHand
+          ? x + (dropZoneRef.current?.scrollLeft || 0)
+          : x;
+        onDrop(
+          item,
+          { x: adjustedX, y },
+          zoneType ? zoneType : isHand ? "hand" : "play",
+          zoneType
+            ? owner
+            : isHand
+              ? isOpponent
+                ? "opponent"
+                : "player"
+              : undefined
+        );
+        // After a hand drop, auto-scroll to the end so the appended card is visible
+        if (isHand && dropZoneRef.current) {
+          setTimeout(() => {
+            if (dropZoneRef.current) {
+              dropZoneRef.current.scrollLeft = dropZoneRef.current.scrollWidth;
+            }
+          }, 0);
+        }
       }
     },
   }));
@@ -203,8 +236,12 @@ const DropZone: React.FC<{
         drop(node);
         dropZoneRef.current = node;
       }}
-      className={`relative flex flex-wrap p-2 md:p-6 border-2 border-dashed border-gray-500 rounded-lg bg-gray-700/50 
-                h-full w-full overflow-y-auto touch-none ${className || ""}`}
+      className={`relative p-2 md:p-6 border-2 border-dashed border-gray-500 rounded-lg bg-gray-700/50 
+                h-full w-full ${
+                  isHand
+                    ? "overflow-x-auto overflow-y-hidden touch-pan-x"
+                    : "overflow-y-auto touch-none"
+                } ${className || ""}`}
     >
       {children}
     </div>
@@ -454,7 +491,9 @@ const CardSelectionModal: React.FC<{
                   } ${draggedCard?.id === card.id ? "opacity-50" : ""}`}
                 >
                   <img
-                    src={ImageService.processImageUrl(card.image_uris?.normal || "/images/default-card.svg")}
+                    src={ImageService.processImageUrl(
+                      card.image_uris?.normal || "/images/default-card.svg"
+                    )}
                     alt={card.name}
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -566,7 +605,9 @@ const ViewTopCardsModal: React.FC<{
             <div key={card.id} className="relative group">
               <div className="relative w-full aspect-[2.5/3.5] bg-gray-700 rounded-lg overflow-hidden">
                 <img
-                  src={ImageService.processImageUrl(card.image_uris?.normal || "/images/default-card.svg")}
+                  src={ImageService.processImageUrl(
+                    card.image_uris?.normal || "/images/default-card.svg"
+                  )}
                   alt={card.name}
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -705,6 +746,8 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
     { deck: [], hand: [] },
   ]);
   const [playArea, setPlayArea] = useState<CardData[]>([]);
+  const [playerGraveyard, setPlayerGraveyard] = useState<CardData[]>([]);
+  const [opponentGraveyard, setOpponentGraveyard] = useState<CardData[]>([]);
   const [enlargedCardId, setEnlargedCardId] = useState<string | null>(null);
   const [showDeckOptions, setShowDeckOptions] = useState(false);
   const [deckOptionsIsOpponent, setDeckOptionsIsOpponent] = useState(false);
@@ -719,6 +762,10 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
     useState(false);
   const [showCardSelection, setShowCardSelection] = useState(false);
   const [selectedCards, setSelectedCards] = useState<CardData[]>([]);
+  const [showGraveyard, setShowGraveyard] = useState<{
+    owner: "player" | "opponent";
+    open: boolean;
+  } | null>(null);
   const [deckTouchTimer, setDeckTouchTimer] = useState<NodeJS.Timeout | null>(
     null
   );
@@ -759,12 +806,12 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
       const player1Hand = player1Deck.slice(0, 7).map((card, index) => ({
         ...card,
         id: generateUUID(),
-        x: index * 80,
+        x: index * HAND_STEP,
       }));
       const player2Hand = player2Deck.slice(0, 7).map((card, index) => ({
         ...card,
         id: generateUUID(),
-        x: index * 80,
+        x: index * HAND_STEP,
       }));
 
       setPlayers([
@@ -840,7 +887,8 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
   const handleCardDropToPlayArea = (
     card: CardData,
     position: { x: number; y: number },
-    targetZone: "play" | "hand"
+    targetZone: TargetZone,
+    targetOwner?: "player" | "opponent"
   ) => {
     // Moving from hand to play area
     if (targetZone === "play") {
@@ -879,41 +927,46 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
       });
     }
     // Moving from play area to hand or rearranging within hand
-    else {
-      // If card is in play area, remove it
-      if (playArea.some((c) => c.id === card.id)) {
-        setPlayArea((prev) => prev.filter((c) => c.id !== card.id));
-      }
+    else if (targetZone === "hand") {
+      // Always remove from play area first (unconditionally safeguard against duplicates)
+      setPlayArea((prev) => prev.filter((c) => c.id !== card.id));
 
-      // Update hand positions
+      const ownerIndex = targetOwner === "opponent" ? 1 : 0;
+
       setPlayers((prev) =>
-        prev.map((player) => {
-          // Find which player's hand contains this card
-          const cardInHand = player.hand.some((c) => c.id === card.id);
-          if (!cardInHand) return player;
+        prev.map((player, idx) => {
+          // Remove duplicates from every hand
+          const cleaned = player.hand.filter((c) => c.id !== card.id);
 
-          const targetIndex = Math.floor(position.x / 80);
-          const currentIndex = player.hand.findIndex((c) => c.id === card.id);
-
-          // If card is already in this hand, just reorder it
-          if (currentIndex !== -1) {
-            const newHand = [...player.hand];
-            const [movedCard] = newHand.splice(currentIndex, 1);
-            newHand.splice(targetIndex, 0, movedCard);
-
-            return {
-              ...player,
-              hand: newHand.map((c, i) => ({
-                ...c,
-                x: i * 80,
-              })),
-            };
+          if (idx !== ownerIndex) {
+            return { ...player, hand: cleaned };
           }
 
-          // If card is not in this hand, don't modify it
-          return player;
+          // Always append at end of target owner's hand
+          const newHand = [...cleaned, { ...card, id: card.id || generateUUID() }];
+
+          return {
+            ...player,
+            hand: newHand.map((c, i) => ({ ...c, x: i * HAND_STEP, y: 0 })),
+          };
         })
       );
+    } else if (targetZone === "graveyard") {
+      // Remove from hand and play area
+      setPlayers((prev) =>
+        prev.map((player) => ({
+          ...player,
+          hand: player.hand.filter((c) => c.id !== card.id),
+        }))
+      );
+      setPlayArea((prev) => prev.filter((c) => c.id !== card.id));
+
+      // Add to appropriate graveyard
+      if (targetOwner === "player") {
+        setPlayerGraveyard((prev) => [...prev, { ...card }]);
+      } else if (targetOwner === "opponent") {
+        setOpponentGraveyard((prev) => [...prev, { ...card }]);
+      }
     }
   };
 
@@ -933,7 +986,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
               const handPositions = player.hand.map((c) => c.x);
               let insertPosition = 0;
               for (let i = 0; i < handPositions.length; i++) {
-                if (handPositions[i] !== i * 80) {
+                if (handPositions[i] !== i * HAND_STEP) {
                   insertPosition = i;
                   break;
                 }
@@ -945,7 +998,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
               const newHand = [...player.hand];
               newHand.splice(insertPosition, 0, {
                 ...drawnCard,
-                x: insertPosition * 80,
+                x: insertPosition * HAND_STEP,
               });
 
               return {
@@ -953,7 +1006,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                 deck: remainingDeck,
                 hand: newHand.map((c, i) => ({
                   ...c,
-                  x: i * 80,
+                  x: i * HAND_STEP,
                 })),
               };
             }
@@ -971,6 +1024,8 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
       { deck: [], hand: [] },
     ]);
     setPlayArea([]);
+    setPlayerGraveyard([]);
+    setOpponentGraveyard([]);
     setEnlargedCardId(null);
     setGameStarted(false);
     setShowDeckOptions(false);
@@ -1031,7 +1086,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
           cards.forEach((card) => {
             newHand.push({
               ...card,
-              x: newHand.length * 80,
+              x: newHand.length * HAND_STEP,
             });
           });
 
@@ -1042,7 +1097,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
             ),
             hand: newHand.map((c, i) => ({
               ...c,
-              x: i * 80,
+              x: i * HAND_STEP,
             })),
           };
         }
@@ -1162,8 +1217,8 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
               Reset Match
             </button>
 
-            {/* Opponent's deck - positioned at top left */}
-            <div className="absolute top-44 left-4 z-10">
+            {/* Opponent's deck and graveyard - positioned at top left */}
+            <div className="absolute top-44 left-4 z-10 flex items-center gap-3">
               <div
                 ref={(el) => {
                   deckRefs.current.opponent = el;
@@ -1193,38 +1248,46 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                   </span>
                 </div>
               </div>
+              {/* Opponent Graveyard (smaller, tappable to view) */}
+              <DropZone
+                onDrop={handleCardDropToPlayArea}
+                className={`flex items-center justify-center ${isMobile() ? "w-12 h-18" : "w-16 h-24"}`}
+                zoneType="graveyard"
+                owner="opponent"
+              >
+                <div
+                  className="w-full h-full bg-gray-700/70 rounded-lg border border-gray-600 flex items-center justify-center relative cursor-pointer"
+                  onClick={() => setShowGraveyard({ owner: "opponent", open: true })}
+                >
+                  <span className="text-xl">🪦</span>
+                  <span className="absolute bottom-1 right-1 text-xs bg-black/60 px-1 rounded">
+                    {opponentGraveyard.length}
+                  </span>
+                </div>
+              </DropZone>
             </div>
 
             <div
-              className={`${isMobile() ? "h-40" : "h-32"} bg-gray-900/50 border-b border-gray-700 relative`}
+              className={`${isMobile() ? "h-36" : "h-32"} bg-gray-900/50 border-b border-gray-700 relative`}
             >
               <DropZone
                 onDrop={handleCardDropToPlayArea}
-                className="flex items-center justify-center"
+                className="flex items-center gap-2"
                 isHand={true}
                 isOpponent={true}
+                zoneType="hand"
+                owner="opponent"
               >
-                {players[1].hand.map((card) => (
-                  <DraggableCard
-                    key={card.id}
-                    card={card}
-                    onTap={() => {
-                      const now = Date.now();
-                      if (now - lastClickTime < 300) {
-                        setEnlargedCardId(card.id || null);
-                      }
-                      setLastClickTime(now);
-                    }}
-                    onRightClick={() => {
-                      const now = Date.now();
-                      if (now - lastClickTime < 300) {
-                        setEnlargedCardId(card.id || null);
-                      }
-                      setLastClickTime(now);
-                    }}
-                    enlarged={enlargedCardId === card.id}
-                  />
-                ))}
+                <div className="relative min-w-full">
+                  {players[1].hand.map((card) => (
+                    <DraggableCard
+                      key={card.id}
+                      card={card}
+                      onTap={() => handleCardTap(card)}
+                      enlarged={enlargedCardId === card.id}
+                    />
+                  ))}
+                </div>
               </DropZone>
             </div>
 
@@ -1235,13 +1298,6 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                     key={card.id}
                     card={card}
                     onTap={() => handleCardTap(card)}
-                    onRightClick={() => {
-                      const now = Date.now();
-                      if (now - lastClickTime < 300) {
-                        setEnlargedCardId(card.id || null);
-                      }
-                      setLastClickTime(now);
-                    }}
                     enlarged={enlargedCardId === card.id}
                   />
                 ))}
@@ -1249,39 +1305,31 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
             </div>
 
             <div
-              className={`${isMobile() ? "h-40" : "h-32"} bg-gray-900/50 border-t border-gray-700 relative`}
+              className={`${isMobile() ? "h-36" : "h-32"} bg-gray-900/50 border-t border-gray-700 relative`}
             >
               <DropZone
                 onDrop={handleCardDropToPlayArea}
-                className="flex items-center justify-center"
+                className="flex items-center gap-2"
                 isHand={true}
                 isOpponent={false}
+                zoneType="hand"
+                owner="player"
               >
-                {players[0].hand.map((card) => (
-                  <DraggableCard
-                    key={card.id}
-                    card={card}
-                    onTap={() => {
-                      const now = Date.now();
-                      if (now - lastClickTime < 300) {
-                        setEnlargedCardId(card.id || null);
-                      }
-                      setLastClickTime(now);
-                    }}
-                    onRightClick={() => {
-                      const now = Date.now();
-                      if (now - lastClickTime < 300) {
-                        setEnlargedCardId(card.id || null);
-                      }
-                      setLastClickTime(now);
-                    }}
-                    enlarged={enlargedCardId === card.id}
-                  />
-                ))}
+                <div className="relative min-w-full">
+                  {players[0].hand.map((card) => (
+                    <DraggableCard
+                      key={card.id}
+                      card={card}
+                      onTap={() => handleCardTap(card)}
+                      enlarged={enlargedCardId === card.id}
+                    />
+                  ))}
+                </div>
               </DropZone>
             </div>
 
-            <div className="absolute bottom-44 left-4">
+            {/* Player's deck and graveyard - positioned at bottom left */}
+            <div className="absolute bottom-44 left-4 z-10 flex items-center gap-3">
               <div
                 ref={(el) => {
                   deckRefs.current.player = el;
@@ -1311,6 +1359,23 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                   </span>
                 </div>
               </div>
+              {/* Player Graveyard (smaller, tappable to view) */}
+              <DropZone
+                onDrop={handleCardDropToPlayArea}
+                className={`flex items-center justify-center ${isMobile() ? "w-12 h-18" : "w-16 h-24"}`}
+                zoneType="graveyard"
+                owner="player"
+              >
+                <div
+                  className="w-full h-full bg-gray-700/70 rounded-lg border border-gray-600 flex items-center justify-center relative cursor-pointer"
+                  onClick={() => setShowGraveyard({ owner: "player", open: true })}
+                >
+                  <span className="text-xl">🪦</span>
+                  <span className="absolute bottom-1 right-1 text-xs bg-black/60 px-1 rounded">
+                    {playerGraveyard.length}
+                  </span>
+                </div>
+              </DropZone>
             </div>
 
             {showDeckOptions && (
@@ -1354,6 +1419,39 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                 onShuffle={handleShuffle}
                 onPutToBottom={handlePutToBottom}
                 onArrange={handleArrange}
+              />
+            )}
+
+            {showGraveyard?.open && (
+              <CardSelectionModal
+                onClose={() => setShowGraveyard(null)}
+                cards={showGraveyard.owner === "player" ? playerGraveyard : opponentGraveyard}
+                onPutInPlay={(cards) => {
+                  handlePutInPlay(cards);
+                  if (showGraveyard.owner === "player") {
+                    setPlayerGraveyard((prev) => prev.filter((c) => !cards.some((s) => s.id === c.id)));
+                  } else {
+                    setOpponentGraveyard((prev) => prev.filter((c) => !cards.some((s) => s.id === c.id)));
+                  }
+                }}
+                onPutInHand={(cards) => {
+                  setDeckManagementIsOpponent(showGraveyard.owner === "opponent");
+                  handlePutInHand(cards);
+                  if (showGraveyard.owner === "player") {
+                    setPlayerGraveyard((prev) => prev.filter((c) => !cards.some((s) => s.id === c.id)));
+                  } else {
+                    setOpponentGraveyard((prev) => prev.filter((c) => !cards.some((s) => s.id === c.id)));
+                  }
+                }}
+                onShuffle={() => {
+                  // no-op for graveyard modal
+                }}
+                onPutToBottom={() => {
+                  // no-op for graveyard modal
+                }}
+                onArrange={() => {
+                  // no-op for graveyard modal
+                }}
               />
             )}
           </>
