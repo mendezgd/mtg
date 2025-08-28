@@ -325,7 +325,7 @@ const DeckManagementModal: React.FC<{
   deckSize: number;
   onViewCards: (count: number) => void;
 }> = ({ onClose, isOpponent, deckSize, onViewCards }) => {
-  const [cardCount, setCardCount] = useState(5);
+  const [cardCount, setCardCount] = useState(0);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
