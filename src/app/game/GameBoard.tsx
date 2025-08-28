@@ -173,7 +173,7 @@ const DraggableCard: React.FC<{
       onDoubleClick={(e) => {
         e.stopPropagation();
         suppressClickUntilRef.current = Date.now() + 350;
-        if (onTap) onTap(); // <-- ahora rota la carta
+        if (onTap) onTap(); // solo rota la carta, no hace preview
       }}
       onTouchStart={(e) => {
         touchStartTimeRef.current = Date.now();
@@ -1064,9 +1064,8 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
         return;
       }
       const last = lastTapRef.current[key];
-      if (now - last < 300) {
-        setDeckManagementIsOpponent(isOpponent);
-        setShowDeckManagement(true);
+      // Si es desktop y doble click, no hacer nada
+      if (!isMobile() && now - last < 300) {
         lastTapRef.current[key] = 0;
         return;
       }
@@ -1146,7 +1145,6 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
 
   const handlePutInPlay = (cards: CardData[]) => {
     const playerIndex = deckManagementIsOpponent ? 1 : 0;
-    // Remove cards from deck
     setPlayers((prev) =>
       prev.map((player, index) => {
         if (index === playerIndex) {
@@ -1161,7 +1159,6 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
       })
     );
 
-    // Add to play area
     setPlayArea((prev) => {
       const newCards = cards.map((card) => ({
         ...card,
@@ -1170,6 +1167,9 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
       }));
       return [...prev, ...newCards];
     });
+
+    setShowCardSelection(false); // Cierra el modal de selección de cartas
+    setShowDeckManagement(false); // Cierra el modal de manipulación de deck
   };
 
   const handlePutInHand = (cards: CardData[]) => {
@@ -1199,6 +1199,8 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
         return player;
       })
     );
+    setShowCardSelection(false);
+    setShowDeckManagement(false); // <-- cierra el modal
   };
 
   const handleShuffle = () => {
@@ -1214,6 +1216,8 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
         return player;
       })
     );
+    setShowCardSelection(false);
+    setShowDeckManagement(false); // <-- cierra el modal
   };
 
   const handleArrange = (cards: CardData[]) => {
@@ -1234,6 +1238,8 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
         return player;
       })
     );
+    setShowCardSelection(false);
+    setShowDeckManagement(false); // <-- cierra el modal
   };
 
   const handlePutToBottom = (selectedCards: CardData[]) => {
@@ -1255,6 +1261,8 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
         return player;
       })
     );
+    setShowCardSelection(false);
+    setShowDeckManagement(false); // <-- cierra el modal
   };
 
   const handleDeckTouch = (isOpponent: boolean, e: React.TouchEvent) => {
