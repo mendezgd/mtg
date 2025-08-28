@@ -23,9 +23,9 @@ const isMobile = () => {
   );
 };
 
-const CARD_WIDTH = isMobile() ? 64 : 100;
-const CARD_HEIGHT = isMobile() ? 90 : 140;
-const HAND_STEP = isMobile() ? 68 : 80; // horizontal step between cards in hand
+const CARD_WIDTH = isMobile() ? 64 : 90;
+const CARD_HEIGHT = isMobile() ? 90 : 126;
+const HAND_STEP = isMobile() ? 68 : 72; // horizontal step between cards in hand
 
 const cardStyle = {
   width: `${CARD_WIDTH}px`,
@@ -63,7 +63,7 @@ const useTouchEvents = (onRightClick?: () => void) => {
     (e: React.TouchEvent) => {
       const timer = setTimeout(() => {
         if (onRightClick) onRightClick();
-      }, 300);
+      }, 600);
       setTouchTimer(timer);
     },
     [onRightClick]
@@ -96,10 +96,19 @@ const DraggableCard: React.FC<{
   enlarged?: boolean;
   onRightClick?: () => void;
   disableHover?: boolean;
-}> = ({ card, onTap, enlarged, onRightClick, disableHover }) => {
+  onPreview?: (card: CardData) => void;
+}> = ({ card, onTap, enlarged, onRightClick, disableHover, onPreview }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const { handleTouchStart, handleTouchEnd, handleTouchMove } =
-    useTouchEvents(onRightClick);
+  const { handleTouchStart, handleTouchEnd, handleTouchMove } = useTouchEvents(
+    () => {
+      if (onPreview) onPreview(card);
+    }
+  );
+  const lastCardTapRef = useRef<number>(0);
+  const suppressClickUntilRef = useRef<number>(0);
+  const touchStartTimeRef = useRef<number>(0);
+  const touchStartPosRef = useRef<{ x: number; y: number } | null>(null);
+  const touchMovedRef = useRef<boolean>(false);
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ItemType.CARD,
@@ -117,6 +126,9 @@ const DraggableCard: React.FC<{
 
   const handleCardClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    const now = Date.now();
+    if (now < suppressClickUntilRef.current) return;
+    // Desktop left-click: only tap/untap, never open preview
     if (onTap) onTap();
   };
 
@@ -156,10 +168,39 @@ const DraggableCard: React.FC<{
         e.preventDefault();
         e.stopPropagation();
         if (onRightClick) onRightClick();
+        if (onPreview) onPreview(card);
       }}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      onTouchMove={handleTouchMove}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        suppressClickUntilRef.current = Date.now() + 350;
+        if (onPreview) onPreview(card);
+      }}
+      onTouchStart={(e) => {
+        touchStartTimeRef.current = Date.now();
+        const t = e.touches[0];
+        touchStartPosRef.current = { x: t.clientX, y: t.clientY };
+        touchMovedRef.current = false;
+        handleTouchStart(e);
+      }}
+      onTouchEnd={() => {
+        const elapsed = Date.now() - touchStartTimeRef.current;
+        handleTouchEnd();
+        // If moved significantly or long-press time, do not treat as tap
+        if (touchMovedRef.current || elapsed >= 600) return;
+        if (onTap) onTap();
+      }}
+      onTouchMove={(e) => {
+        const t = e.touches[0];
+        const start = touchStartPosRef.current;
+        if (start) {
+          const dx = t.clientX - start.x;
+          const dy = t.clientY - start.y;
+          if (Math.hypot(dx, dy) > 12) {
+            touchMovedRef.current = true;
+          }
+        }
+        handleTouchMove();
+      }}
     >
       <img
         src={ImageService.processImageUrl(
@@ -236,7 +277,7 @@ const DropZone: React.FC<{
         drop(node);
         dropZoneRef.current = node;
       }}
-      className={`relative p-2 md:p-6 border-2 border-dashed border-gray-500 rounded-lg bg-gray-700/50 
+      className={`relative p-2 md:p-6 border-2 border-gray-600 rounded-lg bg-gray-900/50 
                 h-full w-full ${
                   isHand
                     ? "overflow-x-auto overflow-y-hidden touch-pan-x"
@@ -314,12 +355,20 @@ const DeckManagementModal: React.FC<{
             />
           </div>
 
-          <button
-            onClick={() => onViewCards(cardCount)}
-            className="w-full p-3 bg-blue-500 hover:bg-blue-600 text-white rounded"
-          >
-            Ver Cartas
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onViewCards(cardCount)}
+              className="flex-1 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded"
+            >
+              Ver Cartas
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 p-3 bg-gray-600 hover:bg-gray-500 text-white rounded"
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -769,10 +818,37 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
   const [deckTouchTimer, setDeckTouchTimer] = useState<NodeJS.Timeout | null>(
     null
   );
+  const touchContextRef = useRef<{
+    owner: "player" | "opponent";
+    longPress: boolean;
+  } | null>(null);
   const deckRefs = useRef<{ [key: string]: HTMLDivElement | null }>({
     player: null,
     opponent: null,
   });
+  const [lifeTotals, setLifeTotals] = useState<{
+    player: number;
+    opponent: number;
+  }>({
+    player: 20,
+    opponent: 20,
+  });
+  const [lifeAnim, setLifeAnim] = useState<{
+    player: boolean;
+    opponent: boolean;
+  }>({
+    player: false,
+    opponent: false,
+  });
+  const lastTapRef = useRef<{ player: number; opponent: number }>({
+    player: 0,
+    opponent: 0,
+  });
+  const deckClickSuppressUntil = useRef<{ player: number; opponent: number }>({
+    player: 0,
+    opponent: 0,
+  });
+  const [previewCard, setPreviewCard] = useState<CardData | null>(null);
 
   useEffect(() => {
     try {
@@ -943,7 +1019,10 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
           }
 
           // Always append at end of target owner's hand
-          const newHand = [...cleaned, { ...card, id: card.id || generateUUID() }];
+          const newHand = [
+            ...cleaned,
+            { ...card, id: card.id || generateUUID() },
+          ];
 
           return {
             ...player,
@@ -977,6 +1056,20 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
       setDeckManagementIsOpponent(isOpponent);
       setShowDeckManagement(true);
     } else {
+      const now = Date.now();
+      const key = isOpponent ? "opponent" : "player";
+      // Suppress click if recently handled by touch-end draw
+      if (now < deckClickSuppressUntil.current[key]) {
+        return;
+      }
+      const last = lastTapRef.current[key];
+      if (now - last < 300) {
+        setDeckManagementIsOpponent(isOpponent);
+        setShowDeckManagement(true);
+        lastTapRef.current[key] = 0;
+        return;
+      }
+      lastTapRef.current[key] = now;
       const playerIndex = isOpponent ? 1 : 0;
       if (players[playerIndex].deck.length > 0) {
         const [drawnCard, ...remainingDeck] = players[playerIndex].deck;
@@ -1030,6 +1123,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
     setGameStarted(false);
     setShowDeckOptions(false);
     setDeckOptionsIsOpponent(false);
+    setLifeTotals({ player: 20, opponent: 20 });
   };
 
   const handleViewTopCards = (isOpponent: boolean) => {
@@ -1163,17 +1257,22 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
   };
 
   const handleDeckTouch = (isOpponent: boolean, e: React.TouchEvent) => {
-    const touch = e.touches[0];
     const element = deckRefs.current[isOpponent ? "opponent" : "player"];
-
     if (!element) return;
 
-    // Start a timer for 3 seconds
+    // Start long-press timer (~600ms) to open management
+    touchContextRef.current = {
+      owner: isOpponent ? "opponent" : "player",
+      longPress: false,
+    };
     const timer = setTimeout(() => {
+      touchContextRef.current = {
+        owner: isOpponent ? "opponent" : "player",
+        longPress: true,
+      };
       setDeckManagementIsOpponent(isOpponent);
       setShowDeckManagement(true);
-    }, 3000);
-
+    }, 600);
     setDeckTouchTimer(timer);
   };
 
@@ -1181,7 +1280,35 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
     if (deckTouchTimer) {
       clearTimeout(deckTouchTimer);
       setDeckTouchTimer(null);
+      // If it wasn't a long press, treat as a tap: draw 1 card
+      if (touchContextRef.current && !touchContextRef.current.longPress) {
+        const isOpp = touchContextRef.current.owner === "opponent";
+        const playerIndex = isOpp ? 1 : 0;
+        if (players[playerIndex].deck.length > 0) {
+          const [drawnCard, ...remainingDeck] = players[playerIndex].deck;
+          setPlayers((prev) =>
+            prev.map((player, index) => {
+              if (index === playerIndex) {
+                const newHand = [
+                  ...player.hand,
+                  { ...drawnCard, x: player.hand.length * HAND_STEP },
+                ];
+                return {
+                  ...player,
+                  deck: remainingDeck,
+                  hand: newHand.map((c, i) => ({ ...c, x: i * HAND_STEP })),
+                };
+              }
+              return player;
+            })
+          );
+          // Suppress the next click event within 350ms to avoid double draw
+          const key = isOpp ? "opponent" : "player";
+          deckClickSuppressUntil.current[key] = Date.now() + 350;
+        }
+      }
     }
+    touchContextRef.current = null;
   };
 
   const handleDeckTouchMove = () => {
@@ -1189,6 +1316,24 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
       clearTimeout(deckTouchTimer);
       setDeckTouchTimer(null);
     }
+    touchContextRef.current = null;
+  };
+
+  const changeLife = (owner: "player" | "opponent", delta: number) => {
+    setLifeTotals((prev) => ({
+      player: owner === "player" ? prev.player + delta : prev.player,
+      opponent: owner === "opponent" ? prev.opponent + delta : prev.opponent,
+    }));
+    setLifeAnim((prev) => ({ ...prev, [owner]: true }));
+    setTimeout(() => {
+      setLifeAnim((prev) => ({ ...prev, [owner]: false }));
+    }, 250);
+  };
+
+  // no global double-click listener (desktop preview = right-click, mobile = long-press)
+
+  const resolveDeckBackImage = (_owner: "player" | "opponent") => {
+    return ImageService.processImageUrl("/images/backcard.webp");
   };
 
   return (
@@ -1200,7 +1345,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
         enableKeyboardEvents: true,
         delayTouchStart: 0,
         delay: 0,
-        touchSlop: 0,
+        touchSlop: 10,
         ignoreContextMenu: true,
       }}
     >
@@ -1211,19 +1356,52 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
           <>
             <button
               onClick={resetGame}
-              className="absolute top-2 right-4 bg-red-400 hover:bg-red-500 text-white text-sm px-4 rounded shadow-md transition z-50"
+              className="absolute top-2 right-4 bg-red-700 hover:bg-red-500 text-white text-sm px-4 rounded shadow-md transition z-50"
               title="Reset Match"
             >
               Reset Match
             </button>
 
-            {/* Opponent's deck and graveyard - positioned at top left */}
-            <div className="absolute top-44 left-4 z-10 flex items-center gap-3">
+            {/* Opponent's vertical stack: life, deck, graveyard */}
+            <div className="absolute top-36 left-4 z-20 flex flex-col items-center gap-1">
+              {/* Opponent Life Counter (compact) */}
+              <div
+                className="flex items-center gap-2 px-2 py-1 rounded-md bg-gray-900/70 border border-gray-700 shadow-sm select-none transition-transform"
+                style={{
+                  transform: lifeAnim.opponent ? "scale(1.05)" : "scale(1)",
+                }}
+              >
+                <button
+                  className="w-6 h-6 rounded bg-gray-700 hover:bg-gray-600 active:scale-95 transition"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    changeLife("opponent", -1);
+                  }}
+                  aria-label="Opponent life -1"
+                >
+                  −
+                </button>
+                <span className="min-w-[2ch] text-center text-white text-sm font-semibold">
+                  {lifeTotals.opponent}
+                </span>
+                <button
+                  className="w-6 h-6 rounded bg-gray-700 hover:bg-gray-600 active:scale-95 transition"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    changeLife("opponent", 1);
+                  }}
+                  aria-label="Opponent life +1"
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Opponent deck (wider/shorter) */}
               <div
                 ref={(el) => {
                   deckRefs.current.opponent = el;
                 }}
-                className={`relative ${isMobile() ? "w-16 h-24" : "w-24 h-32"} cursor-pointer`}
+                className={`group relative ${isMobile() ? "w-[64px] h-[90px]" : "w-[90px] h-[126px]"} cursor-pointer rounded-lg overflow-hidden border border-gray-600 bg-gray-800`}
                 onClick={(e) => handleDeckClick(true, e)}
                 onContextMenu={(e) => {
                   e.preventDefault();
@@ -1234,21 +1412,18 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                 onTouchMove={handleDeckTouchMove}
                 style={{ touchAction: "none" }}
               >
-                <div
-                  className="absolute inset-0 bg-gray-700 rounded-lg shadow-lg flex items-center justify-center overflow-hidden"
-                  style={{
-                    backgroundImage: "url('/images/pox.webp')",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    backgroundRepeat: "no-repeat",
-                  }}
-                >
-                  <span className="text-white font-bold bg-black/50 px-2 py-1 rounded">
-                    {players[1].deck.length}
-                  </span>
-                </div>
+                <img
+                  src={resolveDeckBackImage("opponent")}
+                  alt="Deck back"
+                  className="absolute inset-0 w-full h-full object-contain"
+                />
+                <div className="absolute inset-0 ring-0 group-hover:ring-2 ring-gray-500/50 transition" />
+                <span className="absolute bottom-1 right-1 text-white text-xs font-bold bg-black/60 px-1 py-0.5 rounded">
+                  {players[1].deck.length}
+                </span>
               </div>
-              {/* Opponent Graveyard (smaller, tappable to view) */}
+
+              {/* Opponent Graveyard */}
               <DropZone
                 onDrop={handleCardDropToPlayArea}
                 className={`flex items-center justify-center ${isMobile() ? "w-12 h-18" : "w-16 h-24"}`}
@@ -1256,11 +1431,13 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                 owner="opponent"
               >
                 <div
-                  className="w-full h-full bg-gray-700/70 rounded-lg border border-gray-600 flex items-center justify-center relative cursor-pointer"
-                  onClick={() => setShowGraveyard({ owner: "opponent", open: true })}
+                  className="w-full h-full bg-gray-700/70 rounded-lg border border-gray-600 flex items-center justify-center relative cursor-pointer hover:border-gray-500 transition"
+                  onClick={() =>
+                    setShowGraveyard({ owner: "opponent", open: true })
+                  }
                 >
                   <span className="text-xl">🪦</span>
-                  <span className="absolute bottom-1 right-1 text-xs bg-black/60 px-1 rounded">
+                  <span className="absolute bottom-1 left-14 md:left-8 text-xs bg-black/60 px-1 rounded">
                     {opponentGraveyard.length}
                   </span>
                 </div>
@@ -1268,7 +1445,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
             </div>
 
             <div
-              className={`${isMobile() ? "h-36" : "h-32"} bg-gray-900/50 border-b border-gray-700 relative`}
+              className={`${isMobile() ? "h-32" : "h-32"} bg-gray-900/50 border-b border-gray-700 relative`}
             >
               <DropZone
                 onDrop={handleCardDropToPlayArea}
@@ -1285,6 +1462,7 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                       card={card}
                       onTap={() => handleCardTap(card)}
                       enlarged={enlargedCardId === card.id}
+                      onPreview={(c) => setPreviewCard(c)}
                     />
                   ))}
                 </div>
@@ -1299,13 +1477,14 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                     card={card}
                     onTap={() => handleCardTap(card)}
                     enlarged={enlargedCardId === card.id}
+                    onPreview={(c) => setPreviewCard(c)}
                   />
                 ))}
               </DropZone>
             </div>
 
             <div
-              className={`${isMobile() ? "h-36" : "h-32"} bg-gray-900/50 border-t border-gray-700 relative`}
+              className={`${isMobile() ? "h-32" : "h-32"} bg-gray-900/50 border-t border-gray-700 relative`}
             >
               <DropZone
                 onDrop={handleCardDropToPlayArea}
@@ -1322,19 +1501,53 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                       card={card}
                       onTap={() => handleCardTap(card)}
                       enlarged={enlargedCardId === card.id}
+                      onPreview={(c) => setPreviewCard(c)}
                     />
                   ))}
                 </div>
               </DropZone>
             </div>
 
-            {/* Player's deck and graveyard - positioned at bottom left */}
-            <div className="absolute bottom-44 left-4 z-10 flex items-center gap-3">
+            {/* Player's vertical stack: life, deck, graveyard */}
+            <div className="absolute bottom-36 left-4 z-20 flex flex-col items-center gap-2">
+              {/* Player Life Counter (compact) */}
+              <div
+                className="flex items-center gap-2 px-2 py-1 rounded-md bg-gray-900/70 border border-gray-700 shadow-sm select-none transition-transform"
+                style={{
+                  transform: lifeAnim.player ? "scale(1.05)" : "scale(1)",
+                }}
+              >
+                <button
+                  className="w-6 h-6 rounded bg-gray-700 hover:bg-gray-600 active:scale-95 transition"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    changeLife("player", -1);
+                  }}
+                  aria-label="Player life -1"
+                >
+                  −
+                </button>
+                <span className="min-w-[2ch] text-center text-white text-sm font-semibold">
+                  {lifeTotals.player}
+                </span>
+                <button
+                  className="w-6 h-6 rounded bg-gray-700 hover:bg-gray-600 active:scale-95 transition"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    changeLife("player", 1);
+                  }}
+                  aria-label="Player life +1"
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Player deck (wider/shorter) */}
               <div
                 ref={(el) => {
                   deckRefs.current.player = el;
                 }}
-                className={`relative ${isMobile() ? "w-16 h-24" : "w-24 h-32"} cursor-pointer`}
+                className={`group relative ${isMobile() ? "w-[64px] h-[90px]" : "w-[90px] h-[126px]"} cursor-pointer rounded-lg overflow-hidden border border-gray-600 bg-gray-800`}
                 onClick={(e) => handleDeckClick(false, e)}
                 onContextMenu={(e) => {
                   e.preventDefault();
@@ -1345,21 +1558,18 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
                 onTouchMove={handleDeckTouchMove}
                 style={{ touchAction: "none" }}
               >
-                <div
-                  className="absolute inset-0 bg-gray-700 rounded-lg shadow-lg flex items-center justify-center overflow-hidden"
-                  style={{
-                    backgroundImage: "url('/images/pox.webp')",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    backgroundRepeat: "no-repeat",
-                  }}
-                >
-                  <span className="text-white font-bold bg-black/50 px-2 py-1 rounded">
-                    {players[0].deck.length}
-                  </span>
-                </div>
+                <img
+                  src={resolveDeckBackImage("player")}
+                  alt="Deck back"
+                  className="absolute inset-0 w-full h-full object-contain"
+                />
+                <div className="absolute inset-0 ring-0 group-hover:ring-2 ring-gray-500/50 transition" />
+                <span className="absolute bottom-1 right-1 text-white text-xs font-bold bg-black/60 px-1 py-0.5 rounded">
+                  {players[0].deck.length}
+                </span>
               </div>
-              {/* Player Graveyard (smaller, tappable to view) */}
+
+              {/* Player Graveyard */}
               <DropZone
                 onDrop={handleCardDropToPlayArea}
                 className={`flex items-center justify-center ${isMobile() ? "w-12 h-18" : "w-16 h-24"}`}
@@ -1368,10 +1578,12 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
               >
                 <div
                   className="w-full h-full bg-gray-700/70 rounded-lg border border-gray-600 flex items-center justify-center relative cursor-pointer"
-                  onClick={() => setShowGraveyard({ owner: "player", open: true })}
+                  onClick={() =>
+                    setShowGraveyard({ owner: "player", open: true })
+                  }
                 >
                   <span className="text-xl">🪦</span>
-                  <span className="absolute bottom-1 right-1 text-xs bg-black/60 px-1 rounded">
+                  <span className="absolute bottom-1 left-14 md:left-8 text-xs bg-black/60 px-1 rounded">
                     {playerGraveyard.length}
                   </span>
                 </div>
@@ -1422,25 +1634,65 @@ export const GameBoard: React.FC<{ initialDeck: CardData[] }> = ({
               />
             )}
 
+            {previewCard && (
+              <div
+                className="fixed inset-0 z-[70] bg-black/60 flex items-center justify-center"
+                onClick={() => setPreviewCard(null)}
+              >
+                <div className="relative" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    className="absolute -top-3 -right-3 z-10 bg-gray-800 text-white rounded-full w-8 h-8 flex items-center justify-center border border-gray-600 hover:bg-gray-700"
+                    onClick={() => setPreviewCard(null)}
+                    aria-label="Cerrar"
+                  >
+                    ❌
+                  </button>
+                  <img
+                    src={ImageService.processImageUrl(
+                      previewCard.image_uris?.large ||
+                        previewCard.image_uris?.normal ||
+                        "/images/default-card.svg"
+                    )}
+                    alt={previewCard.name}
+                    className="w-[min(85vw,520px)] h-auto max-h-[80vh] object-contain rounded shadow-2xl"
+                  />
+                </div>
+              </div>
+            )}
+
             {showGraveyard?.open && (
               <CardSelectionModal
                 onClose={() => setShowGraveyard(null)}
-                cards={showGraveyard.owner === "player" ? playerGraveyard : opponentGraveyard}
+                cards={
+                  showGraveyard.owner === "player"
+                    ? playerGraveyard
+                    : opponentGraveyard
+                }
                 onPutInPlay={(cards) => {
                   handlePutInPlay(cards);
                   if (showGraveyard.owner === "player") {
-                    setPlayerGraveyard((prev) => prev.filter((c) => !cards.some((s) => s.id === c.id)));
+                    setPlayerGraveyard((prev) =>
+                      prev.filter((c) => !cards.some((s) => s.id === c.id))
+                    );
                   } else {
-                    setOpponentGraveyard((prev) => prev.filter((c) => !cards.some((s) => s.id === c.id)));
+                    setOpponentGraveyard((prev) =>
+                      prev.filter((c) => !cards.some((s) => s.id === c.id))
+                    );
                   }
                 }}
                 onPutInHand={(cards) => {
-                  setDeckManagementIsOpponent(showGraveyard.owner === "opponent");
+                  setDeckManagementIsOpponent(
+                    showGraveyard.owner === "opponent"
+                  );
                   handlePutInHand(cards);
                   if (showGraveyard.owner === "player") {
-                    setPlayerGraveyard((prev) => prev.filter((c) => !cards.some((s) => s.id === c.id)));
+                    setPlayerGraveyard((prev) =>
+                      prev.filter((c) => !cards.some((s) => s.id === c.id))
+                    );
                   } else {
-                    setOpponentGraveyard((prev) => prev.filter((c) => !cards.some((s) => s.id === c.id)));
+                    setOpponentGraveyard((prev) =>
+                      prev.filter((c) => !cards.some((s) => s.id === c.id))
+                    );
                   }
                 }}
                 onShuffle={() => {
