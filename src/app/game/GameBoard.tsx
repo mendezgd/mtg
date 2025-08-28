@@ -173,7 +173,7 @@ const DraggableCard: React.FC<{
       onDoubleClick={(e) => {
         e.stopPropagation();
         suppressClickUntilRef.current = Date.now() + 350;
-        if (onPreview) onPreview(card);
+        if (onTap) onTap(); // <-- ahora rota la carta
       }}
       onTouchStart={(e) => {
         touchStartTimeRef.current = Date.now();
@@ -182,12 +182,13 @@ const DraggableCard: React.FC<{
         touchMovedRef.current = false;
         handleTouchStart(e);
       }}
-      onTouchEnd={() => {
+      onTouchEnd={(e) => {
         const elapsed = Date.now() - touchStartTimeRef.current;
         handleTouchEnd();
-        // If moved significantly or long-press time, do not treat as tap
-        if (touchMovedRef.current || elapsed >= 600) return;
-        if (onTap) onTap();
+        // Si NO se movió y NO fue long-press, es un tap: debe rotar la carta
+        if (!touchMovedRef.current && elapsed < 600) {
+          if (onTap) onTap();
+        }
       }}
       onTouchMove={(e) => {
         const t = e.touches[0];
