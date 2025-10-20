@@ -14,14 +14,13 @@ import { generateUUID } from "@/lib/utils";
 import { Search, Eye, Library } from "lucide-react";
 import { CardPrice } from "@/components/ui/card-price";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { scryfallAPI } from "@/lib/scryfall-api";
 
 const DeckBuilder = dynamic(() => import("@/components/DeckBuilder"), {
   ssr: false,
   loading: () => {
     const { t } = useLanguage();
-    return (
-      <div className="text-gray-400">{t('deckBuilder.loading')}</div>
-    );
+    return <div className="text-gray-400">{t("deckBuilder.loading")}</div>;
   },
 });
 
@@ -30,6 +29,13 @@ const DeckBuilderPage: React.FC = () => {
   const [previewedCard, setPreviewedCard] = useState<SearchableCard | null>(
     null
   );
+  const [cardRulings, setCardRulings] = useState<Array<{
+    oracle_id: string;
+    source: string;
+    published_at: string;
+    comment: string;
+  }> | null>(null);
+  const [rulingsLoading, setRulingsLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [activeMobileTab, setActiveMobileTab] = useState<
     "search" | "preview" | "deck"
@@ -42,8 +48,23 @@ const DeckBuilderPage: React.FC = () => {
     setIsMounted(true);
   }, []);
 
-  const handleCardPreview = useCallback((card: SearchableCard) => {
+  const handleCardPreview = useCallback(async (card: SearchableCard) => {
     setPreviewedCard(card);
+    setCardRulings(null);
+    
+    // Fetch rulings if card has an ID
+    if (card.id) {
+      setRulingsLoading(true);
+      try {
+        const rulings = await scryfallAPI.getCardRulings(card.id);
+        setCardRulings(rulings);
+      } catch (error) {
+        console.error("Error fetching rulings:", error);
+        setCardRulings([]);
+      } finally {
+        setRulingsLoading(false);
+      }
+    }
   }, []);
 
   const addCardToDeck = useCallback(
@@ -102,9 +123,9 @@ const DeckBuilderPage: React.FC = () => {
   if (!isMounted) return null;
 
   const tabs = [
-    { id: "search" as const, label: t('deckBuilder.search'), icon: Search },
-    { id: "preview" as const, label: t('deckBuilder.preview'), icon: Eye },
-    { id: "deck" as const, label: t('deckBuilder.myDeck'), icon: Library },
+    { id: "search" as const, label: t("deckBuilder.search"), icon: Search },
+    { id: "preview" as const, label: t("deckBuilder.preview"), icon: Eye },
+    { id: "deck" as const, label: t("deckBuilder.myDeck"), icon: Library },
   ];
 
   return (
@@ -131,7 +152,7 @@ const DeckBuilderPage: React.FC = () => {
         })}
         {/* Swipe indicator */}
         <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 text-xs text-gray-500 opacity-60">
-          {t('deckBuilder.swipeIndicator')}
+          {t("deckBuilder.swipeIndicator")}
         </div>
       </div>
 
@@ -143,7 +164,9 @@ const DeckBuilderPage: React.FC = () => {
       >
         <div className="flex items-center gap-2 mb-2 md:mb-4">
           <Search className="w-8 h-6 md:w-10 md:h-8 text-purple-400" />
-          <h2 className="text-lg md:text-xl font-bold">{t('deckBuilder.search')}</h2>
+          <h2 className="text-lg md:text-xl font-bold">
+            {t("deckBuilder.search")}
+          </h2>
         </div>
         <CardSearch
           addCardToDeck={addCardToDeck}
@@ -159,7 +182,7 @@ const DeckBuilderPage: React.FC = () => {
       >
         <h2 className="text-lg md:text-xl font-bold mb-2 md:mb-4 flex items-center gap-2">
           <Eye className="w-5 h-5" />
-          {t('deckBuilder.preview')}
+          {t("deckBuilder.preview")}
         </h2>
         {previewedCard ? (
           <div className="animate-fade-in">
@@ -187,10 +210,46 @@ const DeckBuilderPage: React.FC = () => {
             {/* Precios de la carta */}
             <div className="bg-gray-900/50 rounded-lg p-3 mb-3">
               <h4 className="text-sm font-semibold text-gray-300 mb-2">
-                {t('deckBuilder.price')}
+                {t("deckBuilder.price")}
               </h4>
               <CardPrice card={previewedCard} />
             </div>
+
+            {/* Rulings de la carta */}
+            {rulingsLoading ? (
+              <div className="bg-gray-900/50 rounded-lg p-3 mb-3">
+                <h4 className="text-sm font-semibold text-gray-300 mb-2">
+                  {t("deckBuilder.rulings")}
+                </h4>
+                <div className="flex items-center gap-2 text-gray-400">
+                  <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-xs">Loading rulings...</span>
+                </div>
+              </div>
+            ) : cardRulings && cardRulings.length > 0 ? (
+              <div className="bg-gray-900/50 rounded-lg p-3 mb-3">
+                <h4 className="text-sm font-semibold text-gray-300 mb-2">
+                  {t("deckBuilder.rulings")}
+                </h4>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {cardRulings.map((ruling, index) => (
+                    <div key={index} className="text-xs text-gray-400 border-l-2 border-purple-500 pl-2">
+                      <p className="leading-relaxed">{ruling.comment}</p>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {ruling.source} • {new Date(ruling.published_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : cardRulings && cardRulings.length === 0 ? (
+              <div className="bg-gray-900/50 rounded-lg p-3 mb-3">
+                <h4 className="text-sm font-semibold text-gray-300 mb-2">
+                  {t("deckBuilder.rulings")}
+                </h4>
+                <p className="text-xs text-gray-500">No rulings available for this card.</p>
+              </div>
+            ) : null}
 
             {previewedCard.oracle_text && (
               <div className="bg-gray-900/50 rounded-lg p-3">
@@ -203,17 +262,17 @@ const DeckBuilderPage: React.FC = () => {
               onClick={() => addCardToDeck(previewedCard)}
               className="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white"
             >
-              {t('deckBuilder.addToDeck')}
+              {t("deckBuilder.addToDeck")}
             </Button>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
             <div className="text-6xl mb-4">👁️</div>
             <h3 className="text-xl font-semibold mb-2 text-gray-300">
-              {t('deckBuilder.preview')}
+              {t("deckBuilder.preview")}
             </h3>
             <p className="text-gray-400 max-w-md">
-              {t('deckBuilder.previewDescription')}
+              {t("deckBuilder.previewDescription")}
             </p>
           </div>
         )}
@@ -227,7 +286,9 @@ const DeckBuilderPage: React.FC = () => {
       >
         <div className="flex items-center gap-2 mb-2 md:mb-4">
           <Library className="w-6 h-6 text-purple-400" />
-          <h2 className="text-lg md:text-xl font-bold">{t('deckBuilder.myDeck')}</h2>
+          <h2 className="text-lg md:text-xl font-bold">
+            {t("deckBuilder.myDeck")}
+          </h2>
         </div>
         <DeckBuilder
           decks={deckManagement.decks}

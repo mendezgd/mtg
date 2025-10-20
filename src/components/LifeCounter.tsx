@@ -342,7 +342,7 @@ const LifeCounter: React.FC = () => {
               className="w-1/2 h-64 bg-transparent hover:bg-red-500/10 transition-all duration-300 flex items-center justify-center group"
               aria-label="Reducir vida"
             >
-              <span className="text-4xl md:text-3xl font-light tracking-widest text-red-400/40 group-hover:text-red-300 group-hover:scale-125 transition-all duration-300 -mt-16">
+              <span className="text-6xl md:text-3xl font-light tracking-widest group-hover:text-red-300 group-hover:scale-125 transition-all duration-300 -mt-16">
                 −
               </span>
             </button>
@@ -351,7 +351,7 @@ const LifeCounter: React.FC = () => {
               className="w-1/2 h-64 bg-transparent hover:bg-green-500/10 transition-all duration-300 flex items-center justify-center group"
               aria-label="Aumentar vida"
             >
-              <span className="text-4xl md:text-3xl font-light tracking-widest text-green-400/40 group-hover:text-green-300 group-hover:scale-125 transition-all duration-300 -mt-16">
+              <span className="text-6xl md:text-3xl font-light tracking-widest group-hover:text-green-300 group-hover:scale-125 transition-all duration-300 -mt-16">
                 +
               </span>
             </button>

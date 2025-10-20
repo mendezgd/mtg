@@ -31,6 +31,12 @@ export interface BaseCard {
     eur_foil?: string;
     tix?: string;
   };
+  rulings?: Array<{
+    oracle_id: string;
+    source: string;
+    published_at: string;
+    comment: string;
+  }>;
 }
 
 // Carta con legalidades para búsqueda

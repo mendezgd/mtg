@@ -130,6 +130,23 @@ class ScryfallAPI {
     }
   }
 
+  async getCardRulings(cardId: string): Promise<Array<{
+    oracle_id: string;
+    source: string;
+    published_at: string;
+    comment: string;
+  }> | null> {
+    try {
+      const response = await axios.get(
+        `${SCRYFALL_BASE_URL}/cards/${cardId}/rulings`
+      );
+      return response.data.data || [];
+    } catch (error) {
+      console.error("Error fetching card rulings:", error);
+      return null;
+    }
+  }
+
   filterLegalCards(cards: SearchableCard[]): SearchableCard[] {
     return cards.filter(
       (card) =>

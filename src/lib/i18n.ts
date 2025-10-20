@@ -93,8 +93,9 @@ export interface Translations {
     type: string;
     rarity: string;
     set: string;
-    price: string;
-    addToDeck: string;
+      price: string;
+      rulings: string;
+      addToDeck: string;
     addToSideboard: string;
     removeFromDeck: string;
     removeFromSideboard: string;
@@ -383,6 +384,7 @@ export const translations: Record<Language, Translations> = {
       rarity: "Rareza",
       set: "Set",
       price: "Precio",
+      rulings: "Reglas",
       addToDeck: "Agregar al Mazo",
       addToSideboard: "Agregar al Sideboard",
       removeFromDeck: "Remover del Mazo",
@@ -672,6 +674,7 @@ export const translations: Record<Language, Translations> = {
       rarity: "Rarity",
       set: "Set",
       price: "Price",
+      rulings: "Rulings",
       addToDeck: "Add to Deck",
       addToSideboard: "Add to Sideboard",
       removeFromDeck: "Remove from Deck",
