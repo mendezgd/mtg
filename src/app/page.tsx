@@ -121,6 +121,27 @@ export default function HomePage() {
                 </span>
               </button>
             </Link>
+            <Link href="/proxies">
+              <button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-amber-500 rounded-[12px] active:scale-95">
+                <span className="w-full h-full flex items-center gap-2 px-6 py-3 bg-amber-500 text-white rounded-[10px] text-base font-medium">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  >
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <path d="M16 10a4 4 0 0 1-8 0" />
+                  </svg>
+                  {t("navbar.proxies")}
+                </span>
+              </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -245,7 +266,7 @@ export default function HomePage() {
             <SocialPills />
           </div>
 
-          <div className="flex justify-center space-x-6 text-sm text-gray-500">
+          <div className="flex justify-center flex-wrap gap-x-6 gap-y-1 text-sm text-gray-500">
             <Link
               href="/deck-builder"
               className="hover:text-purple-400 transition-colors"
@@ -263,6 +284,12 @@ export default function HomePage() {
               className="hover:text-green-400 transition-colors"
             >
               {t("common.tournaments")}
+            </Link>
+            <Link
+              href="/proxies"
+              className="hover:text-amber-400 transition-colors"
+            >
+              {t("common.proxies")}
             </Link>
           </div>
         </div>

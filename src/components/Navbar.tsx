@@ -10,6 +10,7 @@ import {
   Gamepad2, 
   Trophy,
   Heart,
+  ShoppingBag,
   Menu,
   X,
   Globe
@@ -30,6 +31,7 @@ const Navbar = () => {
     { href: "/game", label: t('navbar.game'), icon: Gamepad2 },
     { href: "/tournament", label: t('navbar.tournament'), icon: Trophy },
     { href: "/life-counter", label: t('navbar.lifeCounter'), icon: Heart },
+    { href: "/proxies", label: t('navbar.proxies'), icon: ShoppingBag },
   ];
 
   const isActive = (href: string) => {

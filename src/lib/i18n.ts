@@ -9,6 +9,7 @@ export interface Translations {
     lifeCounter: string;
     timer: string;
     tournament: string;
+    proxies: string;
   };
 
   // Home page
@@ -222,6 +223,25 @@ export interface Translations {
     goToDeckBuilder: string;
   };
 
+  // Proxies (venta de proxies)
+  proxies: {
+    title: string;
+    subtitle: string;
+    freeShipping: string;
+    cardsCount: string;
+    customHint: string;
+    cubeHint: string;
+    examplesTitle: string;
+    socialTitle: string;
+    orderByDm: string;
+    orderCta: string;
+    orderArgentinaOnly: string;
+    promotions: Record<
+      string,
+      { title: string }
+    >;
+  };
+
   // Common
   common: {
     loading: string;
@@ -265,6 +285,7 @@ export interface Translations {
     constructor: string;
     game: string;
     tournaments: string;
+    proxies: string;
     copyright: string;
     clear: string;
     retry: string;
@@ -282,6 +303,7 @@ export const translations: Record<Language, Translations> = {
       lifeCounter: "Contador de Vida",
       timer: "Temporizador",
       tournament: "Torneo",
+      proxies: "Proxies",
     },
     home: {
       title: "MTG Premodern - Constructor de Mazos y Simulador de Juego",
@@ -516,6 +538,26 @@ export const translations: Record<Language, Translations> = {
       timeLimit: "Límite de tiempo",
       saveConfiguration: "Guardar Configuración",
     },
+    proxies: {
+      title: "Proxies de Cartas MTG",
+      subtitle: "Proxies de calidad para Premodern y otros formatos. Elige tu promoción.",
+      freeShipping: "Envío gratis",
+      cardsCount: "cartas",
+      customHint: "A elección (lista de cartas)",
+      cubeHint: "Cubo listo para draft",
+      examplesTitle: "Ejemplos de cartas",
+      socialTitle: "Síguenos",
+      orderByDm: "Para realizar tu pedido de proxies, escríbenos por DM en Instagram.",
+      orderCta: "Pedir por Instagram",
+      orderArgentinaOnly: "De momento los pedidos de proxies son solo para Argentina.",
+      promotions: {
+        "deck-75": { title: "Mazo de 75 cartas" },
+        "decks-2": { title: "2 mazos (150 cartas)" },
+        "decks-3": { title: "3 mazos (225 cartas)" },
+        "custom-100": { title: "Lote personalizado (100 cartas)" },
+        "cube-540": { title: "Cubo de 540 cartas" },
+      },
+    },
     common: {
       loading: "Cargando...",
       error: "Error",
@@ -558,6 +600,7 @@ export const translations: Record<Language, Translations> = {
       constructor: "Constructor",
       game: "Juego",
       tournaments: "Torneos",
+      proxies: "Proxies",
       copyright:
         "© 2025 MTG Premodern. Desarrollado para la comunidad de Magic: The Gathering.",
       clear: "Limpiar",
@@ -574,6 +617,7 @@ export const translations: Record<Language, Translations> = {
       lifeCounter: "Life Counter",
       timer: "Timer",
       tournament: "Tournament",
+      proxies: "Proxies",
     },
     home: {
       title: "MTG Premodern - Deck Builder and Game Simulator",
@@ -804,6 +848,26 @@ export const translations: Record<Language, Translations> = {
       timeLimit: "Time limit",
       saveConfiguration: "Save Configuration",
     },
+    proxies: {
+      title: "MTG Card Proxies",
+      subtitle: "Quality proxies for Premodern and other formats. Choose your promotion.",
+      freeShipping: "Free shipping",
+      cardsCount: "cards",
+      customHint: "Your choice (card list)",
+      cubeHint: "Ready-to-draft cube",
+      examplesTitle: "Card examples",
+      socialTitle: "Follow us",
+      orderByDm: "To place your proxy order, send us a DM on Instagram.",
+      orderCta: "Order via Instagram",
+      orderArgentinaOnly: "Proxy orders are currently only available for Argentina.",
+      promotions: {
+        "deck-75": { title: "75-card deck" },
+        "decks-2": { title: "2 decks (150 cards)" },
+        "decks-3": { title: "3 decks (225 cards)" },
+        "custom-100": { title: "Custom lot (100 cards)" },
+        "cube-540": { title: "540-card cube" },
+      },
+    },
     common: {
       loading: "Loading...",
       error: "Error",
@@ -846,6 +910,7 @@ export const translations: Record<Language, Translations> = {
       constructor: "Constructor",
       game: "Game",
       tournaments: "Tournaments",
+      proxies: "Proxies",
       copyright:
         "© 2025 MTG Premodern. Developed for the Magic: The Gathering community.",
       clear: "Clear",
