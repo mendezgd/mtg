@@ -785,50 +785,122 @@ const SwissTournamentManager = () => {
       }
     }
 
-    // Algoritmo suizo mejorado: emparejar por puntos similares
-    while (availablePlayers.length > 1) {
-      const player1 = availablePlayers.shift()!;
-      const player1Points = calculatePlayerPoints(player1.id);
-
-      // Buscar oponente con puntos similares que no haya enfrentado
-      let bestOpponentIndex = -1;
-      let bestOpponentScore = -1;
-
-      for (let i = 0; i < availablePlayers.length; i++) {
-        const potentialOpponent = availablePlayers[i];
-        const opponentPoints = calculatePlayerPoints(potentialOpponent.id);
-
-        // Verificar que no se hayan enfrentado antes
-        if (!player1.opponents.includes(potentialOpponent.id)) {
-          // Calcular score de compatibilidad (más alto = mejor emparejamiento)
-          const pointDifference = Math.abs(player1Points - opponentPoints);
-          const score = 1000 - pointDifference; // Priorizar emparejamientos con diferencia mínima de puntos
-
-          if (score > bestOpponentScore) {
-            bestOpponentScore = score;
-            bestOpponentIndex = i;
-          }
-        }
-      }
-
-      // Si no hay oponente válido, tomar el primero disponible
-      const opponentIndex = bestOpponentIndex !== -1 ? bestOpponentIndex : 0;
-      const opponent = availablePlayers.splice(opponentIndex, 1)[0];
-
-      newMatches.push({
-        id: `match-${nextRoundNumber}-${newMatches.length}`,
-        player1: player1.id,
-        player2: opponent.id,
-        completed: false,
-        games: {},
-        player1Wins: 0,
-        player2Wins: 0,
+    // Construir conjunto de emparejamientos previos (cualquiera de las rondas ya creadas)
+    const priorPairs = new Set<string>();
+    tournamentState.rounds.forEach((r) => {
+      r.matches.forEach((m) => {
+        if (!m.player1 || !m.player2) return;
+        const key = [m.player1, m.player2].sort().join("|");
+        priorPairs.add(key);
       });
+    });
+
+    // Generador de emparejamientos por backtracking que evita rematches cuando es posible.
+    const generateSwissPairings = (playersList: Player[]) : Match[] | null => {
+      const n = playersList.length;
+      const used = new Array<boolean>(n).fill(false);
+      const result: Match[] = [];
+
+      // Precompute points for determinism
+      const points = playersList.map((p) => calculatePlayerPoints(p.id));
+
+      const dfs = (): boolean => {
+        const i = used.findIndex((v) => !v);
+        if (i === -1) return true; // all paired
+
+        used[i] = true;
+        const p1 = playersList[i];
+
+        // build candidate indices (j>i) sorted by preference: same points, minimal point diff, lower seed
+        const candidates: number[] = [];
+        for (let j = i + 1; j < n; j++) if (!used[j]) candidates.push(j);
+
+        candidates.sort((a, b) => {
+          const sameA = points[a] === points[i] ? 0 : 1;
+          const sameB = points[b] === points[i] ? 0 : 1;
+          if (sameA !== sameB) return sameA - sameB;
+          const diffA = Math.abs(points[a] - points[i]);
+          const diffB = Math.abs(points[b] - points[i]);
+          if (diffA !== diffB) return diffA - diffB;
+          return playersList[a].seed - playersList[b].seed;
+        });
+
+        // First attempt: only opponents not faced before (using priorPairs)
+        for (const j of candidates) {
+          const p2 = playersList[j];
+          const pairKey = [p1.id, p2.id].sort().join("|");
+          if (priorPairs.has(pairKey)) continue;
+
+          used[j] = true;
+          result.push({
+            id: `match-${nextRoundNumber}-${newMatches.length + result.length}`,
+            player1: p1.id,
+            player2: p2.id,
+            completed: false,
+            games: {},
+            player1Wins: 0,
+            player2Wins: 0,
+          });
+
+          if (dfs()) return true;
+
+          // backtrack
+          used[j] = false;
+          result.pop();
+        }
+
+        // No second attempt: do not allow rematches from prior rounds.
+        used[i] = false;
+        return false;
+      };
+
+      const success = dfs();
+      return success ? result : null;
+    };
+
+    // Try to generate pairings for availablePlayers using backtracking
+    const pairings = generateSwissPairings(availablePlayers);
+    if (!pairings) {
+      alert("No es posible generar emparejamientos suizos sin repetir pairings previos. Usa emparejamiento manual para resolver conflictos.");
+      return;
     }
+
+    // Log pairings for debugging (points, rematch flag)
+    try {
+      console.debug(`Pairings for round ${nextRoundNumber}:`);
+      pairings.forEach((m) => {
+        const p1 = tournamentState.players.find((p) => p.id === m.player1);
+        const p2 = tournamentState.players.find((p) => p.id === m.player2);
+        const pairKey = [m.player1, m.player2].sort().join("|");
+        const rematch = pairKey && priorPairs.has(pairKey);
+        console.debug(`  ${p1?.name || m.player1} (${calculatePlayerPoints(m.player1)} pts) vs ${p2?.name || m.player2} (${calculatePlayerPoints(m.player2)} pts) rematch=${rematch}`);
+      });
+    } catch (e) {
+      /* ignore logging errors in environments without console */
+    }
+
+    newMatches.push(...pairings);
+
+    // Deduplicate matches (unordered pairs) as a safety net
+    const seen = new Set<string>();
+    const dedupedMatches: Match[] = [];
+    for (const m of newMatches) {
+      const a = m.player1 || "";
+      const b = m.player2 || "";
+      const key = [a, b].sort().join("|");
+      if (!seen.has(key)) {
+        seen.add(key);
+        dedupedMatches.push(m);
+      } else {
+        console.warn(`Duplicate pairing removed for round ${nextRoundNumber}: ${a} - ${b}`);
+      }
+    }
+    // Use deduped list
+    const finalMatches = dedupedMatches;
 
     const newRound = {
       number: nextRoundNumber,
-      matches: newMatches,
+      matches: finalMatches,
       timeLimit: 50,
       isActive: false,
     };
@@ -837,6 +909,117 @@ const SwissTournamentManager = () => {
       rounds: [...tournamentState.rounds, newRound],
       currentRound: nextRoundNumber,
     });
+  };
+
+  // Reconstruir estadísticas de jugadores a partir de las rondas proporcionadas
+  const recomputePlayersFromRounds = (rounds: Round[], players: Player[]) => {
+    const map = new Map<string, Player>();
+    // Inicializar jugadores con valores limpios pero preservando seed y name
+    players.forEach((p) =>
+      map.set(p.id, {
+        ...p,
+        wins: 0,
+        losses: 0,
+        points: 0,
+        opponents: [],
+        hasBye: false,
+      })
+    );
+
+    rounds.forEach((r) => {
+      r.matches.forEach((m) => {
+        // Bye
+        if (!m.player2 || m.player2 === "" || m.id.includes("-bye")) {
+          const pl = map.get(m.player1);
+          if (pl) {
+            pl.hasBye = true;
+            pl.wins = pl.wins + 1;
+            pl.points = pl.points + 3;
+          }
+          return;
+        }
+
+        // Solo considerar matches que se marcaron completados para efectos de estadísticas
+        if (!m.completed) return;
+
+        const p1 = map.get(m.player1);
+        const p2 = map.get(m.player2);
+        if (!p1 || !p2) return;
+
+        // Empate 1-1
+        if (m.player1Wins === 1 && m.player2Wins === 1 && m.winner === undefined) {
+          p1.wins = p1.wins + 0.5;
+          p2.wins = p2.wins + 0.5;
+          p1.points = p1.points + 1;
+          p2.points = p2.points + 1;
+          p1.opponents = [...p1.opponents, p2.id];
+          p2.opponents = [...p2.opponents, p1.id];
+          return;
+        }
+
+        // Si hay un winner explícito, usarlo
+        if (m.winner) {
+          const winner = map.get(m.winner);
+          const loser = m.winner === m.player1 ? map.get(m.player2) : map.get(m.player1);
+          if (winner) {
+            winner.wins = winner.wins + 1;
+            winner.points = winner.points + 3;
+          }
+          if (loser) {
+            loser.losses = loser.losses + 1;
+          }
+          // registrar oponentes
+          p1.opponents = [...p1.opponents, p2.id];
+          p2.opponents = [...p2.opponents, p1.id];
+          return;
+        }
+
+        // Fallback: inferir por player1Wins/player2Wins
+        if (m.player1Wins > m.player2Wins) {
+          p1.wins = p1.wins + 1;
+          p1.points = p1.points + 3;
+          p2.losses = p2.losses + 1;
+        } else if (m.player2Wins > m.player1Wins) {
+          p2.wins = p2.wins + 1;
+          p2.points = p2.points + 3;
+          p1.losses = p1.losses + 1;
+        }
+
+        p1.opponents = [...p1.opponents, p2.id];
+        p2.opponents = [...p2.opponents, p1.id];
+      });
+    });
+
+    return Array.from(map.values());
+  };
+
+  // Cancelar la última ronda creada (rollback de estadísticas)
+  const cancelLastRound = () => {
+    if (tournamentState.currentRound === 0) {
+      alert("No hay rondas para cancelar");
+      return;
+    }
+
+    const roundsCopy = [...tournamentState.rounds];
+    const removed = roundsCopy.pop();
+    if (!removed) {
+      alert("No se pudo cancelar la ronda");
+      return;
+    }
+
+    const newCurrent = Math.max(0, tournamentState.currentRound - 1);
+
+    // Reconstruir estadísticas a partir de las rondas restantes
+    const recomputed = recomputePlayersFromRounds(roundsCopy, tournamentState.players);
+
+    setTournamentState({
+      ...tournamentState,
+      rounds: roundsCopy,
+      currentRound: newCurrent,
+      players: recomputed,
+    });
+
+    alert(`Ronda ${removed.number} cancelada. Puedes regenerarla de nuevo.`);
   };
 
   // Funciones para emparejamientos manuales
@@ -2523,6 +2706,15 @@ const SwissTournamentManager = () => {
                   className="bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium text-sm sm:text-base"
                 >
                   🔄 Siguiente Ronda
+                </button>
+              )}
+
+              {tournamentState.currentRound > 0 && (
+                <button
+                  onClick={cancelLastRound}
+                  className="bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 transition-colors font-medium text-sm sm:text-base"
+                >
+                  ❌ Cancelar Última Ronda
                 </button>
               )}
 
