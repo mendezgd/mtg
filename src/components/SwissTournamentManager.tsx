@@ -542,31 +542,6 @@ const SwissTournamentManager = () => {
     }
   };
 
-  // Actualizar puntos de todos los jugadores
-  const updateAllPlayerPoints = () => {
-    const updatedPlayers = tournamentState.players.map((player) => ({
-      ...player,
-      points: calculatePlayerPoints(player.id),
-    }));
-    setTournamentState({
-      ...tournamentState,
-      players: updatedPlayers,
-    });
-  };
-
-  // Verificar si un jugador ya recibió bye en una ronda específica
-  const hasPlayerReceivedByeInRound = (
-    playerId: string,
-    roundNumber: number
-  ): boolean => {
-    const round = tournamentState.rounds.find((r) => r.number === roundNumber);
-    if (!round) return false;
-
-    return round.matches.some(
-      (match) => match.id.includes("-bye") && match.player1 === playerId
-    );
-  };
-
   // Calcular número de rondas basado en cantidad de jugadores
   const calculateTotalRounds = (playerCount: number): number => {
     if (playerCount < 4) return 0;
@@ -865,42 +840,11 @@ const SwissTournamentManager = () => {
       return;
     }
 
-    // Log pairings for debugging (points, rematch flag)
-    try {
-      console.debug(`Pairings for round ${nextRoundNumber}:`);
-      pairings.forEach((m) => {
-        const p1 = tournamentState.players.find((p) => p.id === m.player1);
-        const p2 = tournamentState.players.find((p) => p.id === m.player2);
-        const pairKey = [m.player1, m.player2].sort().join("|");
-        const rematch = pairKey && priorPairs.has(pairKey);
-        console.debug(`  ${p1?.name || m.player1} (${calculatePlayerPoints(m.player1)} pts) vs ${p2?.name || m.player2} (${calculatePlayerPoints(m.player2)} pts) rematch=${rematch}`);
-      });
-    } catch (e) {
-      /* ignore logging errors in environments without console */
-    }
-
     newMatches.push(...pairings);
-
-    // Deduplicate matches (unordered pairs) as a safety net
-    const seen = new Set<string>();
-    const dedupedMatches: Match[] = [];
-    for (const m of newMatches) {
-      const a = m.player1 || "";
-      const b = m.player2 || "";
-      const key = [a, b].sort().join("|");
-      if (!seen.has(key)) {
-        seen.add(key);
-        dedupedMatches.push(m);
-      } else {
-        console.warn(`Duplicate pairing removed for round ${nextRoundNumber}: ${a} - ${b}`);
-      }
-    }
-    // Use deduped list
-    const finalMatches = dedupedMatches;
 
     const newRound = {
       number: nextRoundNumber,
-      matches: finalMatches,
+      matches: newMatches,
       timeLimit: 50,
       isActive: false,
     };
@@ -1788,70 +1732,29 @@ const SwissTournamentManager = () => {
             </tbody>
         </table>
     </div>`;
-      } else {
-        // Si no hay matches completados, mostrar estadísticas adicionales
-        const totalMatches = tournamentState.rounds.reduce(
-          (total, round) =>
-            total + round.matches.filter((match) => match.completed).length,
-          0
-        );
-        const totalGames = tournamentState.rounds.reduce(
-          (total, round) =>
-            total +
-            round.matches.reduce(
-              (roundTotal, match) =>
-                roundTotal + (match.player1Wins + match.player2Wins),
-              0
-            ),
-          0
-        );
-        const avgGames =
-          totalMatches > 0 ? (totalGames / totalMatches).toFixed(1) : "0";
-
-        htmlContent += `
-            </tbody>
-        </table>
-    </div>
-
-    <div class="section">
-        <h2>📊 ESTADÍSTICAS ADICIONALES</h2>
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-value">${totalMatches}</div>
-                <div class="stat-label">Total de Partidas Jugadas</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">${totalGames}</div>
-                <div class="stat-label">Total de Games Jugados</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">${avgGames}</div>
-                <div class="stat-label">Promedio de Games por Partida</div>
-            </div>
-        </div>
-    </div>`;
       }
-    } else {
-      // Si no hay playoff, mostrar estadísticas adicionales
-      const totalMatches = tournamentState.rounds.reduce(
-        (total, round) =>
-          total + round.matches.filter((match) => match.completed).length,
-        0
-      );
-      const totalGames = tournamentState.rounds.reduce(
-        (total, round) =>
-          total +
-          round.matches.reduce(
-            (roundTotal, match) =>
-              roundTotal + (match.player1Wins + match.player2Wins),
-            0
-          ),
-        0
-      );
-      const avgGames =
-        totalMatches > 0 ? (totalGames / totalMatches).toFixed(1) : "0";
+    }
 
-      htmlContent += `
+    // Estadísticas adicionales del torneo (aplica para todos los casos)
+    const totalMatches = tournamentState.rounds.reduce(
+      (total, round) =>
+        total + round.matches.filter((match) => match.completed).length,
+      0
+    );
+    const totalGames = tournamentState.rounds.reduce(
+      (total, round) =>
+        total +
+        round.matches.reduce(
+          (roundTotal, match) =>
+            roundTotal + (match.player1Wins + match.player2Wins),
+          0
+        ),
+      0
+    );
+    const avgGames =
+      totalMatches > 0 ? (totalGames / totalMatches).toFixed(1) : "0";
+
+    htmlContent += `
             </tbody>
         </table>
     </div>
@@ -1873,7 +1776,6 @@ const SwissTournamentManager = () => {
             </div>
         </div>
     </div>`;
-    }
 
     htmlContent += `
 </body>
